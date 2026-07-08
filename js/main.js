@@ -112,7 +112,6 @@ function initNodeNetwork() {
 
     let nodes = [];
     let w = 0, h = 0;
-    let isVisible = true;
     let pageVisible = !document.hidden;
 
     function resize() {
@@ -232,18 +231,12 @@ function initNodeNetwork() {
       return;
     }
 
-    const section = canvas.closest("section") || canvas.parentElement;
-    new IntersectionObserver(
-      (entries) => { isVisible = entries[0].isIntersecting; },
-      { rootMargin: "60px" }
-    ).observe(section);
-
     document.addEventListener("visibilitychange", () => {
       pageVisible = !document.hidden;
     });
 
     gsap.ticker.add(() => {
-      if (!isVisible || !pageVisible) return;
+      if (!pageVisible) return;
       stepNodes();
       drawFrame();
     });
@@ -455,25 +448,25 @@ gsap.utils.toArray("[data-stagger-grid]").forEach((grid) => {
   });
 });
 
-// ---------- Avatar demo: click-to-play ----------
+// ---------- Avatar demo: autoplay muted while in view ----------
 (function initAvatarPlayer() {
   const video = document.getElementById("avatar-video");
-  const btn = document.querySelector(".avatar-play-btn");
-  if (!video || !btn) return;
+  if (!video) return;
 
-  // Hide native controls until playback starts, so the overlay owns the frame
-  video.controls = false;
+  if (prefersReducedMotion) return; // user opts out of auto-motion; controls remain
 
-  btn.addEventListener("click", () => {
-    btn.classList.add("is-hidden");
-    video.controls = true;
-    video.play();
-  });
-
-  video.addEventListener("ended", () => {
-    btn.classList.remove("is-hidden");
-    video.controls = false;
-  });
+  new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    },
+    { threshold: 0.35 }
+  ).observe(video);
 })();
 
 // ---------- Contact form (Formspree, progressive enhancement) ----------

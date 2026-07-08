@@ -18,10 +18,15 @@
 
   <div class="progress-bar" id="progress-bar"></div>
 
+  <!-- Full-page cursor-reactive network, behind everything -->
+  <div class="site-bg" aria-hidden="true">
+    <canvas class="node-network" data-density="1" data-max-distance="130" data-repel-radius="170"></canvas>
+  </div>
+
   <header class="site-header">
     <a href="#top" class="logo" data-cursor="hover">
       <img src="assets/brand/icon-mark-256.png" alt="" class="logo-mark" />
-      <span class="logo-text">Zenith<em>Intelligence</em></span>
+      <img src="assets/brand/wordmark.png" alt="Zenith Intelligence" class="logo-wordmark" />
     </a>
     <nav class="nav">
       <a href="#services" data-cursor="hover">Services</a>
@@ -35,9 +40,6 @@
 
     <!-- HERO -->
     <section class="hero">
-      <div class="hero-canvas-layer">
-        <canvas class="node-network" data-density="1" data-max-distance="130" data-repel-radius="160"></canvas>
-      </div>
       <div class="hero-inner">
         <p class="eyebrow" data-reveal>AI Automation Studio · Nairobi, Kenya</p>
         <h1 class="hero-title">
@@ -60,11 +62,16 @@
       </div>
     </section>
 
-    <!-- LOGO SCROLL-SCRUB -->
+    <!-- LOGO SCROLL-SCRUB: glowing logo video full-bleed behind text -->
     <section class="logo-scrub" id="logo-scrub">
       <div class="logo-scrub-pin">
-        <video id="logo-video" src="assets/brand/logo-animation.mp4" muted playsinline preload="auto" aria-label="Zenith Intelligence animated logo"></video>
-        <p class="logo-scrub-hint">Keep scrolling — the logo moves with you.</p>
+        <video id="logo-video" class="logo-scrub-video" src="assets/brand/logo-animation.mp4" muted playsinline preload="auto" aria-hidden="true"></video>
+        <div class="logo-scrub-shade"></div>
+        <div class="logo-scrub-content">
+          <p class="eyebrow">Zenith Intelligence</p>
+          <h2 class="logo-scrub-title">The peak of<br />intelligent automation.</h2>
+          <p class="logo-scrub-hint">Keep scrolling — the glow moves with you</p>
+        </div>
       </div>
     </section>
 
@@ -160,11 +167,7 @@
       </div>
       <div class="avatar-media" data-reveal>
         <div class="avatar-video-frame">
-          <video id="avatar-video" src="assets/video/avatar-demo.mp4" preload="none" playsinline controls aria-label="AI avatar demo video"></video>
-          <button class="avatar-play-btn magnetic" data-cursor="hover" aria-label="Play avatar demo">
-            <span class="play-icon"></span>
-            <span class="play-label">Watch a real avatar</span>
-          </button>
+          <video id="avatar-video" src="assets/video/avatar-demo.mp4" preload="metadata" playsinline muted loop controls aria-label="AI avatar demo video"></video>
         </div>
       </div>
     </section>
