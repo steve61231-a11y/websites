@@ -129,13 +129,17 @@ function initNodeNetwork() {
       const count = Math.round(
         Math.min(110, Math.max(40, (w * h) / 12000)) * density * mobileFactor
       );
-      nodes = Array.from({ length: count }, () => ({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.3,
-        vy: (Math.random() - 0.5) * 0.3,
-        r: 1.2 + Math.random() * 1.6,
-      }));
+      nodes = Array.from({ length: count }, () => {
+        const x = Math.random() * w;
+        const y = Math.random() * h;
+        return {
+          x, y,
+          hx: x, hy: y, // home position — nodes drift back here after being repelled
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          r: 1.2 + Math.random() * 1.6,
+        };
+      });
     }
 
     function stepNodes() {
@@ -159,15 +163,15 @@ function initNodeNetwork() {
           }
         }
 
+        // Gentle spring back toward home so repelled nodes slowly reform
+        // instead of leaving a permanent blank space behind the cursor
+        n.vx += (n.hx - n.x) * 0.004;
+        n.vy += (n.hy - n.y) * 0.004;
+
         n.vx *= 0.95;
         n.vy *= 0.95;
         n.x += n.vx;
         n.y += n.vy;
-
-        if (n.x < 0) n.x += w;
-        if (n.x > w) n.x -= w;
-        if (n.y < 0) n.y += h;
-        if (n.y > h) n.y -= h;
       }
     }
 
@@ -267,7 +271,7 @@ function initLogoScrub() {
   ScrollTrigger.create({
     trigger: ".logo-scrub",
     start: "top top",
-    end: "+=1600",
+    end: "+=800",
     pin: ".logo-scrub-pin",
     scrub: true,
     onUpdate: (self) => {
