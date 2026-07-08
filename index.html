@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Motion Starter — Scroll & Cursor Animation Template</title>
-<meta name="description" content="A no-build starter template with GSAP ScrollTrigger, Lenis smooth scroll, custom cursor tracking, magnetic buttons, parallax, and pinned horizontal scroll." />
+<title>Zenith Intelligence — AI Automation Studio, Nairobi</title>
+<meta name="description" content="Zenith Intelligence builds AI automation, chatbots, and hyper-realistic AI avatars for businesses in Kenya and beyond — and trains teams to master prompt engineering." />
+<link rel="icon" type="image/png" href="assets/brand/favicon-64.png" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -18,10 +19,14 @@
   <div class="progress-bar" id="progress-bar"></div>
 
   <header class="site-header">
-    <a href="#top" class="logo" data-cursor="hover">Motion<span>.</span></a>
+    <a href="#top" class="logo" data-cursor="hover">
+      <img src="assets/brand/icon-mark-256.png" alt="" class="logo-mark" />
+      <span class="logo-text">Zenith<em>Intelligence</em></span>
+    </a>
     <nav class="nav">
-      <a href="#work" data-cursor="hover">Work</a>
-      <a href="#features" data-cursor="hover">Features</a>
+      <a href="#services" data-cursor="hover">Services</a>
+      <a href="#avatars" data-cursor="hover">Avatars</a>
+      <a href="#team" data-cursor="hover">Team</a>
       <a href="#contact" data-cursor="hover">Contact</a>
     </nav>
   </header>
@@ -30,18 +35,23 @@
 
     <!-- HERO -->
     <section class="hero">
+      <div class="hero-canvas-layer">
+        <canvas class="node-network" data-density="1" data-max-distance="130" data-repel-radius="160"></canvas>
+      </div>
       <div class="hero-inner">
-        <p class="eyebrow" data-reveal>Scroll-driven website starter</p>
+        <p class="eyebrow" data-reveal>AI Automation Studio · Nairobi, Kenya</p>
         <h1 class="hero-title">
-          <span class="line" data-split>Motion that</span>
-          <span class="line" data-split>feels alive.</span>
+          <span class="line" data-split>Intelligence,</span>
+          <span class="line" data-split>engineered for</span>
+          <span class="line" data-split>your business.</span>
         </h1>
         <p class="hero-sub" data-reveal>
-          A no-build starter kit wired up with GSAP + ScrollTrigger, Lenis smooth scroll,
-          a magnetic cursor, and pinned scroll sections — ready to restyle for your project.
+          We automate your busywork, build chatbots that actually help, craft AI avatars
+          indistinguishable from the real person — and train your team to master it all.
         </p>
         <div class="hero-cta" data-reveal>
-          <a href="#work" class="btn magnetic" data-cursor="hover"><span>See it scroll</span></a>
+          <a href="#contact" class="btn magnetic" data-cursor="hover"><span>Work with us</span></a>
+          <a href="#services" class="btn btn-ghost magnetic" data-cursor="hover"><span>Explore services</span></a>
         </div>
       </div>
       <div class="scroll-cue" data-cursor="hover">
@@ -50,119 +60,271 @@
       </div>
     </section>
 
+    <!-- LOGO SCROLL-SCRUB -->
+    <section class="logo-scrub" id="logo-scrub">
+      <div class="logo-scrub-pin">
+        <video id="logo-video" src="assets/brand/logo-animation.mp4" muted playsinline preload="auto" aria-label="Zenith Intelligence animated logo"></video>
+        <p class="logo-scrub-hint">Keep scrolling — the logo moves with you.</p>
+      </div>
+    </section>
+
     <!-- MARQUEE -->
     <section class="marquee-band">
       <div class="marquee" id="marquee">
         <div class="marquee-track">
-          <span>Scroll Animation</span><span>&mdash;</span>
-          <span>Cursor Tracking</span><span>&mdash;</span>
-          <span>Parallax</span><span>&mdash;</span>
-          <span>Pinned Sections</span><span>&mdash;</span>
-          <span>Magnetic Buttons</span><span>&mdash;</span>
+          <span>AI Automation</span><span>&mdash;</span>
+          <span>Prompt Engineering Training</span><span>&mdash;</span>
+          <span>Workflow Automation</span><span>&mdash;</span>
+          <span>Chatbot Development</span><span>&mdash;</span>
+          <span>AI Avatars</span><span>&mdash;</span>
+          <span>Nairobi, Kenya</span><span>&mdash;</span>
         </div>
         <div class="marquee-track" aria-hidden="true">
-          <span>Scroll Animation</span><span>&mdash;</span>
-          <span>Cursor Tracking</span><span>&mdash;</span>
-          <span>Parallax</span><span>&mdash;</span>
-          <span>Pinned Sections</span><span>&mdash;</span>
-          <span>Magnetic Buttons</span><span>&mdash;</span>
+          <span>AI Automation</span><span>&mdash;</span>
+          <span>Prompt Engineering Training</span><span>&mdash;</span>
+          <span>Workflow Automation</span><span>&mdash;</span>
+          <span>Chatbot Development</span><span>&mdash;</span>
+          <span>AI Avatars</span><span>&mdash;</span>
+          <span>Nairobi, Kenya</span><span>&mdash;</span>
         </div>
       </div>
     </section>
 
-    <!-- ABOUT / PINNED REVEAL -->
-    <section class="about">
-      <div class="about-pin">
-        <p class="about-text">
-          <span data-word>This</span> <span data-word>whole</span> <span data-word>paragraph</span>
-          <span data-word>lights</span> <span data-word>up</span> <span data-word>word</span>
-          <span data-word>by</span> <span data-word>word</span> <span data-word>as</span>
-          <span data-word>you</span> <span data-word>scroll</span> <span data-word>through</span>
-          <span data-word>it,</span> <span data-word>pinned</span> <span data-word>to</span>
-          <span data-word>the</span> <span data-word>screen</span> <span data-word>until</span>
-          <span data-word>every</span> <span data-word>word</span> <span data-word>has</span>
-          <span data-word>had</span> <span data-word>its</span> <span data-word>moment.</span>
+    <!-- MANIFESTO / PINNED WORD REVEAL -->
+    <section class="manifesto">
+      <div class="manifesto-pin">
+        <p class="manifesto-text">
+          <span data-word>We</span> <span data-word>help</span> <span data-word>ambitious</span>
+          <span data-word>businesses</span> <span data-word>move</span> <span data-word>faster</span>
+          <span data-word>with</span> <span data-word>AI</span> <span data-word>&mdash;</span>
+          <span data-word>automating</span> <span data-word>the</span> <span data-word>busywork,</span>
+          <span data-word>training</span> <span data-word>teams</span> <span data-word>to</span>
+          <span data-word>prompt</span> <span data-word>like</span> <span data-word>pros,</span>
+          <span data-word>and</span> <span data-word>building</span> <span data-word>avatars</span>
+          <span data-word>that</span> <span data-word>feel</span> <span data-word>unmistakably</span>
+          <span data-word>human.</span>
         </p>
       </div>
     </section>
 
-    <!-- HORIZONTAL PINNED GALLERY -->
-    <section class="work" id="work">
-      <h2 class="section-title" data-reveal>Selected Work</h2>
+    <!-- SERVICES / HORIZONTAL PINNED GALLERY -->
+    <section class="work" id="services">
+      <h2 class="section-title" data-reveal>What we do</h2>
       <div class="horizontal-track" id="horizontal-track">
         <div class="panel" data-speed="0.9">
           <div class="panel-card">
             <span class="panel-index">01</span>
-            <h3>Parallax Layers</h3>
-            <p>Backgrounds drift slower than foreground content as you scroll.</p>
+            <h3>AI Training &amp; Certification</h3>
+            <p>Hands-on AI automation and prompt-engineering training — your team graduates with a real Zenith Intelligence certificate.</p>
           </div>
         </div>
         <div class="panel" data-speed="1.1">
           <div class="panel-card panel-alt">
             <span class="panel-index">02</span>
-            <h3>Pinned Sections</h3>
-            <p>The section locks in place while its content plays out.</p>
+            <h3>Workflow Automation</h3>
+            <p>Make.com pipelines that connect your tools and quietly do the repetitive work while you sleep.</p>
           </div>
         </div>
         <div class="panel" data-speed="0.85">
           <div class="panel-card">
             <span class="panel-index">03</span>
-            <h3>Magnetic UI</h3>
-            <p>Buttons pull toward the cursor when it gets close.</p>
+            <h3>Chatbot Development</h3>
+            <p>Real-world chatbots for sales and support — trained on your business, speaking your customers' language.</p>
           </div>
         </div>
         <div class="panel" data-speed="1.15">
-          <div class="panel-card panel-alt">
+          <div class="panel-card panel-gold">
+            <span class="panel-badge">Flagship</span>
             <span class="panel-index">04</span>
-            <h3>Custom Cursor</h3>
-            <p>A ring and dot trail the pointer with eased motion.</p>
+            <h3>AI Avatars</h3>
+            <p>Hyper-realistic digital versions of you — so lifelike our clients can't tell themselves apart from them.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- FEATURES GRID -->
-    <section class="features" id="features">
-      <h2 class="section-title" data-reveal>What's wired up</h2>
-      <div class="feature-grid">
-        <article class="feature-card" data-reveal>
-          <h3>Lenis smooth scroll</h3>
-          <p>Buttery, inertia-based scrolling synced to GSAP's ticker for frame-perfect timing.</p>
-        </article>
-        <article class="feature-card" data-reveal>
-          <h3>ScrollTrigger reveals</h3>
-          <p>Fade, stagger, and pin animations that fire as elements enter the viewport.</p>
-        </article>
-        <article class="feature-card" data-reveal>
-          <h3>Cursor tracking</h3>
-          <p>An eased custom cursor that scales and morphs over interactive elements.</p>
-        </article>
-        <article class="feature-card" data-reveal>
-          <h3>Magnetic buttons</h3>
-          <p>Interactive elements pull toward the pointer within a small radius.</p>
-        </article>
-        <article class="feature-card" data-reveal>
-          <h3>Parallax depth</h3>
-          <p>Layered elements move at different speeds via a simple data-speed attribute.</p>
-        </article>
-        <article class="feature-card" data-reveal>
-          <h3>Reduced-motion aware</h3>
-          <p>Respects prefers-reduced-motion and disables the custom cursor on touch devices.</p>
-        </article>
+    <!-- AVATAR SHOWCASE -->
+    <section class="avatar-showcase" id="avatars">
+      <div class="avatar-copy">
+        <p class="eyebrow" data-reveal>Flagship — AI Avatars</p>
+        <h2 class="section-heading" data-reveal>So real, even our clients<br />do a double take.</h2>
+        <p class="avatar-lead" data-reveal>
+          We build digital avatars from a short recording of you — your face, your voice,
+          your mannerisms. Use them for marketing videos, training content, or customer
+          messages in any language, without ever setting foot in a studio.
+        </p>
+        <blockquote class="avatar-quote" data-reveal>
+          &ldquo;Super Avatar&hellip; I would not know if it was not me.&rdquo;
+          <cite>— an actual client, reacting to their own avatar</cite>
+        </blockquote>
+      </div>
+      <div class="avatar-media" data-reveal>
+        <div class="avatar-video-frame">
+          <video id="avatar-video" src="assets/video/avatar-demo.mp4" preload="none" playsinline controls aria-label="AI avatar demo video"></video>
+          <button class="avatar-play-btn magnetic" data-cursor="hover" aria-label="Play avatar demo">
+            <span class="play-icon"></span>
+            <span class="play-label">Watch a real avatar</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CREDIBILITY / CERTIFICATE -->
+    <section class="credibility" id="credibility">
+      <div class="cred-copy">
+        <p class="eyebrow" data-reveal>Proof, not promises</p>
+        <h2 class="section-heading" data-reveal>We don't just use AI.<br />We teach it.</h2>
+        <p data-reveal>
+          Graduates of our AI Automation &amp; Prompt Engineering Skills Training walk away
+          with practical skills — and a certificate to show for it. Every certificate carries
+          a QR code linking to the student's real portfolio of completed projects.
+        </p>
+        <div class="cred-chips" data-stagger-grid>
+          <span class="cred-chip" data-stagger-item>AI systems thinking</span>
+          <span class="cred-chip" data-stagger-item>Prompt engineering</span>
+          <span class="cred-chip" data-stagger-item>Make.com automation</span>
+          <span class="cred-chip" data-stagger-item>Chatbot development</span>
+          <span class="cred-chip" data-stagger-item>Digital productivity</span>
+        </div>
+      </div>
+      <div class="cred-media" data-reveal>
+        <img src="assets/certificates/certificate.jpg" alt="Zenith Intelligence Certificate of Achievement, awarded for AI Automation and Prompt Engineering Skills Training" loading="lazy" decoding="async" />
+      </div>
+    </section>
+
+    <!-- TEAM / ASSEMBLING PHOTOS -->
+    <section class="team" id="team">
+      <div class="team-assembly">
+        <h2 class="section-title team-title">The founders</h2>
+        <div class="team-grid">
+          <article class="team-card" data-from="left" data-rotate="-12">
+            <div class="team-photo">
+              <img src="assets/team/steven-muchendu.jpg" alt="Steven Muchendu, CEO of Zenith Intelligence" loading="lazy" decoding="async" />
+            </div>
+            <h3>Steven Muchendu</h3>
+            <p class="team-role">CEO</p>
+            <p class="team-bio">Sets the vision and keeps every project honest — from the first strategy call to the final handover.</p>
+          </article>
+          <article class="team-card" data-from="top" data-rotate="8">
+            <div class="team-photo">
+              <img src="assets/team/james-kungu.jpg" alt="James Kung'u, CTO of Zenith Intelligence" loading="lazy" decoding="async" />
+            </div>
+            <h3>James Kung'u</h3>
+            <p class="team-role">CTO</p>
+            <p class="team-bio">Builds the systems behind the magic — automations, chatbots, and the avatar pipeline.</p>
+          </article>
+          <article class="team-card" data-from="right" data-rotate="12">
+            <div class="team-photo">
+              <img src="assets/team/ivan.jpg" alt="Ivan, Head of Sales and Growth at Zenith Intelligence" loading="lazy" decoding="async" />
+            </div>
+            <h3>Ivan</h3>
+            <p class="team-role">Head of Sales &amp; Growth</p>
+            <p class="team-bio">Owns the growth engine — social media, outreach, and making sure the right businesses find us.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="testimonials" id="testimonials">
+      <h2 class="section-title" data-reveal>Word on the street</h2>
+      <div class="testimonial-grid" data-stagger-grid>
+        <figure class="testimonial-bubble" data-stagger-item>
+          <blockquote>Asante sana for the good work <span class="testimonial-translate">(&ldquo;thank you very much&rdquo;)</span></blockquote>
+          <figcaption>AI Automation Client</figcaption>
+        </figure>
+        <figure class="testimonial-bubble" data-stagger-item>
+          <blockquote>Super Avatar&hellip; I would not know if it was not me.</blockquote>
+          <figcaption>AI Avatar Client</figcaption>
+        </figure>
+        <figure class="testimonial-bubble" data-stagger-item>
+          <blockquote>You've come up with something very fantastic 👏</blockquote>
+          <div class="testimonial-reply">Thanks, that's the standard.</div>
+          <figcaption>Phares Iris School</figcaption>
+        </figure>
+        <figure class="testimonial-bubble" data-stagger-item>
+          <blockquote>It's been really good working with Zenith Intelligence. Communication has been smooth, ideas are practical, and the support has been consistent. I appreciate the effort and professionalism.</blockquote>
+          <div class="testimonial-reply">Appreciate it. We give it our best.</div>
+          <figcaption>Ongoing Client Partner</figcaption>
+        </figure>
       </div>
     </section>
 
     <!-- CTA -->
-    <section class="cta" id="contact">
-      <h2 data-reveal>Ready to make it yours.</h2>
-      <p data-reveal>Swap the copy, colors and sections — the motion system underneath just works.</p>
-      <a href="#top" class="btn btn-large magnetic" data-cursor="hover"><span>Back to top</span></a>
+    <section class="cta">
+      <h2 data-reveal>Let's build something intelligent.</h2>
+      <p data-reveal>Tell us what's eating your team's time — we'll show you what AI can take off your plate.</p>
+      <a href="#contact" class="btn btn-large magnetic" data-cursor="hover"><span>Start a conversation</span></a>
+    </section>
+
+    <!-- CONTACT -->
+    <section class="contact" id="contact">
+      <div class="contact-copy">
+        <p class="eyebrow" data-reveal>Contact</p>
+        <h2 class="section-heading" data-reveal>Talk to us.</h2>
+        <p data-reveal>Tell us about your business and what you'd like to automate, build, or learn. We usually reply within a day.</p>
+        <a href="mailto:zenithkenya.qrs@gmail.com" class="contact-email magnetic" data-cursor="hover">zenithkenya.qrs@gmail.com</a>
+      </div>
+      <!-- IMPORTANT: replace YOUR_FORM_ID with your real Formspree form ID
+           (create a free form at https://formspree.io using zenithkenya.qrs@gmail.com,
+           then confirm the verification email). The form will not deliver until then. -->
+      <form class="contact-form" id="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" data-reveal>
+        <input type="text" name="_gotcha" class="gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <input type="hidden" name="_subject" value="New inquiry from zenith-intelligence website" />
+        <div class="form-row">
+          <label>
+            <span>Name *</span>
+            <input type="text" name="name" required autocomplete="name" />
+          </label>
+          <label>
+            <span>Email *</span>
+            <input type="email" name="email" required autocomplete="email" />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            <span>Company</span>
+            <input type="text" name="company" autocomplete="organization" />
+          </label>
+          <label>
+            <span>What do you need?</span>
+            <select name="service">
+              <option>AI Automation</option>
+              <option>Workflow Automation (Make.com)</option>
+              <option>Chatbot Development</option>
+              <option>AI Avatars</option>
+              <option>Training &amp; Certification</option>
+              <option>Something else</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          <span>Message *</span>
+          <textarea name="message" rows="5" required placeholder="What would you like to build or automate?"></textarea>
+        </label>
+        <button type="submit" class="btn magnetic" data-cursor="hover"><span>Send message</span></button>
+        <p class="form-status" role="status" aria-live="polite"></p>
+      </form>
     </section>
 
   </main>
 
   <footer class="site-footer">
-    <p>Built with GSAP, ScrollTrigger &amp; Lenis.</p>
+    <div class="footer-brand">
+      <img src="assets/brand/icon-mark-256.png" alt="" class="footer-mark" />
+      <img src="assets/brand/wordmark.png" alt="Zenith Intelligence" class="footer-wordmark" />
+    </div>
+    <div class="footer-meta">
+      <a href="mailto:zenithkenya.qrs@gmail.com" data-cursor="hover">zenithkenya.qrs@gmail.com</a>
+      <span>Nairobi, Kenya</span>
+      <span>&copy; 2026 Zenith Intelligence</span>
+    </div>
+    <nav class="footer-nav">
+      <a href="#services" data-cursor="hover">Services</a>
+      <a href="#avatars" data-cursor="hover">Avatars</a>
+      <a href="#team" data-cursor="hover">Team</a>
+      <a href="#contact" data-cursor="hover">Contact</a>
+    </nav>
   </footer>
 
   <!-- GSAP + ScrollTrigger (vendored, v3.14.1) -->

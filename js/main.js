@@ -1,12 +1,16 @@
 // ---------------------------------------------------------------
-// Motion starter: Lenis smooth scroll + GSAP ScrollTrigger
-// + custom cursor + magnetic buttons + parallax + pinned sections
+// Zenith Intelligence — motion system
+// Lenis smooth scroll + GSAP ScrollTrigger + custom cursor +
+// neural-network canvas + scroll-scrubbed video + assembling team
 // ---------------------------------------------------------------
 
 const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const isTouch = window.matchMedia("(hover: none)").matches;
 
 gsap.registerPlugin(ScrollTrigger);
+
+// Shared pointer state — written by the cursor block, read by the node network
+const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2, active: false };
 
 // ---------- Lenis smooth scroll ----------
 let lenis;
@@ -43,23 +47,28 @@ if (!isTouch && cursor) {
   const dot = cursor.querySelector(".cursor-dot");
   const ring = cursor.querySelector(".cursor-ring");
 
-  let mouseX = window.innerWidth / 2;
-  let mouseY = window.innerHeight / 2;
-  let ringX = mouseX;
-  let ringY = mouseY;
+  let ringX = pointer.x;
+  let ringY = pointer.y;
 
   window.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    gsap.set(dot, { x: mouseX, y: mouseY });
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+    pointer.active = true;
+    gsap.set(dot, { x: pointer.x, y: pointer.y });
   });
 
-  window.addEventListener("mouseleave", () => cursor.classList.add("is-hidden"));
-  window.addEventListener("mouseenter", () => cursor.classList.remove("is-hidden"));
+  window.addEventListener("mouseleave", () => {
+    pointer.active = false;
+    cursor.classList.add("is-hidden");
+  });
+  window.addEventListener("mouseenter", () => {
+    pointer.active = true;
+    cursor.classList.remove("is-hidden");
+  });
 
   gsap.ticker.add(() => {
-    ringX += (mouseX - ringX) * 0.18;
-    ringY += (mouseY - ringY) * 0.18;
+    ringX += (pointer.x - ringX) * 0.18;
+    ringY += (pointer.y - ringY) * 0.18;
     gsap.set(ring, { x: ringX, y: ringY });
   });
 
@@ -91,6 +100,198 @@ if (!isTouch) {
     });
   });
 }
+
+// ---------- Neural-network canvas (cursor tracking) ----------
+function initNodeNetwork() {
+  document.querySelectorAll(".node-network").forEach((canvas) => {
+    const ctx = canvas.getContext("2d");
+    const density = parseFloat(canvas.dataset.density) || 1;
+    const maxDist = parseFloat(canvas.dataset.maxDistance) || 130;
+    const repelRadius = parseFloat(canvas.dataset.repelRadius) || 160;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    let nodes = [];
+    let w = 0, h = 0;
+    let isVisible = true;
+    let pageVisible = !document.hidden;
+
+    function resize() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      w = rect.width;
+      h = rect.height;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      createNodes();
+    }
+
+    function createNodes() {
+      const mobileFactor = window.innerWidth < 700 ? 0.5 : 1;
+      const count = Math.round(
+        Math.min(110, Math.max(40, (w * h) / 12000)) * density * mobileFactor
+      );
+      nodes = Array.from({ length: count }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        r: 1.2 + Math.random() * 1.6,
+      }));
+    }
+
+    function stepNodes() {
+      const rect = canvas.getBoundingClientRect();
+      const px = pointer.x - rect.left;
+      const py = pointer.y - rect.top;
+      const repel = !isTouch && pointer.active;
+
+      for (const n of nodes) {
+        n.vx += (Math.random() - 0.5) * 0.04;
+        n.vy += (Math.random() - 0.5) * 0.04;
+
+        if (repel) {
+          const dx = n.x - px;
+          const dy = n.y - py;
+          const d = Math.hypot(dx, dy);
+          if (d < repelRadius && d > 0.001) {
+            const force = ((repelRadius - d) / repelRadius) * 0.35;
+            n.vx += (dx / d) * force;
+            n.vy += (dy / d) * force;
+          }
+        }
+
+        n.vx *= 0.95;
+        n.vy *= 0.95;
+        n.x += n.vx;
+        n.y += n.vy;
+
+        if (n.x < 0) n.x += w;
+        if (n.x > w) n.x -= w;
+        if (n.y < 0) n.y += h;
+        if (n.y > h) n.y -= h;
+      }
+    }
+
+    function drawFrame() {
+      ctx.clearRect(0, 0, w, h);
+      const rect = canvas.getBoundingClientRect();
+      const px = pointer.x - rect.left;
+      const py = pointer.y - rect.top;
+      const glow = !isTouch && pointer.active;
+
+      // Cursor glow blob
+      if (glow && px > -100 && px < w + 100 && py > -100 && py < h + 100) {
+        const grad = ctx.createRadialGradient(px, py, 0, px, py, 180);
+        grad.addColorStop(0, "rgba(61, 109, 255, 0.14)");
+        grad.addColorStop(1, "rgba(61, 109, 255, 0)");
+        ctx.fillStyle = grad;
+        ctx.fillRect(px - 180, py - 180, 360, 360);
+      }
+
+      // Lines
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d = Math.hypot(dx, dy);
+          if (d < maxDist) {
+            let alpha = (1 - d / maxDist) * 0.22;
+            if (glow) {
+              const mid = Math.hypot((a.x + b.x) / 2 - px, (a.y + b.y) / 2 - py);
+              if (mid < repelRadius) alpha += (1 - mid / repelRadius) * 0.35;
+            }
+            ctx.strokeStyle = `rgba(111, 143, 255, ${alpha})`;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Nodes
+      for (const n of nodes) {
+        let alpha = 0.5;
+        if (glow) {
+          const d = Math.hypot(n.x - px, n.y - py);
+          if (d < repelRadius) alpha += (1 - d / repelRadius) * 0.5;
+        }
+        ctx.fillStyle = `rgba(111, 143, 255, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    resize();
+    window.addEventListener("resize", resize);
+
+    if (prefersReducedMotion) {
+      // One static frame, no animation
+      drawFrame();
+      return;
+    }
+
+    const section = canvas.closest("section") || canvas.parentElement;
+    new IntersectionObserver(
+      (entries) => { isVisible = entries[0].isIntersecting; },
+      { rootMargin: "60px" }
+    ).observe(section);
+
+    document.addEventListener("visibilitychange", () => {
+      pageVisible = !document.hidden;
+    });
+
+    gsap.ticker.add(() => {
+      if (!isVisible || !pageVisible) return;
+      stepNodes();
+      drawFrame();
+    });
+  });
+}
+initNodeNetwork();
+
+// ---------- Logo scroll-scrub video ----------
+function initLogoScrub() {
+  const video = document.getElementById("logo-video");
+  if (!video) return;
+
+  if (prefersReducedMotion) {
+    video.controls = true;
+    return;
+  }
+
+  let duration = 0;
+  let targetTime = 0;
+  let currentTime = 0;
+
+  video.addEventListener("loadedmetadata", () => {
+    duration = video.duration;
+  });
+  // In case metadata is already loaded by the time we attach
+  if (video.readyState >= 1) duration = video.duration;
+
+  ScrollTrigger.create({
+    trigger: ".logo-scrub",
+    start: "top top",
+    end: "+=1600",
+    pin: ".logo-scrub-pin",
+    scrub: true,
+    onUpdate: (self) => {
+      if (duration) targetTime = self.progress * duration;
+    },
+  });
+
+  // Smooth the seek target so playback reads as motion, not stutter
+  gsap.ticker.add(() => {
+    if (!duration || video.seeking) return;
+    currentTime += (targetTime - currentTime) * 0.14;
+    if (Math.abs(video.currentTime - currentTime) > 0.01) {
+      video.currentTime = currentTime;
+    }
+  });
+}
+initLogoScrub();
 
 // ---------- Hero title split reveal ----------
 document.querySelectorAll(".hero-title .line").forEach((line, i) => {
@@ -126,15 +327,15 @@ document.querySelectorAll(".hero [data-reveal]").forEach((el, i) => {
 gsap.to(".marquee-track", {
   xPercent: -100,
   ease: "none",
-  duration: 18,
+  duration: 22,
   repeat: -1,
 });
 
-// ---------- Word-by-word reveal, pinned ----------
+// ---------- Manifesto: word-by-word reveal, pinned ----------
 const words = gsap.utils.toArray("[data-word]");
 if (words.length) {
   ScrollTrigger.create({
-    trigger: ".about-pin",
+    trigger: ".manifesto-pin",
     start: "top top",
     end: `+=${words.length * 40}`,
     pin: true,
@@ -146,7 +347,7 @@ if (words.length) {
   });
 }
 
-// ---------- Horizontal pinned gallery ----------
+// ---------- Services: horizontal pinned gallery ----------
 const track = document.getElementById("horizontal-track");
 if (track) {
   const getScrollDistance = () => track.scrollWidth - window.innerWidth;
@@ -164,7 +365,6 @@ if (track) {
     },
   });
 
-  // Parallax panels moving at different speeds within the horizontal track
   gsap.utils.toArray(".panel").forEach((panel) => {
     const speed = parseFloat(panel.dataset.speed) || 1;
     gsap.to(panel.querySelector(".panel-card"), {
@@ -181,10 +381,68 @@ if (track) {
   });
 }
 
-// ---------- Feature card stagger ----------
-gsap.utils.toArray(".feature-grid").forEach((grid) => {
-  const cards = grid.querySelectorAll(".feature-card");
-  gsap.to(cards, {
+// ---------- Team: assembling photos ----------
+function initTeamAssembly() {
+  const cards = gsap.utils.toArray(".team-card[data-from]");
+  if (!cards.length) return;
+
+  const isNarrow = window.innerWidth < 820;
+
+  if (prefersReducedMotion || isNarrow) {
+    // Fall back to the plain fade-up treatment (cards stack on mobile,
+    // so directional fly-in and pinning read poorly there)
+    cards.forEach((card) => {
+      gsap.to(card, {
+        opacity: 1,
+        x: 0,
+        y: 0,
+        rotate: 0,
+        scale: 1,
+        duration: 0.9,
+        ease: "power3.out",
+        scrollTrigger: { trigger: card, start: "top 85%" },
+      });
+    });
+    return;
+  }
+
+  const offsets = { left: { x: "-70vw", y: "6vh" }, right: { x: "70vw", y: "6vh" }, top: { x: "0", y: "-80vh" } };
+
+  cards.forEach((card) => {
+    const from = offsets[card.dataset.from] || offsets.left;
+    gsap.set(card, {
+      x: from.x,
+      y: from.y,
+      rotate: parseFloat(card.dataset.rotate) || 0,
+      scale: 0.85,
+      opacity: 0,
+    });
+  });
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: ".team-assembly",
+      start: "top top",
+      end: "+=1200",
+      pin: true,
+      scrub: 1,
+    },
+  });
+
+  cards.forEach((card, i) => {
+    tl.to(
+      card,
+      { x: 0, y: 0, rotate: 0, scale: 1, opacity: 1, ease: "power2.out", duration: 1 },
+      i * 0.22
+    );
+  });
+}
+initTeamAssembly();
+
+// ---------- Stagger grids (features, testimonials, chips) ----------
+gsap.utils.toArray("[data-stagger-grid]").forEach((grid) => {
+  const items = grid.querySelectorAll("[data-stagger-item]");
+  gsap.to(items, {
     opacity: 1,
     y: 0,
     stagger: 0.08,
@@ -196,6 +454,66 @@ gsap.utils.toArray(".feature-grid").forEach((grid) => {
     },
   });
 });
+
+// ---------- Avatar demo: click-to-play ----------
+(function initAvatarPlayer() {
+  const video = document.getElementById("avatar-video");
+  const btn = document.querySelector(".avatar-play-btn");
+  if (!video || !btn) return;
+
+  // Hide native controls until playback starts, so the overlay owns the frame
+  video.controls = false;
+
+  btn.addEventListener("click", () => {
+    btn.classList.add("is-hidden");
+    video.controls = true;
+    video.play();
+  });
+
+  video.addEventListener("ended", () => {
+    btn.classList.remove("is-hidden");
+    video.controls = false;
+  });
+})();
+
+// ---------- Contact form (Formspree, progressive enhancement) ----------
+function initContactForm() {
+  const form = document.getElementById("contact-form");
+  if (!form) return;
+  const status = form.querySelector(".form-status");
+  const submitBtn = form.querySelector("button[type='submit']");
+  const FALLBACK =
+    'Something went wrong — please email us directly at <a href="mailto:zenithkenya.qrs@gmail.com">zenithkenya.qrs@gmail.com</a>.';
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    status.className = "form-status";
+    status.textContent = "Sending…";
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { Accept: "application/json" },
+      });
+      if (res.ok) {
+        status.className = "form-status is-success";
+        status.textContent = "Message sent — we'll get back to you within a day. Asante!";
+        form.reset();
+      } else {
+        status.className = "form-status is-error";
+        status.innerHTML = FALLBACK;
+      }
+    } catch {
+      status.className = "form-status is-error";
+      status.innerHTML = FALLBACK;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+}
+initContactForm();
 
 // Refresh ScrollTrigger once everything (fonts/layout) has settled
 window.addEventListener("load", () => ScrollTrigger.refresh());
