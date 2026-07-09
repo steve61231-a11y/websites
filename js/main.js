@@ -321,12 +321,14 @@ document.querySelectorAll(".hero [data-reveal]").forEach((el, i) => {
 });
 
 // ---------- Marquee auto-scroll ----------
-gsap.to(".marquee-track", {
-  xPercent: -100,
-  ease: "none",
-  duration: 22,
-  repeat: -1,
-});
+if (document.querySelector(".marquee-track")) {
+  gsap.to(".marquee-track", {
+    xPercent: -100,
+    ease: "none",
+    duration: 22,
+    repeat: -1,
+  });
+}
 
 // ---------- Manifesto: word-by-word reveal, pinned ----------
 const words = gsap.utils.toArray("[data-word]");
