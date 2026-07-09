@@ -24,7 +24,7 @@ but a local server is closer to production behavior.)
 ## Before you launch — checklist
 
 1. **Contact form**: create a free form at [formspree.io](https://formspree.io)
-   using `zenithkenya.qrs@gmail.com`, confirm the verification email Formspree
+   using `zenithintelligence.automation@gmail.com`, confirm the verification email Formspree
    sends, then replace `YOUR_FORM_ID` in the `<form action=...>` in
    `index.html`. Until then the form shows the error message with a direct
    email fallback.

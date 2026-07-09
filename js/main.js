@@ -480,7 +480,7 @@ function initContactForm() {
   const status = form.querySelector(".form-status");
   const submitBtn = form.querySelector("button[type='submit']");
   const FALLBACK =
-    'Something went wrong — please email us directly at <a href="mailto:zenithkenya.qrs@gmail.com">zenithkenya.qrs@gmail.com</a>.';
+    'Something went wrong — please email us directly at <a href="mailto:zenithintelligence.automation@gmail.com">zenithintelligence.automation@gmail.com</a>.';
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
