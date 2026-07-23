@@ -30,7 +30,12 @@ but a local server is closer to production behavior.)
    email fallback.
 2. **Review the copy** — headlines, service descriptions, and team bios are
    first-draft marketing copy; edit freely in `index.html`.
-3. Host anywhere static (Vercel, Netlify, GitHub Pages) — it's just files.
+3. **Social share image** — the link-preview card (`assets/social/og-image.jpg`)
+   is wired up with relative `og:image` paths. Most scrapers (WhatsApp, LinkedIn)
+   resolve these fine, but for maximum compatibility, once you have your final
+   domain, change the `og:image` / `twitter:image` paths in `index.html` and
+   `pricing.html` to absolute URLs (e.g. `https://yourdomain.com/assets/social/og-image.jpg`).
+4. Host anywhere static (Vercel, Netlify, GitHub Pages) — it's just files.
 
 ## Structure
 
