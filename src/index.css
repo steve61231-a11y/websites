@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    /* Chart surface + ink roles, consumed by the chart components. */
+    --surface-1: #ffffff;
+    --surface-2: #faf9f7;
+    --grid: #e8e5de;
+    --text-primary: #22201d;
+    --text-secondary: #524d45;
+    --text-muted: #8a8276;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-sand-50 font-sans text-sand-900 antialiased;
+    /* Soft brand wash so even empty screens feel like the school, not a blank form. */
+    background-image:
+      radial-gradient(1100px 520px at 108% -8%, rgba(0, 174, 239, 0.09), transparent 62%),
+      radial-gradient(900px 480px at -12% 0%, rgba(102, 94, 199, 0.11), transparent 58%);
+    background-attachment: fixed;
+    overscroll-behavior-y: none;
+  }
+
+  /* Tabular figures everywhere money is shown — columns of numbers must line up. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-4 ring-iris-300/70 ring-offset-2 ring-offset-sand-50;
+  }
+
+  /* Native date/number controls, de-uglified. */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    opacity: 0.55;
+    cursor: pointer;
+  }
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-3xl border border-sand-200/80 bg-white shadow-soft;
+  }
+  .hairline {
+    @apply border-sand-200/80;
+  }
+  /* The one-per-screen primary action. */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-2xl bg-iris-500 px-5 py-3.5
+           font-extrabold text-white shadow-glow transition-all duration-150
+           hover:bg-iris-600 active:scale-[.97] disabled:opacity-45 disabled:shadow-none;
+  }
+  .scroll-x {
+    scrollbar-width: none;
+  }
+  .scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+  /* Respect the notch / gesture bar on phones. */
+  .safe-b {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
