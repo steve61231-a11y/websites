@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from '@/auth/AuthProvider'
 import { LoginPage } from '@/auth/LoginPage'
@@ -20,6 +20,14 @@ const FeesPage = lazy(() => import('@/modules/fees/FeesPage'))
 const StaffPage = lazy(() => import('@/modules/staff/StaffPage'))
 const SettingsPage = lazy(() => import('@/modules/settings/SettingsPage'))
 
+/**
+ * Clean URLs (/expenses) need a server that rewrites every path to index.html.
+ * On plain static hosting — a preview link, GitHub Pages, an object store —
+ * there is no such server, so a refresh on a deep link 404s. Building with
+ * VITE_ROUTER=hash switches to /#/expenses, which any static host can serve.
+ */
+const Router = import.meta.env.VITE_ROUTER === 'hash' ? HashRouter : BrowserRouter
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -35,9 +43,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ToastProvider>
-          <BrowserRouter>
+          <Router>
             <Gate />
-          </BrowserRouter>
+          </Router>
         </ToastProvider>
       </AuthProvider>
     </QueryClientProvider>

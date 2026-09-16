@@ -57,7 +57,7 @@ export function LogoMark({ className, animate = false, title = 'Iris Fields Scho
 export function Wordmark({ className }: { className?: string }) {
   return (
     <img
-      src="/wordmark.svg"
+      src={`${import.meta.env.BASE_URL}wordmark.svg`}
       alt="Iris Fields School"
       className={cn('block h-auto select-none', className)}
       draggable={false}
