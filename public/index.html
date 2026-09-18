@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Higgsfield Playground</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --border: #e2e5ea;
+        --text: #15181d;
+        --muted: #646b78;
+        --accent: #3b5bfd;
+        --accent-text: #ffffff;
+        --danger: #b4231f;
+        --radius: 10px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #101216;
+          --panel: #181b21;
+          --border: #2a2f38;
+          --text: #eceef2;
+          --muted: #99a1b0;
+          --accent: #6f86ff;
+          --accent-text: #0d1016;
+          --danger: #ff8a84;
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 32px 16px 64px;
+        background: var(--bg);
+        color: var(--text);
+        font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      main { max-width: 760px; margin: 0 auto; }
+      h1 { font-size: 1.5rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+      p.sub { margin: 0 0 24px; color: var(--muted); }
+      form, .result {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+      }
+      .row { display: flex; flex-wrap: wrap; gap: 12px; }
+      .row > label { flex: 1 1 160px; }
+      label { display: block; margin-bottom: 14px; font-weight: 550; font-size: 0.875rem; }
+      textarea, input, select {
+        width: 100%;
+        margin-top: 6px;
+        padding: 9px 11px;
+        font: inherit;
+        color: var(--text);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      textarea { resize: vertical; min-height: 84px; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+      button {
+        padding: 10px 20px;
+        font: inherit;
+        font-weight: 600;
+        color: var(--accent-text);
+        background: var(--accent);
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      button[disabled] { opacity: 0.55; cursor: progress; }
+      .result { margin-top: 20px; }
+      .status { color: var(--muted); font-variant-numeric: tabular-nums; margin: 0; }
+      .status[data-state="failed"], .status[data-state="nsfw"], .status[data-state="error"] {
+        color: var(--danger);
+      }
+      .media { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 14px; }
+      .media img, .media video { width: 100%; border-radius: 8px; border: 1px solid var(--border); display: block; }
+      .hidden { display: none; }
+      code { font-size: 0.85em; background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Higgsfield Playground</h1>
+      <p class="sub">
+        Generates through this server, which holds the API key. Text-to-image uses
+        <code>/v1/text2image/soul</code>; image-to-video uses <code>/v1/image2video/dop</code>.
+      </p>
+
+      <form id="form">
+        <label>
+          Mode
+          <select name="kind" id="kind">
+            <option value="image">Text to image (Soul)</option>
+            <option value="video">Image to video (DoP)</option>
+          </select>
+        </label>
+
+        <label>
+          Prompt
+          <textarea name="prompt" id="prompt" required
+            placeholder="A lighthouse on a cliff at dusk, long exposure"></textarea>
+        </label>
+
+        <div id="image-fields">
+          <div class="row">
+            <label>
+              Size
+              <select name="size" id="size"></select>
+            </label>
+            <label>
+              Quality
+              <select name="quality" id="quality">
+                <option value="1080p">1080p</option>
+                <option value="720p">720p</option>
+              </select>
+            </label>
+            <label>
+              Images
+              <select name="batch_size" id="batch_size">
+                <option value="1">1</option>
+                <option value="4">4</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div id="video-fields" class="hidden">
+          <label>
+            Source image URL
+            <input type="url" name="image_url" id="image_url"
+              placeholder="https://example.com/portrait.jpg" />
+          </label>
+          <label>
+            Model
+            <select name="model" id="model">
+              <option value="dop-turbo">dop-turbo</option>
+              <option value="dop-lite">dop-lite</option>
+              <option value="dop-standard">dop-standard</option>
+            </select>
+          </label>
+        </div>
+
+        <button type="submit" id="submit">Generate</button>
+      </form>
+
+      <section class="result" id="result" hidden>
+        <p class="status" id="status"></p>
+        <div class="media" id="media"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      const SOUL_SIZES = [
+        '1536x1536', '2048x1152', '2048x1536', '2016x1344', '1696x960',
+        '1632x1088', '1152x2048', '1536x2048', '1344x2016', '960x1696',
+        '1088x1632', '1536x1152', '1152x1536',
+      ];
+
+      const form = document.getElementById('form');
+      const kind = document.getElementById('kind');
+      const imageFields = document.getElementById('image-fields');
+      const videoFields = document.getElementById('video-fields');
+      const imageUrl = document.getElementById('image_url');
+      const submit = document.getElementById('submit');
+      const result = document.getElementById('result');
+      const statusLine = document.getElementById('status');
+      const media = document.getElementById('media');
+      const sizeSelect = document.getElementById('size');
+
+      sizeSelect.append(
+        ...SOUL_SIZES.map((size) => new Option(size, size)),
+      );
+
+      function syncMode() {
+        const isVideo = kind.value === 'video';
+        videoFields.classList.toggle('hidden', !isVideo);
+        imageFields.classList.toggle('hidden', isVideo);
+        // Only require the URL in the mode that uses it.
+        imageUrl.required = isVideo;
+      }
+      kind.addEventListener('change', syncMode);
+      syncMode();
+
+      function setStatus(text, state) {
+        result.hidden = false;
+        statusLine.textContent = text;
+        statusLine.dataset.state = state ?? '';
+      }
+
+      function render(payload) {
+        media.replaceChildren();
+        for (const image of payload.images ?? []) {
+          const el = document.createElement('img');
+          el.src = image.url;
+          el.alt = 'Generated image';
+          el.loading = 'lazy';
+          media.append(el);
+        }
+        if (payload.video?.url) {
+          const el = document.createElement('video');
+          el.src = payload.video.url;
+          el.controls = true;
+          el.playsInline = true;
+          media.append(el);
+        }
+      }
+
+      async function readError(response) {
+        const body = await response.json().catch(() => ({}));
+        return body.error ?? `Request failed (${response.status})`;
+      }
+
+      // The API is asynchronous: submit returns an id, then we poll until the
+      // status is terminal (completed, failed or nsfw).
+      async function poll(requestId, startedAt) {
+        const response = await fetch(`/api/requests/${encodeURIComponent(requestId)}`);
+        if (!response.ok) throw new Error(await readError(response));
+
+        const payload = await response.json();
+        const seconds = Math.round((Date.now() - startedAt) / 1000);
+
+        if (payload.status === 'completed') {
+          setStatus(`Completed in ${seconds}s.`, 'completed');
+          render(payload);
+          return;
+        }
+        if (payload.status === 'failed' || payload.status === 'nsfw') {
+          setStatus(
+            payload.status === 'nsfw'
+              ? 'Rejected by the safety filter.'
+              : 'Generation failed.',
+            payload.status,
+          );
+          return;
+        }
+
+        setStatus(`${payload.status.replace('_', ' ')}… ${seconds}s`, payload.status);
+        setTimeout(() => {
+          poll(requestId, startedAt).catch((error) => setStatus(error.message, 'error'));
+        }, 2000);
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        submit.disabled = true;
+        media.replaceChildren();
+        setStatus('Submitting…');
+
+        const data = Object.fromEntries(new FormData(form));
+        const body = { kind: data.kind, prompt: data.prompt };
+        if (data.kind === 'video') {
+          body.image_url = data.image_url;
+          body.model = data.model;
+        } else {
+          body.size = data.size;
+          body.quality = data.quality;
+          body.batch_size = Number(data.batch_size);
+        }
+
+        try {
+          const response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          if (!response.ok) throw new Error(await readError(response));
+
+          const { request_id } = await response.json();
+          await poll(request_id, Date.now());
+        } catch (error) {
+          setStatus(error.message, 'error');
+        } finally {
+          submit.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
