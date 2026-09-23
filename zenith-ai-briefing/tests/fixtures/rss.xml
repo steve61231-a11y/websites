@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Test AI News</title><link>https://news.example.com</link>
+<item><title>OpenAI launches GPT-6 with built-in agent mode</title>
+<link>https://news.example.com/2026/09/openai-gpt-6?utm_source=rss&amp;utm_medium=feed</link>
+<pubDate>{{NOW_RFC822}}</pubDate><author>jane@example.com (Jane Doe)</author>
+<description><![CDATA[<p>OpenAI released <b>GPT-6</b>, which can complete multi-step tasks across business software.</p>]]></description></item>
+<item><title>Safaricom unveils AI assistant for M-Pesa merchants</title>
+<link>https://news.example.com/2026/09/safaricom-ai-assistant</link>
+<pubDate>{{NOW_RFC822}}</pubDate>
+<description>Safaricom announced an AI assistant that helps small merchants reconcile M-Pesa payments.</description></item>
+<item><title>An old story that is outside the lookback window</title>
+<link>https://news.example.com/2020/01/old</link>
+<pubDate>Wed, 01 Jan 2020 10:00:00 GMT</pubDate><description>Old.</description></item>
+<item><title>Item with no link should be skipped</title><description>x</description></item>
+</channel></rss>

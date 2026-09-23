@@ -1,0 +1,5 @@
+.env
+data/*.db
+data/briefings
+__pycache__
+.pytest_cache

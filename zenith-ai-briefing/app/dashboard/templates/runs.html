@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}<div class="row" style="justify-content:space-between"><h1>Runs</h1>
+<form method="post" action="/actions/run" class="row"><select name="mode" style="width:auto"><option value="dry-run">Dry run</option><option value="run">Full run + email</option></select><button class="btn">Run now</button></form></div>
+{% for r in items %}<div class="card"><div class="row" style="justify-content:space-between"><b>#{{ r.id }} · {{ r.mode }} · <span class="{{ 'ok' if r.status == 'success' else 'warn' if r.status in ('partial','skipped','running') else 'bad' }}">{{ r.status }}</span></b><span class="muted">{{ r.started_at }} UTC</span></div>
+<div class="muted">sources {{ r.sources_checked }} ({{ r.sources_failed }} failed) · discovered {{ r.articles_discovered }} · dupes {{ r.duplicates_removed }} · analysed {{ r.articles_analyzed }} · final {{ r.final_stories }} · email {{ "YES" if r.email_sent else "NO" }} · errors {{ r.errors_count }}</div>
+{% if r.summary %}<details><summary class="muted">summary</summary><pre>{{ r.summary }}</pre></details>{% endif %}</div>
+{% else %}<div class="card">No runs yet.</div>{% endfor %}{% endblock %}

@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}<h1>Settings</h1>
+<div class="card"><div class="row"><form method="post" action="/actions/test-email"><button class="btn">Send test email</button></form>
+<span class="muted">{% if sp.email_configured %}to {{ sp.email_to|join(", ") }}{% else %}<span class="warn">Email not configured — set SMTP_* and EMAIL_* in .env</span>{% endif %}</span></div>
+<div class="muted" style="margin-top:8px">AI: {% if sp.llm_enabled %}<span class="ok">{{ sp.llm_provider }} — cheap {{ sp.cheap_model }}, analysis {{ sp.analysis_model }}{% if sp.fallback_model %}, fallback {{ sp.fallback_model }}{% endif %}</span>{% else %}<span class="warn">no API key — heuristic mode</span>{% endif %}</div></div>
+<div class="card scroll"><h3 style="margin-top:0">Effective configuration (secrets hidden)</h3><table>{% for k, v in settings.items() %}<tr><td><code>{{ k }}</code></td><td>{{ v }}</td></tr>{% endfor %}</table>
+<p class="muted">Secrets and models: <code>.env</code> (locally) or GitHub Secrets/Variables. Limits, watchlist, ranking weights: <code>config/settings.yaml</code>. Sources: <code>config/sources.yaml</code>.</p></div>{% endblock %}

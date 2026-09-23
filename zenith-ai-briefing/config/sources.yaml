@@ -1,0 +1,359 @@
+# Zenith AI Morning Intelligence Engine — sources
+#
+# Add a source by adding an entry below. No code changes needed.
+#   name:      unique display name
+#   type:      rss | atom | youtube | reddit | github_releases | webpage | sitemap | json | search
+#   url:       feed / page / endpoint URL (not needed for type: search)
+#   category:  ai_lab | ai_news | business | africa | kenya | tools | research | community | search
+#   priority:  1-10 (10 = most trusted/important). Used for ranking and choosing the primary source.
+#   enabled:   false to switch a source off without deleting it
+#   official:  true for primary sources (company blogs, regulators). ai_lab is official by default.
+#
+# Type-specific options:
+#   webpage:  link_pattern (regex article URLs must match), min_title_length
+#   sitemap:  link_pattern, max_child_sitemaps, fetch_titles
+#   json:     items_path, fields {title,url,published,description,author}, url_template
+#   search:   engine (google_news | bing_news), queries [..], region (KE/US/NG/ZA/GB), when (e.g. 2d)
+#   reddit:   external_links_only (default true — keep only posts linking to an article)
+#
+# Test every source:   python -m app --check-sources
+# Feeds move. If a source shows ✗ in health, fix or disable it here.
+
+sources:
+
+  # ───────────────────────── AI LABS (primary sources) ─────────────────────────
+  - name: OpenAI
+    type: rss
+    url: https://openai.com/news/rss.xml
+    category: ai_lab
+    priority: 10
+
+  - name: Anthropic
+    type: webpage
+    url: https://www.anthropic.com/news
+    link_pattern: "/news/[a-z0-9-]+$"
+    min_title_length: 15
+    category: ai_lab
+    priority: 10
+
+  - name: Google AI Blog
+    type: rss
+    url: https://blog.google/technology/ai/rss/
+    category: ai_lab
+    priority: 10
+
+  - name: Google DeepMind
+    type: rss
+    url: https://deepmind.google/blog/rss.xml
+    category: ai_lab
+    priority: 9
+
+  - name: Meta AI
+    type: webpage
+    url: https://ai.meta.com/blog/
+    link_pattern: "/blog/[a-z0-9-]+/?$"
+    category: ai_lab
+    priority: 9
+
+  - name: Microsoft AI Blog
+    type: rss
+    url: https://blogs.microsoft.com/ai/feed/
+    category: ai_lab
+    priority: 9
+
+  - name: Microsoft Source
+    type: rss
+    url: https://news.microsoft.com/source/feed/
+    category: ai_lab
+    priority: 8
+
+  - name: NVIDIA Blog
+    type: rss
+    url: https://blogs.nvidia.com/feed/
+    category: ai_lab
+    priority: 8
+
+  - name: AWS Machine Learning Blog
+    type: rss
+    url: https://aws.amazon.com/blogs/machine-learning/feed/
+    category: ai_lab
+    priority: 7
+
+  - name: xAI
+    type: webpage
+    url: https://x.ai/news
+    link_pattern: "/news/[a-z0-9-]+$"
+    min_title_length: 10
+    category: ai_lab
+    priority: 8
+
+  - name: Mistral AI
+    type: webpage
+    url: https://mistral.ai/news
+    link_pattern: "/news/[a-z0-9-]+$"
+    min_title_length: 10
+    category: ai_lab
+    priority: 8
+
+  - name: Hugging Face Blog
+    type: rss
+    url: https://huggingface.co/blog/feed.xml
+    category: ai_lab
+    priority: 7
+
+  # ───────────────────────── AI / TECHNOLOGY NEWS ─────────────────────────
+  - name: TechCrunch AI
+    type: rss
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    category: ai_news
+    priority: 9
+
+  - name: The Verge AI
+    type: rss
+    url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+    category: ai_news
+    priority: 8
+
+  - name: VentureBeat AI
+    type: rss
+    url: https://venturebeat.com/category/ai/feed/
+    category: ai_news
+    priority: 8
+
+  - name: Ars Technica AI
+    type: rss
+    url: https://arstechnica.com/ai/feed/
+    category: ai_news
+    priority: 8
+
+  - name: MIT Technology Review AI
+    type: rss
+    url: https://www.technologyreview.com/topic/artificial-intelligence/feed
+    category: ai_news
+    priority: 8
+
+  - name: Wired AI
+    type: rss
+    url: https://www.wired.com/feed/tag/ai/latest/rss
+    category: ai_news
+    priority: 7
+
+  - name: The Decoder
+    type: rss
+    url: https://the-decoder.com/feed/
+    category: ai_news
+    priority: 7
+
+  - name: Rest of World
+    type: rss
+    url: https://restofworld.org/feed/latest
+    category: ai_news
+    priority: 7
+
+  # ───────────────────────── BUSINESS / MARKETING / ENTERPRISE ─────────────────────────
+  - name: CIO Dive
+    type: rss
+    url: https://www.ciodive.com/feeds/news/
+    category: business
+    priority: 7
+
+  - name: Marketing Dive
+    type: rss
+    url: https://www.marketingdive.com/feeds/news/
+    category: business
+    priority: 7
+
+  - name: Search Engine Land
+    type: rss
+    url: https://searchengineland.com/feed
+    category: business
+    priority: 6
+
+  - name: Fast Company Tech
+    type: rss
+    url: https://www.fastcompany.com/technology/rss
+    category: business
+    priority: 6
+
+  - name: Harvard Business Review
+    type: rss
+    url: http://feeds.hbr.org/harvardbusiness
+    category: business
+    priority: 6
+
+  # ───────────────────────── AFRICA ─────────────────────────
+  - name: TechCabal
+    type: rss
+    url: https://techcabal.com/feed/
+    category: africa
+    priority: 9
+
+  - name: Techpoint Africa
+    type: rss
+    url: https://techpoint.africa/feed/
+    category: africa
+    priority: 7
+
+  - name: Disrupt Africa
+    type: rss
+    url: https://disrupt-africa.com/feed/
+    category: africa
+    priority: 7
+
+  - name: Condia
+    type: rss
+    url: https://thecondia.com/feed/
+    category: africa
+    priority: 6
+
+  - name: IT News Africa
+    type: rss
+    url: https://www.itnewsafrica.com/feed/
+    category: africa
+    priority: 6
+
+  # ───────────────────────── KENYA ─────────────────────────
+  - name: Techweez
+    type: rss
+    url: https://techweez.com/feed/
+    category: kenya
+    priority: 9
+
+  - name: TechTrends KE
+    type: rss
+    url: https://techtrendske.co.ke/feed/
+    category: kenya
+    priority: 7
+
+  - name: TechMoran
+    type: rss
+    url: https://techmoran.com/feed/
+    category: kenya
+    priority: 7
+
+  - name: Kenyan Wall Street
+    type: rss
+    url: https://kenyanwallstreet.com/feed/
+    category: kenya
+    priority: 8
+
+  - name: Capital FM Business
+    type: rss
+    url: https://www.capitalfm.co.ke/business/feed/
+    category: kenya
+    priority: 7
+
+  - name: CIO Africa
+    type: rss
+    url: https://cioafrica.co/feed/
+    category: kenya
+    priority: 6
+
+  # ───────────────────────── NEWS SEARCH (mass discovery) ─────────────────────────
+  # News indexes catch stories from outlets we don't follow directly
+  # (Business Daily, Nation, The Star, Reuters, Bloomberg…). Original sources win on duplicates.
+  - name: Google News — Kenya AI & tech
+    type: search
+    engine: google_news
+    region: KE
+    when: 2d
+    category: kenya
+    priority: 7
+    queries:
+      - "artificial intelligence Kenya"
+      - "AI Kenya business"
+      - "Safaricom AI OR M-Pesa AI"
+      - "Kenya bank AI OR digital lending Kenya"
+      - "Kenya data protection AI OR Kenya ICT policy"
+
+  - name: Google News — Africa AI
+    type: search
+    engine: google_news
+    region: US
+    when: 2d
+    category: africa
+    priority: 6
+    queries:
+      - "artificial intelligence Africa startup"
+      - "Africa fintech AI"
+
+  - name: Google News — AI business
+    type: search
+    engine: google_news
+    region: US
+    when: 1d
+    category: ai_news
+    priority: 6
+    queries:
+      - "AI agents enterprise launch"
+      - "OpenAI OR Anthropic OR Google Gemini announces"
+      - "AI customer service OR AI sales automation"
+      - "AI marketing tool launch"
+
+  - name: Bing News — AI small business
+    type: search
+    engine: bing_news
+    region: US
+    category: business
+    priority: 5
+    enabled: false   # optional second index; enable if Google News coverage is thin
+    queries:
+      - "AI small business"
+      - "generative AI productivity tool"
+
+  # ───────────────────────── TOOLS / PRODUCT UPDATES ─────────────────────────
+  - name: Hacker News — AI launches
+    type: json
+    url: "https://hn.algolia.com/api/v1/search_by_date?query=AI&tags=show_hn&numericFilters=points>30"
+    category: tools
+    priority: 5
+    items_path: hits
+    fields: {title: title, url: url, published: created_at, author: author}
+
+  - name: OpenAI Codex releases
+    type: github_releases
+    url: https://github.com/openai/codex/releases.atom
+    category: tools
+    priority: 3
+    enabled: false   # very frequent minor releases — enable if you cover developer tools
+
+  - name: Ollama releases
+    type: github_releases
+    url: https://github.com/ollama/ollama/releases.atom
+    category: tools
+    priority: 3
+    enabled: false
+
+  # ───────────────────────── RESEARCH ─────────────────────────
+  - name: Hugging Face Daily Papers
+    type: json
+    url: https://huggingface.co/api/daily_papers
+    category: research
+    priority: 4
+    items_path: ""
+    fields: {title: paper.title, published: publishedAt, description: paper.summary}
+    url_template: "https://huggingface.co/papers/{paper.id}"
+
+  # ───────────────────────── COMMUNITY (Reddit) ─────────────────────────
+  # Reddit posts are unwrapped to the article they link to. Reddit sometimes rate-limits
+  # cloud IPs; failures here are harmless.
+  - name: r/artificial
+    type: reddit
+    url: https://www.reddit.com/r/artificial/top/.rss?t=day
+    category: community
+    priority: 4
+
+  - name: r/Kenya tech
+    type: reddit
+    url: "https://www.reddit.com/r/Kenya/search.rss?q=AI+OR+tech+OR+Safaricom&restrict_sr=on&sort=new&t=week"
+    category: kenya
+    priority: 3
+    enabled: false
+
+  # ───────────────────────── YOUTUBE ─────────────────────────
+  # Use the channel's ID (starts with UC…): open the channel page → View source → search "channel_id".
+  # - name: Example channel
+  #   type: youtube
+  #   url: UCxxxxxxxxxxxxxxxxxxxxxx
+  #   category: ai_news
+  #   priority: 5

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Zenith Intelligence{% endblock %}</title>
+<style>
+:root{--ink:#0B0F19;--bg:#F4F6FA;--card:#fff;--blue:#1463FF;--muted:#5B6475;--line:#E3E7EF;--ok:#12A150;--warn:#D98E04;--bad:#D93025}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{background:var(--ink);color:#fff;padding:14px 16px;position:sticky;top:0;z-index:5}
+.brand{font-weight:800;letter-spacing:2px;font-size:13px;color:var(--blue)}
+nav{display:flex;gap:4px;overflow-x:auto;margin-top:8px;scrollbar-width:none}
+nav a{color:#C9D1E0;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:1px;padding:6px 10px;border-radius:6px;white-space:nowrap}
+nav a.on,nav a:hover{background:var(--blue);color:#fff}
+main{max-width:1000px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px;overflow-wrap:anywhere}
+h1{font-size:22px;margin:4px 0 12px}h2{font-size:17px;margin:0 0 8px}h3{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--blue);margin:14px 0 4px}
+.muted{color:var(--muted);font-size:13px}a{color:var(--blue)}
+.btn{display:inline-block;background:var(--blue);color:#fff;border:0;border-radius:6px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--blue)}.btn.dark{background:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.scroll{overflow-x:auto}.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:#EEF3FF;color:var(--blue)}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--bad)}
+.flash{background:#EEF3FF;border:1px solid var(--blue);padding:10px 14px;border-radius:8px;margin-bottom:14px}
+input,select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:6px;width:100%}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+iframe{width:100%;height:80vh;border:1px solid var(--line);border-radius:10px;background:#fff}
+pre{white-space:pre-wrap;font-size:12px;background:#0B0F19;color:#D6DEEB;padding:12px;border-radius:8px;overflow-x:auto}
+</style></head><body>
+<header><div class="brand">ZENITH INTELLIGENCE</div>
+<nav>{% for key, label, href in [("today","TODAY","/"),("stories","STORIES","/stories"),("content","CONTENT","/content"),("watchlist","WATCHLIST","/watchlist"),("sources","SOURCES","/sources"),("runs","RUNS","/runs"),("briefings","ARCHIVE","/briefings"),("settings","SETTINGS","/settings")] %}
+<a href="{{ href }}" class="{{ 'on' if nav == key or (nav == 'story' and key == 'stories') else '' }}">{{ label }}</a>{% endfor %}</nav></header>
+<main>
+{% if msg %}<div class="flash">{{ msg }}</div>{% endif %}
+{% if job.running %}<div class="flash">⏳ {{ job.label }} is running…</div>{% elif job.last %}<details class="flash"><summary>Last job result</summary><pre>{{ job.last }}</pre></details>{% endif %}
+{% block content %}{% endblock %}
+</main></body></html>

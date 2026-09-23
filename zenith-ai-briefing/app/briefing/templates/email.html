@@ -1,0 +1,140 @@
+{#- Email-safe HTML: tables + inline styles, 640px max, fluid on mobile. -#}
+{% set blue = "#1463FF" %}{% set ink = "#0B0F19" %}{% set muted = "#5B6475" %}{% set line = "#E6E9F0" %}
+{% macro button(url, label="READ SOURCE →") -%}
+<a href="{{ url }}" target="_blank" style="display:inline-block;background:{{ blue }};color:#ffffff;text-decoration:none;font-weight:700;font-size:13px;letter-spacing:.4px;padding:10px 16px;border-radius:6px;">{{ label }}</a>
+{%- endmacro %}
+{% macro label(text) -%}
+<div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:{{ blue }};margin:14px 0 4px;">{{ text }}</div>
+{%- endmacro %}
+{% macro sources(list) -%}
+{% if list %}<div style="font-size:13px;color:{{ muted }};margin-top:10px;">Also: {% for s in list %}<a href="{{ s.url }}" style="color:{{ blue }};">{{ s.source }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+{%- endmacro %}
+{% macro story(s, n=None, compact=False) -%}
+<tr><td style="padding:0 16px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid {{ line }};border-radius:10px;">
+<tr><td style="padding:20px;">
+  {% if n %}<div style="font-size:11px;font-weight:700;letter-spacing:1px;color:{{ muted }};">{{ n }}</div>{% endif %}
+  <h2 style="margin:4px 0 8px;font-size:20px;line-height:1.3;color:{{ ink }};">{{ s.event_title }}</h2>
+  {% if s.content.hook and not compact %}<p style="margin:0 0 6px;font-size:16px;line-height:1.5;color:{{ ink }};font-style:italic;">“{{ s.content.hook }}”</p>{% endif %}
+  {{ label("What happened") }}
+  <p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{{ s.what_happened }}</p>
+  {% if s.what_changed and s.what_changed.now and not compact %}
+  {{ label("What changed") }}
+  <p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">
+    {% if s.what_changed.before %}<b>Before:</b> {{ s.what_changed.before }}<br>{% endif %}
+    <b>Now:</b> {{ s.what_changed.now }}
+    {% if s.what_changed.still_hard %}<br><b>Still hard:</b> {{ s.what_changed.still_hard }}{% endif %}
+  </p>{% endif %}
+  {% if s.why_it_matters %}{{ label("Why it matters") }}
+  <p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{{ s.why_it_matters }}</p>{% endif %}
+  {% if s.who_should_care or s.departments %}{{ label("Who should care") }}
+  <p style="margin:0;font-size:14px;color:{{ ink }};">{{ (s.who_should_care or s.departments)|join(" · ") }}</p>{% endif %}
+  {% if s.kenyan_example %}{{ label("Kenyan example") }}
+  <p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{{ s.kenyan_example }}</p>{% endif %}
+  {% if s.opportunity and s.opportunity.implementation_idea and not compact %}{{ label("Business opportunity") }}
+  <p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{% if s.opportunity.target_business %}<b>{{ s.opportunity.target_business }}:</b> {% endif %}{{ s.opportunity.implementation_idea }}</p>{% endif %}
+  {% if s.content.content_angle %}{{ label("Content angle") }}
+  <p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{{ s.content.content_angle }}</p>{% endif %}
+  <div style="margin-top:16px;">{{ button(s.primary_url, "READ SOURCE → " ~ s.primary_source) }}</div>
+  {{ sources(s.supporting) }}
+</td></tr></table>
+</td></tr>
+{%- endmacro %}
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only"><title>{{ b.subject }}</title></head>
+<body style="margin:0;padding:0;background:#F3F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;">{{ b.signal }}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F5F9;"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;">
+
+<tr><td style="background:{{ ink }};padding:26px 20px 22px;">
+  <div style="font-size:12px;font-weight:800;letter-spacing:3px;color:{{ blue }};">ZENITH INTELLIGENCE</div>
+  <div style="font-size:24px;font-weight:800;color:#ffffff;margin-top:4px;">AI BUSINESS BRIEFING</div>
+  <div style="font-size:14px;color:#AAB3C5;margin-top:6px;">{{ b.date_label }}</div>
+</td></tr>
+
+<tr><td style="padding:20px 16px 16px;">
+  <div style="border-left:4px solid {{ blue }};background:#ffffff;padding:14px 16px;border-radius:0 8px 8px 0;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:{{ blue }};">TODAY'S SIGNAL</div>
+    <div style="font-size:17px;line-height:1.45;font-weight:600;color:{{ ink }};margin-top:4px;">{{ b.signal }}</div>
+  </div>
+</td></tr>
+
+{% if not b.top_stories %}
+<tr><td style="padding:0 16px 16px;font-size:15px;color:{{ ink }};">No development cleared the quality bar today. That's a feature, not a bug — use today for an evergreen video.</td></tr>
+{% endif %}
+{% for s in b.top_stories %}
+  {{ story(s, ["1 · BIGGEST DEVELOPMENT", "2 · SECOND DEVELOPMENT", "3 · THIRD DEVELOPMENT"][loop.index0]) }}
+{% endfor %}
+
+{% if b.kenya_africa %}
+  {{ story(b.kenya_africa, "4 · KENYA / AFRICA") }}
+{% endif %}
+
+{% if b.tool %}
+<tr><td style="padding:0 16px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid {{ line }};border-radius:10px;"><tr><td style="padding:20px;">
+  <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:{{ muted }};">5 · AI TOOL TO WATCH</div>
+  {% set t = b.tool.tool %}
+  <h2 style="margin:4px 0 8px;font-size:20px;color:{{ ink }};">{{ t.name if t else b.tool.event_title }}</h2>
+  {% if t %}
+  {{ label("What it does") }}<p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{{ t.what_it_does }}</p>
+  {% if t.who_needs_it %}{{ label("Who needs it") }}<p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{{ t.who_needs_it }}</p>{% endif %}
+  {% if t.practical_use %}{{ label("Practical business use") }}<p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{{ t.practical_use }}</p>{% endif %}
+  {% if t.limitations %}{{ label("Limitations") }}<p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{{ t.limitations }}</p>{% endif %}
+  {% else %}<p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{{ b.tool.what_happened }}</p>{% endif %}
+  <div style="margin-top:16px;">{{ button(b.tool.primary_url, "READ SOURCE → " ~ b.tool.primary_source) }}</div>
+</td></tr></table></td></tr>
+{% endif %}
+
+{% if b.opportunity %}{% set o = b.opportunity %}
+<tr><td style="padding:0 16px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:{{ ink }};border-radius:10px;"><tr><td style="padding:20px;color:#ffffff;">
+  <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:{{ blue }};">6 · BUSINESS OPPORTUNITY</div>
+  <h2 style="margin:4px 0 10px;font-size:20px;color:#ffffff;">{{ o.title or o.service_category }}</h2>
+  {% for key, name in [("problem","Problem"),("target_business","Target business"),("workflow","Workflow today"),("ai_capability","AI capability"),("implementation_idea","Implementation"),("expected_benefit","Expected benefit"),("difficulty","Difficulty")] %}
+  {% if o[key] %}<p style="margin:0 0 8px;font-size:14px;line-height:1.5;color:#E8ECF4;"><b style="color:#ffffff;">{{ name }}:</b> {{ o[key] }}</p>{% endif %}
+  {% endfor %}
+  {% for s in o.sources %}<a href="{{ s.url }}" style="color:#7FA8FF;font-size:13px;">Based on: {{ s.title }} →</a><br>{% endfor %}
+</td></tr></table></td></tr>
+{% endif %}
+
+{% if b.more_stories %}
+<tr><td style="padding:4px 20px 8px;font-size:12px;font-weight:700;letter-spacing:1px;color:{{ muted }};">ALSO WORTH KNOWING</td></tr>
+{% for s in b.more_stories %}{{ story(s, None, True) }}{% endfor %}
+{% endif %}
+
+{% if b.watchlist %}
+<tr><td style="padding:0 16px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:1px solid {{ line }};border-radius:10px;"><tr><td style="padding:20px;">
+  <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:{{ muted }};">7 · WATCHLIST</div>
+  {% for w in b.watchlist %}
+  <p style="margin:10px 0 0;font-size:15px;line-height:1.5;color:{{ ink }};"><b>{{ w.topic }}</b> — {{ w.note }}
+  {% for s in w.sources %} <a href="{{ s.url }}" style="color:{{ blue }};">[{{ s.source }}]</a>{% endfor %}</p>
+  {% endfor %}
+</td></tr></table></td></tr>
+{% endif %}
+
+<tr><td style="padding:0 16px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border:2px solid {{ blue }};border-radius:10px;"><tr><td style="padding:20px;">
+  <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:{{ blue }};">8 · TODAY'S VIDEO</div>
+  {{ label("Hook") }}
+  <p style="margin:0;font-size:17px;line-height:1.5;font-weight:600;color:{{ ink }};">{{ b.video.hook }}</p>
+  {{ label("Talking points") }}
+  <ol style="margin:0;padding-left:20px;font-size:15px;line-height:1.55;color:{{ ink }};">
+    {% for p in b.video.talking_points %}<li style="margin-bottom:6px;">{{ p }}</li>{% endfor %}
+  </ol>
+  {{ label("Ending") }}
+  <p style="margin:0;font-size:15px;line-height:1.55;color:{{ ink }};">{{ b.video.ending }}</p>
+  {{ label("Source links (put these behind you)") }}
+  {% for s in b.video.sources %}<p style="margin:4px 0;font-size:14px;"><a href="{{ s.url }}" style="color:{{ blue }};font-weight:600;">{{ s.title }} — {{ s.source }} →</a></p>{% endfor %}
+</td></tr></table></td></tr>
+
+<tr><td style="padding:8px 20px 32px;font-size:12px;line-height:1.5;color:{{ muted }};">
+  Zenith Intelligence · internal briefing · {{ b.stats.sources_checked }} sources checked, {{ b.stats.articles_discovered }} items scanned.
+  {% if b.degraded %}<br>⚠ Some sections were generated without full AI analysis ({{ b.degraded_sections|join(", ") }}). Verify before recording.{% endif %}
+</td></tr>
+
+</table></td></tr></table>
+</body></html>

@@ -1,0 +1,80 @@
+ZENITH INTELLIGENCE — AI BUSINESS BRIEFING
+{{ b.date_label }}
+
+TODAY'S SIGNAL
+{{ b.signal }}
+{% macro story(s, heading) %}
+
+==================================================
+{{ heading }}: {{ s.event_title }}
+==================================================
+{% if s.content.hook %}"{{ s.content.hook }}"
+{% endif %}
+WHAT HAPPENED
+{{ s.what_happened }}
+{% if s.what_changed and s.what_changed.now %}
+WHAT CHANGED
+{% if s.what_changed.before %}Before: {{ s.what_changed.before }}
+{% endif %}Now: {{ s.what_changed.now }}
+{% if s.what_changed.still_hard %}Still hard: {{ s.what_changed.still_hard }}
+{% endif %}{% endif %}
+{% if s.why_it_matters %}
+WHY IT MATTERS
+{{ s.why_it_matters }}
+{% endif %}
+{% if s.who_should_care or s.departments %}
+WHO SHOULD CARE: {{ (s.who_should_care or s.departments)|join(", ") }}
+{% endif %}
+{% if s.kenyan_example %}
+KENYAN EXAMPLE
+{{ s.kenyan_example }}
+{% endif %}
+{% if s.opportunity and s.opportunity.implementation_idea %}
+BUSINESS OPPORTUNITY
+{{ s.opportunity.implementation_idea }}
+{% endif %}
+{% if s.content.content_angle %}
+CONTENT ANGLE
+{{ s.content.content_angle }}
+{% endif %}
+
+Read the original → {{ s.primary_url }}
+{% for x in s.supporting %}Also: {{ x.source }} → {{ x.url }}
+{% endfor %}
+{% endmacro %}
+{% for s in b.top_stories %}{{ story(s, ["1. BIGGEST DEVELOPMENT", "2. SECOND DEVELOPMENT", "3. THIRD DEVELOPMENT"][loop.index0]) }}{% endfor %}
+{% if b.kenya_africa %}{{ story(b.kenya_africa, "4. KENYA / AFRICA") }}{% endif %}
+{% if b.tool %}
+
+5. AI TOOL TO WATCH: {{ b.tool.tool.name if b.tool.tool else b.tool.event_title }}
+{% if b.tool.tool %}What it does: {{ b.tool.tool.what_it_does }}
+Who needs it: {{ b.tool.tool.who_needs_it }}
+Practical use: {{ b.tool.tool.practical_use }}
+Limitations: {{ b.tool.tool.limitations }}
+{% endif %}Read the original → {{ b.tool.primary_url }}
+{% endif %}
+{% if b.opportunity %}
+
+6. BUSINESS OPPORTUNITY: {{ b.opportunity.title }}
+{% for key, name in [("problem","Problem"),("target_business","Target business"),("workflow","Workflow today"),("ai_capability","AI capability"),("implementation_idea","Implementation"),("expected_benefit","Expected benefit"),("difficulty","Difficulty")] %}{% if b.opportunity[key] %}{{ name }}: {{ b.opportunity[key] }}
+{% endif %}{% endfor %}
+{% endif %}
+{% for s in b.more_stories %}{{ story(s, "ALSO WORTH KNOWING") }}{% endfor %}
+{% if b.watchlist %}
+
+7. WATCHLIST
+{% for w in b.watchlist %}- {{ w.topic }}: {{ w.note }}{% for s in w.sources %} ({{ s.url }}){% endfor %}
+
+{% endfor %}{% endif %}
+
+8. TODAY'S VIDEO
+HOOK: {{ b.video.hook }}
+{% for p in b.video.talking_points %}{{ loop.index }}. {{ p }}
+{% endfor %}
+ENDING: {{ b.video.ending }}
+SOURCES:
+{% for s in b.video.sources %}- {{ s.title }} ({{ s.source }}) → {{ s.url }}
+{% endfor %}
+{% if b.degraded %}
+[internal] Degraded sections: {{ b.degraded_sections|join(", ") }}
+{% endif %}

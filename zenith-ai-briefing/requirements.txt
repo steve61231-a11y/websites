@@ -1,0 +1,19 @@
+# Core
+requests>=2.31
+feedparser>=6.0
+beautifulsoup4>=4.12
+trafilatura>=1.12
+python-dateutil>=2.8
+PyYAML>=6.0
+python-dotenv>=1.0
+Jinja2>=3.1
+tzdata>=2024.1          # timezone data on Windows / slim images
+openai>=1.40            # LLM provider (also OpenAI-compatible endpoints)
+
+# Dashboard
+fastapi>=0.110
+uvicorn>=0.29
+python-multipart>=0.0.9
+
+# Tests
+pytest>=8.0

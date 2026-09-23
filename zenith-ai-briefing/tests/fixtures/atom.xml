@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Lab Blog</title>
+<entry><title>Introducing Claude Opus 5 for enterprise workflows</title>
+<link rel="alternate" href="https://lab.example.com/news/claude-opus-5"/>
+<updated>{{NOW_ISO}}</updated><summary>Our most capable model for long-running business tasks.</summary></entry>
+</feed>

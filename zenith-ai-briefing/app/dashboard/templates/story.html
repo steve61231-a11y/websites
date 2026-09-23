@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% block content %}
+<h1>{{ analysis.event_title if analysis else a.title }}</h1>
+<div class="card"><div class="muted">{{ a.source }} · {{ a.category }} · published {{ a.published_at or "?" }} · extraction: {{ a.extraction_status }}{% if an and an.degraded %} · <span class="warn">degraded analysis</span>{% endif %}</div>
+<div style="margin-top:10px"><a class="btn" href="{{ a.url }}" target="_blank">READ SOURCE →</a></div>
+{% if related %}<h3>Also reported by</h3>{% for r in related %}<div><a href="{{ r.url }}" target="_blank">{{ r.source }}: {{ r.title }}</a></div>{% endfor %}{% endif %}</div>
+<div class="card"><h3 style="margin-top:0">Why it was selected</h3>
+{% if filt %}<div>First pass: <b>{{ "kept" if filt.keep else "rejected" }}</b> — {{ filt.reason }}</div>
+<div class="muted">relevance {{ filt.relevance_score }} · business {{ filt.business_relevance }} · novelty {{ filt.novelty }} · Kenya {{ filt.kenya_relevance }}{% if filt.heuristic %} · heuristic{% endif %}</div>{% endif %}
+{% if an %}<div class="muted">Final rank score: {{ an.final_score or "—" }} · business impact {{ an.business_impact_score }} · model {{ an.analysis_model }}</div>{% endif %}</div>
+{% if analysis %}{% set c = analysis.content %}
+<div class="card">
+<h3 style="margin-top:0">What happened</h3><div>{{ analysis.what_happened }}</div>
+{% if analysis.what_changed.now %}<h3>What changed</h3><div><b>Before:</b> {{ analysis.what_changed.before }}<br><b>Now:</b> {{ analysis.what_changed.now }}<br><b>Easier:</b> {{ analysis.what_changed.easier }}<br><b>Still hard:</b> {{ analysis.what_changed.still_hard }}</div>{% endif %}
+<h3>Why it matters</h3><div>{{ analysis.why_it_matters }}</div>
+<h3>Who should care</h3><div>{{ analysis.who_should_care|join(", ") }} {% for d in analysis.departments %}<span class="pill">{{ d }}</span> {% endfor %}</div>
+{% if analysis.use_cases %}<h3>Use cases</h3><ul>{% for u in analysis.use_cases %}<li>{{ u }}</li>{% endfor %}</ul>{% endif %}
+{% if analysis.replaces_or_reduces %}<h3>Could replace / reduce</h3><div>{{ analysis.replaces_or_reduces }}</div>{% endif %}
+<h3>Kenya lens ({{ analysis.kenya_lens.relevance }})</h3><div>{{ analysis.kenya_lens.explanation }}</div><div><i>{{ analysis.kenya_lens.example }}</i></div>
+{% if analysis.africa_lens %}<h3>Africa lens</h3><div>{{ analysis.africa_lens }}</div>{% endif %}
+{% if analysis.limitations %}<h3>Limitations</h3><div>{{ analysis.limitations }}</div>{% endif %}
+</div>
+{% if analysis.opportunity %}<div class="card"><h3 style="margin-top:0">Opportunity</h3>{% for k, v in analysis.opportunity.items() %}{% if v %}<div><b>{{ k.replace("_", " ")|capitalize }}:</b> {{ v }}</div>{% endif %}{% endfor %}</div>{% endif %}
+<div class="card"><h3 style="margin-top:0">Content</h3><div><b>Hook:</b> {{ c.hook }}</div>
+<ul>{% for p in c.what_happened_points + c.why_it_matters_points %}<li>{{ p }}</li>{% endfor %}</ul>
+<div><b>Kenyan example:</b> {{ c.kenyan_example }}</div><div><b>Takeaway:</b> {{ c.practical_takeaway }}</div><div><b>Angle:</b> {{ c.content_angle }}</div></div>
+{% else %}<div class="card">{{ a.description }}</div>{% endif %}
+{% endblock %}

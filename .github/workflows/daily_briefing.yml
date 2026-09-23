@@ -1,0 +1,122 @@
+# Zenith AI Morning Intelligence Engine — daily scheduler.
+#
+# GitHub cron runs in UTC. Africa/Nairobi is UTC+3 all year (no DST).
+# Default delivery target 06:30 EAT: the run starts ~06:00 EAT because
+# (a) GitHub often starts scheduled jobs 5–30 min late under load and
+# (b) the pipeline itself takes a few minutes.
+# To change: `python -m app --cron 07:00` prints the UTC line for a local time.
+#
+# The second schedule is a safety net: if the first run was dropped or its email
+# failed, it (re)sends. If today's briefing was already delivered, it does nothing.
+
+name: Daily AI Briefing
+
+on:
+  schedule:
+    - cron: "0 3 * * *"    # 06:00 Africa/Nairobi — primary
+    - cron: "0 4 * * *"    # 07:00 Africa/Nairobi — backup (no-op if already delivered)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "run = full pipeline + email; dry-run = no email; send-test = test email only"
+        type: choice
+        options: [run, dry-run, send-test]
+        default: run
+      force:
+        description: "Regenerate and resend even if today's briefing was already sent"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # to commit the SQLite state file back to the repo
+
+concurrency:
+  group: daily-briefing
+  cancel-in-progress: false
+
+jobs:
+  briefing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: zenith-ai-briefing
+    env:
+      # Secrets (Settings → Secrets and variables → Actions → Secrets)
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      EMAIL_TO: ${{ secrets.EMAIL_TO }}
+      # Non-secret settings (… → Variables). Empty = code default.
+      CHEAP_MODEL: ${{ vars.CHEAP_MODEL }}
+      ANALYSIS_MODEL: ${{ vars.ANALYSIS_MODEL }}
+      FALLBACK_MODEL: ${{ vars.FALLBACK_MODEL }}
+      OPENAI_REASONING_EFFORT: ${{ vars.OPENAI_REASONING_EFFORT }}
+      MAX_FINAL_STORIES: ${{ vars.MAX_FINAL_STORIES }}
+      MAX_ARTICLES_DEEP_ANALYZED: ${{ vars.MAX_ARTICLES_DEEP_ANALYZED }}
+      TIMEZONE: Africa/Nairobi
+      DATABASE_PATH: data/zenith.db
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: zenith-ai-briefing/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        id: pipeline
+        run: |
+          MODE="${{ github.event.inputs.mode || 'run' }}"
+          FORCE=""
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then FORCE="--force"; fi
+          echo "Mode: $MODE"
+          set +e
+          python -m app --$MODE $FORCE 2>&1 | tee run.log
+          STATUS=${PIPESTATUS[0]}
+          set -e
+          {
+            echo '### Zenith AI Briefing run'
+            echo '```'
+            sed -n '/RUN SUMMARY/,$p' run.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit $STATUS
+
+      - name: Save state (commit database)
+        if: always() && github.event.inputs.mode != 'send-test'
+        run: |
+          git config user.name "zenith-briefing-bot"
+          git config user.email "zenith-briefing-bot@users.noreply.github.com"
+          git add data/zenith.db
+          if git diff --cached --quiet; then
+            echo "No state changes."
+            exit 0
+          fi
+          git commit -m "chore(state): briefing run $(date -u +%Y-%m-%dT%H:%MZ) [skip ci]"
+          for i in 1 2 3 4; do
+            git pull --rebase -X theirs origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep $((i * 5))
+          done
+          echo "::error::Could not push state after 4 attempts"
+          exit 1
+
+      - name: Upload briefing files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: briefing-${{ github.run_id }}
+          path: |
+            zenith-ai-briefing/data/briefings/
+            zenith-ai-briefing/run.log
+          retention-days: 14
+          if-no-files-found: ignore

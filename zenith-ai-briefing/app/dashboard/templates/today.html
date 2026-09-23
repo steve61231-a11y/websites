@@ -1,0 +1,36 @@
+{% extends "base.html" %}{% block content %}
+<div class="row" style="justify-content:space-between">
+  <h1>{% if briefing %}{{ briefing.date_label }}{% else %}Today{% endif %}</h1>
+  <form method="post" action="/actions/run" class="row"><select name="mode" style="width:auto"><option value="dry-run">Dry run (no email)</option><option value="run">Full run + email</option></select><button class="btn">Run now</button></form>
+</div>
+{% if not briefing %}
+<div class="card">No briefing yet. Click <b>Run now</b> (dry run) or run <code>python -m app --dry-run</code>.</div>
+{% else %}
+{% if b.date != today %}<div class="flash">Latest briefing is from {{ b.date }} — today's hasn't been generated yet.</div>{% endif %}
+<div class="card" style="border-left:4px solid var(--blue)"><h3 style="margin-top:0">Today's signal</h3><div style="font-size:17px;font-weight:600">{{ briefing.signal }}</div>
+<div class="muted" style="margin-top:6px">{% if b.emailed_at %}<span class="ok">✓ emailed {{ b.emailed_at|age }}</span>{% elif b.is_dry_run %}dry run — not emailed{% else %}<span class="warn">not emailed</span>{% endif %}
+{% if briefing.degraded %} · <span class="warn">⚠ degraded: {{ briefing.degraded_sections|join(", ") }}</span>{% endif %} · <a href="/briefings/{{ b.date }}/email" target="_blank">open email view</a></div></div>
+
+<h3>Top developments</h3>
+{% for s in briefing.top_stories + briefing.more_stories %}
+<div class="card"><div class="row" style="justify-content:space-between"><h2>{{ loop.index }}. {{ s.event_title }}</h2>{% if s.degraded %}<span class="pill" style="background:#FFF4E0;color:var(--warn)">degraded</span>{% endif %}</div>
+<div>{{ s.what_happened }}</div>
+{% if s.why_it_matters %}<h3>Why it matters</h3><div>{{ s.why_it_matters }}</div>{% endif %}
+{% if s.content.hook %}<h3>Hook</h3><div><i>{{ s.content.hook }}</i></div>{% endif %}
+<div class="muted" style="margin-top:8px">Why selected: {{ s.why_selected or "—" }} · <a href="/stories/{{ s.article_id }}">details</a></div>
+<div style="margin-top:10px"><a class="btn" href="{{ s.primary_url }}" target="_blank">READ SOURCE → {{ s.primary_source }}</a></div></div>
+{% endfor %}
+
+<div class="grid">
+{% if briefing.kenya_africa %}{% set k = briefing.kenya_africa %}<div class="card"><h3 style="margin-top:0">Kenya / Africa</h3><b>{{ k.event_title }}</b><div>{{ k.kenyan_example or k.what_happened }}</div><a href="{{ k.primary_url }}" target="_blank">Read source →</a></div>{% endif %}
+{% if briefing.tool %}{% set t = briefing.tool %}<div class="card"><h3 style="margin-top:0">Tool to watch</h3><b>{{ t.tool.name if t.tool else t.event_title }}</b><div>{{ t.tool.practical_use if t.tool else t.what_happened }}</div><a href="{{ t.primary_url }}" target="_blank">Read source →</a></div>{% endif %}
+{% if briefing.opportunity %}<div class="card"><h3 style="margin-top:0">Opportunity</h3><b>{{ briefing.opportunity.title }}</b><div>{{ briefing.opportunity.implementation_idea }}</div><div class="muted">{{ briefing.opportunity.target_business }} · difficulty: {{ briefing.opportunity.difficulty }}</div></div>{% endif %}
+</div>
+
+<div class="card"><h3 style="margin-top:0">Today's video</h3><b>{{ briefing.video.hook }}</b><ol>{% for p in briefing.video.talking_points %}<li>{{ p }}</li>{% endfor %}</ol><div>{{ briefing.video.ending }}</div>
+{% for s in briefing.video.sources %}<div><a href="{{ s.url }}" target="_blank">{{ s.title }} — {{ s.source }} →</a></div>{% endfor %}</div>
+
+{% if briefing.watchlist %}<div class="card"><h3 style="margin-top:0">Watchlist</h3>{% for w in briefing.watchlist %}<div><b>{{ w.topic }}</b> — {{ w.note }}</div>{% endfor %}</div>{% endif %}
+{% endif %}
+{% if run %}<div class="card muted">Last run: {{ run.mode }} · {{ run.status }} · {{ run.started_at|age }} · {{ run.errors_count }} errors · <a href="/runs">runs</a></div>{% endif %}
+{% endblock %}

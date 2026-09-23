@@ -1,0 +1,81 @@
+# Zenith AI Morning Intelligence Engine — non-secret settings.
+# Secrets (API keys, SMTP passwords) NEVER go here. They go in .env / GitHub Secrets.
+# Any limit below can also be overridden by an environment variable of the same
+# name in UPPER CASE (e.g. MAX_FINAL_STORIES=5).
+
+timezone: Africa/Nairobi
+daily_run_time: "06:30"        # desired delivery time (local). See README "Changing the delivery time".
+
+# Only consider articles published within this many hours.
+lookback_hours: 36
+
+limits:
+  max_articles_discovered: 500   # total new items accepted from all sources per run
+  max_items_per_source: 40       # cap per individual source
+  max_candidates_classified: 150 # stories sent to the cheap filter model
+  max_articles_extracted: 100    # full-text extractions per run
+  max_articles_deep_analyzed: 20 # stories sent to the strong analysis model
+  max_final_stories: 5           # stories in the briefing (top 3 get full treatment)
+  max_article_chars: 10000       # article text is truncated to this before analysis
+
+llm:
+  max_concurrency: 3             # simultaneous LLM calls — never more
+  classifier_batch_size: 20      # headlines per cheap-model call
+  max_output_tokens_classifier: 4000
+  max_output_tokens_analysis: 6000
+  max_output_tokens_briefing: 4000
+  retries: 3
+  cache_days: 7
+
+http:
+  timeout_seconds: 20
+  max_concurrency: 8
+  user_agent: "Mozilla/5.0 (compatible; ZenithBriefingBot/1.0; +https://github.com/)"
+
+# How many days of content history to check to avoid repeating the same angle.
+content_history_days: 21
+# Stories featured in the last N days are treated as already covered.
+recent_coverage_days: 4
+# Old article rows are pruned after this many days (keeps the SQLite file small).
+retention_days: 45
+
+# Internal ranking weights (0-? multipliers). Never shown to the audience.
+ranking_weights:
+  significance: 1.5
+  business_impact: 2.0
+  novelty: 1.0
+  practical_usefulness: 1.5
+  kenya_relevance: 1.2
+  africa_relevance: 0.6
+  content_potential: 1.2
+  credibility: 1.0
+
+# Watchlist — topics the analyst checks every day. Add freely.
+# keywords are matched case-insensitively against headlines/descriptions.
+watchlist:
+  - topic: OpenAI agents
+    keywords: [openai agent, operator, agentkit, codex, chatgpt agent]
+  - topic: Anthropic models
+    keywords: [anthropic, claude]
+  - topic: Google Gemini
+    keywords: [gemini, deepmind]
+  - topic: AI advertising
+    keywords: [ai ads, advertising, ad platform, performance max, meta advantage]
+  - topic: AI video
+    keywords: [sora, veo, ai video, runway, video generation]
+  - topic: AI voice
+    keywords: [voice agent, text-to-speech, speech model, elevenlabs, realtime api]
+  - topic: AI sales automation
+    keywords: [sales automation, crm, salesforce, hubspot, sdr, lead generation]
+  - topic: AI customer service
+    keywords: [customer service, customer support, contact center, chatbot, whatsapp business]
+  - topic: Kenyan banking AI
+    keywords: [equity bank, kcb, ncba, co-op bank, absa kenya, stanbic kenya, central bank of kenya]
+  - topic: Safaricom AI
+    keywords: [safaricom, m-pesa, mpesa]
+  - topic: African fintech AI
+    keywords: [fintech, flutterwave, paystack, moniepoint, mnt-halan, wave]
+  - topic: AI regulation
+    keywords: [regulation, ai act, data protection, odpc, policy, bill, law]
+  - topic: AI cybersecurity
+    keywords: [cybersecurity, phishing, deepfake, fraud, breach, ransomware]

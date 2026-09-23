@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block content %}<h1>Watchlist</h1>
+<div class="card"><form method="post" action="/watchlist/add" class="grid"><input name="topic" placeholder="Topic, e.g. AI in SACCOs" required><input name="keywords" placeholder="keywords, comma separated"><button class="btn">Add topic</button></form>
+<p class="muted">Topics from config/settings.yaml are shown as "config" (edit them there). Topics added here live in the database.</p></div>
+<div class="card scroll"><table><tr><th>Topic</th><th>Keywords</th><th>Origin</th><th></th></tr>
+{% for w in items %}<tr><td>{% if not w.active %}<s>{{ w.topic }}</s>{% else %}<b>{{ w.topic }}</b>{% endif %}</td><td class="muted">{{ w.keywords }}</td><td>{{ w.origin }}</td>
+<td class="row"><form method="post" action="/watchlist/{{ w.id }}/toggle"><button class="btn ghost">{{ "Pause" if w.active else "Resume" }}</button></form>
+{% if w.origin == "dashboard" %}<form method="post" action="/watchlist/{{ w.id }}/delete"><button class="btn dark">Delete</button></form>{% endif %}</td></tr>{% endfor %}</table></div>{% endblock %}

@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block content %}<h1>Content history</h1>
+<p class="muted">Every angle the system has proposed. The analyst checks this list to avoid repeating narratives.</p>
+<div class="card scroll"><table><tr><th>Date</th><th>Topic / hook</th><th>Angle</th></tr>
+{% for c in items %}<tr><td>{{ c.date }}</td><td><b>{{ c.topic }}</b><div>{{ c.hook }}</div>{% if c.source_url %}<a href="{{ c.source_url }}" target="_blank" class="muted">source →</a>{% endif %}</td><td>{{ c.content_angle }}</td></tr>
+{% else %}<tr><td colspan="3">No content yet — ideas are saved after each full run.</td></tr>{% endfor %}</table></div>{% endblock %}

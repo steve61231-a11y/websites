@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><title>top scoring links : artificial</title>
+<entry><title>Google releases Gemini 4 with real-time voice</title>
+<link href="https://www.reddit.com/r/artificial/comments/abc/google_releases_gemini_4/"/>
+<updated>{{NOW_ISO}}</updated>
+<content type="html">&lt;table&gt;&lt;tr&gt;&lt;td&gt; submitted by /u/someone &lt;br/&gt; &lt;span&gt;&lt;a href="https://blog.example.org/gemini-4"&gt;[link]&lt;/a&gt;&lt;/span&gt; &lt;span&gt;&lt;a href="https://www.reddit.com/r/artificial/comments/abc/"&gt;[comments]&lt;/a&gt;&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</content></entry>
+<entry><title>What do you all think about AI?</title>
+<link href="https://www.reddit.com/r/artificial/comments/def/what_do_you_think/"/>
+<updated>{{NOW_ISO}}</updated>
+<content type="html">&lt;div&gt;Just a discussion post&lt;/div&gt; &lt;a href="https://www.reddit.com/r/artificial/comments/def/"&gt;[link]&lt;/a&gt;</content></entry>
+</feed>

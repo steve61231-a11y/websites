@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block content %}
+<h1>Stories (last {{ days }} days)</h1>
+<div class="card"><form method="post" action="/actions/url" class="row"><input name="url" type="url" placeholder="Paste a URL you found (Instagram, LinkedIn, X…) to analyse it" required style="flex:1;min-width:220px"><button class="btn">Analyse URL</button></form></div>
+<div class="card scroll"><h3 style="margin-top:0">Analysed</h3><table><tr><th>Story</th><th>Source</th><th>Rank score</th><th>Status</th></tr>
+{% for a in items %}<tr><td><a href="/stories/{{ a.id }}">{{ a.event_title or a.title }}</a><div class="muted">{{ a.summary|truncate(160) }}</div></td>
+<td><a href="{{ a.url }}" target="_blank">{{ a.source }}</a><div class="muted">{{ a.category }}</div></td><td>{{ a.final_score or "—" }}</td>
+<td>{% if a.featured_on %}<span class="pill">featured {{ a.featured_on }}</span>{% endif %}{% if a.degraded %} <span class="warn">degraded</span>{% endif %}</td></tr>
+{% else %}<tr><td colspan="4">Nothing analysed yet.</td></tr>{% endfor %}</table></div>
+<div class="card scroll"><h3 style="margin-top:0">Filtered (first pass only)</h3><table><tr><th>Headline</th><th>Filter decision</th></tr>
+{% for a in filtered %}{% set f = a.filter_json|fromjson %}<tr><td><a href="/stories/{{ a.id }}">{{ a.title }}</a><div class="muted">{{ a.source }}</div></td><td>{% if f.keep %}<span class="ok">keep</span>{% else %}<span class="muted">reject</span>{% endif %} · {{ f.reason }}</td></tr>{% endfor %}</table></div>
+{% endblock %}

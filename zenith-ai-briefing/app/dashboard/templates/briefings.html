@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}<h1>Briefing archive</h1>
+<div class="card scroll"><table><tr><th>Date</th><th>Headline</th><th>Status</th><th></th></tr>
+{% for b in items %}<tr><td>{{ b.date }}</td><td>{{ b.headline }}<div class="muted">{{ b.summary }}</div></td>
+<td>{% if b.emailed_at %}<span class="ok">emailed</span>{% elif b.is_dry_run %}dry run{% else %}<span class="warn">not sent</span>{% endif %}{% if b.degraded %} <span class="warn">⚠</span>{% endif %}</td>
+<td><a href="/briefings/{{ b.date }}/email" target="_blank">view</a></td></tr>
+{% else %}<tr><td colspan="4">No briefings yet.</td></tr>{% endfor %}</table></div>{% endblock %}

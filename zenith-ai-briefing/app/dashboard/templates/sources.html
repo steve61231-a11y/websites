@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block content %}<h1>Sources &amp; health</h1>
+<div class="card scroll"><table><tr><th></th><th>Source</th><th>Last success</th><th>Items (new)</th><th>Extraction</th><th></th></tr>
+{% for it in items %}{% set s = it.cfg %}{% set h = it.h %}
+<tr><td>{% if it.status == "ok" %}<span class="ok">✓</span>{% elif it.status == "warn" %}<span class="warn">⚠</span>{% elif it.status == "fail" %}<span class="bad">✗</span>{% elif it.status == "off" %}<span class="muted">off</span>{% else %}<span class="muted">·</span>{% endif %}</td>
+<td><b>{{ s.name }}</b><div class="muted">{{ s.type }} · {{ s.category }} · p{{ s.priority }}</div>{% if h.last_error %}<div class="bad" style="font-size:12px">{{ h.last_error|truncate(120) }}</div>{% endif %}</td>
+<td>{{ h.last_success_at|age if h else "never" }}{% if h.last_http_status %}<div class="muted">HTTP {{ h.last_http_status }}</div>{% endif %}</td>
+<td>{{ h.last_item_count or 0 }} ({{ h.last_new_count or 0 }})</td>
+<td class="muted">{{ h.extraction_ok or 0 }} ok / {{ h.extraction_failed or 0 }} failed</td>
+<td class="row"><form method="post" action="/sources/toggle"><input type="hidden" name="name" value="{{ s.name }}"><input type="hidden" name="enabled" value="{{ 0 if s.enabled else 1 }}"><button class="btn ghost">{{ "Disable" if s.enabled else "Enable" }}</button></form>
+<form method="post" action="/sources/remove" onsubmit="return confirm('Remove {{ s.name }} from sources.yaml?')"><input type="hidden" name="name" value="{{ s.name }}"><button class="btn dark">Remove</button></form></td></tr>{% endfor %}</table></div>
+<div class="card"><h2>Add a source</h2><form method="post" action="/sources/add" class="grid">
+<input name="name" placeholder="Name" required><select name="type">{% for t in types %}<option {{ "selected" if t == "rss" }}>{{ t }}</option>{% endfor %}</select>
+<input name="url" placeholder="Feed / page URL"><select name="category">{% for c in categories %}<option>{{ c }}</option>{% endfor %}</select>
+<input name="priority" type="number" min="1" max="10" value="7"><input name="link_pattern" placeholder="link_pattern (webpage/sitemap only)">
+<button class="btn">Add</button></form><p class="muted">Changes are written to config/sources.yaml. For GitHub Actions, commit and push that file. Search sources (queries) are easiest to add by editing the YAML.</p></div>{% endblock %}
