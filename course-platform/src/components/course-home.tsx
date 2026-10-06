@@ -16,6 +16,7 @@ import {
 } from "@/lib/progress";
 import type { Course, Module } from "@/lib/types";
 import { Check, ChevronDown, Doc, Lock, Play } from "./icons";
+import { LessonThumb } from "./lesson-thumb";
 import { ProgressDial } from "./progress-dial";
 
 export function CourseHome({ course }: { course: Course }) {
@@ -79,10 +80,13 @@ export function CourseHome({ course }: { course: Course }) {
           <p className="mt-5 text-[13px] font-medium text-accent">{eyebrow}</p>
           <h2 className="mt-1 text-[clamp(26px,3.6vw,36px)] font-semibold leading-tight tracking-[-0.03em]">{title}</h2>
           <p className="mt-1 text-[15px] text-muted">{meta}</p>
-          <Link href={href} className={`btn btn-lg mt-7 ${done ? "btn-dark" : "btn-primary"}`}>
-            {step.kind === "lesson" && <Play size={16} />}
-            {cta}
-          </Link>
+          <div className="mt-7 flex flex-col items-center gap-4 sm:flex-row">
+            <Link href={href} className={`btn btn-lg ${done ? "btn-dark" : "btn-primary"}`}>
+              {step.kind === "lesson" && <Play size={16} />}
+              {cta}
+            </Link>
+            <Link href={`/learn/${course.slug}`} className="link text-[15px]">Open course ›</Link>
+          </div>
         </div>
       </motion.div>
 
@@ -200,13 +204,14 @@ function ModuleRow({
                       href={`/learn/${course.slug}/${l.id}`}
                       className="flex min-h-14 items-center gap-3.5 px-4 py-3 transition-colors hover:bg-fill/60"
                     >
-                      <span
-                        className={`grid size-7 shrink-0 place-items-center rounded-full text-[12px] font-semibold ${
-                          doneLesson ? "bg-success text-white" : "bg-fill text-muted"
-                        }`}
-                      >
-                        {doneLesson ? <Check size={14} strokeWidth={2.6} /> : i + 1}
-                      </span>
+                      <LessonThumb
+                        module={module}
+                        lesson={l}
+                        index={i}
+                        done={doneLesson}
+                        progress={position / l.durationSec}
+                        className="w-[84px]"
+                      />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-[15px]">{l.title}</span>
                         {!doneLesson && position > 0 && (

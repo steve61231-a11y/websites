@@ -4,7 +4,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { formatDuration } from "@/lib/catalog";
 import type { Module } from "@/lib/types";
-import { ChevronDown, Doc, Play } from "./icons";
+import { ChevronDown } from "./icons";
+import { LessonThumb } from "./lesson-thumb";
 
 export function Curriculum({ modules }: { modules: Module[] }) {
   const [open, setOpen] = useState<string | null>(modules[0]?.id ?? null);
@@ -46,16 +47,16 @@ export function Curriculum({ modules }: { modules: Module[] }) {
                 >
                   <p className="pb-4 pl-13 text-[15px] text-muted">{m.summary}</p>
                   <ul className="pb-6 pl-13">
-                    {m.lessons.map((l) => (
-                      <li key={l.id} className="flex items-center gap-3 py-2 text-[15px]">
-                        <Play size={12} className="text-faint" />
+                    {m.lessons.map((l, i) => (
+                      <li key={l.id} className="flex items-center gap-4 py-2 text-[15px]">
+                        <LessonThumb module={m} lesson={l} index={i} className="w-[76px]" />
                         <span className="flex-1">{l.title}</span>
                         <span className="tabular-nums text-faint">{Math.round(l.durationSec / 60)} min</span>
                       </li>
                     ))}
                     {m.quiz && (
-                      <li className="flex items-center gap-3 py-2 text-[15px]">
-                        <Doc size={14} className="text-faint" />
+                      <li className="flex items-center gap-4 py-2 text-[15px]">
+                        <LessonThumb module={m} className="w-[76px]" />
                         <span className="flex-1">Module quiz</span>
                         <span className="text-faint">{m.quiz.questions.length} questions</span>
                       </li>

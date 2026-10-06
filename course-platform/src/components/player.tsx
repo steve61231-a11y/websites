@@ -136,7 +136,7 @@ export function Player({ lesson, moduleTitle, startAt, watermark, onProgress, on
 
       {/* Captions */}
       <AnimatePresence>
-        {captions && time > 0 && (
+        {captions && playing && (
           <motion.p
             key={caption}
             initial={{ opacity: 0 }}
