@@ -1,0 +1,7 @@
+@import "../src/app/globals.css";
+@source "../src";
+
+:root {
+  --font-inter: "Inter";
+  --font-serif-display: "Instrument Serif";
+}

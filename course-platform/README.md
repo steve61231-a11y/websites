@@ -57,3 +57,7 @@ Nothing assumes one course or seven modules. Add a course to `catalog.ts` (later
 | Quiz graded in the browser | Server-side grading; `is_correct` never reaches the client |
 | Lens animation in the player | Mux / Bunny / Cloudflare Stream with signed, expiring playback |
 | Certificate printed to PDF | Server-generated PDF, emailed, stored, publicly verifiable |
+
+## Shareable preview
+
+`npm run preview:build` bundles the same screens into one self-contained file, `preview/dist/index.html`, for sharing as a link without a server. Small shims in `preview/shims/` stand in for Next.js routing, links and fonts.
