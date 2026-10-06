@@ -107,6 +107,34 @@ boundary. Staff cannot read salary expense rows even by crafting a request.
 is computed in exactly one place, so the fees page, the student profile and the
 dashboard can never disagree.
 
+### Fees
+
+Fees are **line items**, not one lump sum per term. A family can be fully paid
+up on tuition and still owe for the bus, and the office needs to see that.
+
+| Item | Charged | Price |
+|---|---|---|
+| Tuition & meals | every term | KG1 32,000 · KG2 34,000 · PP1 36,000 · PP2 37,000 |
+| Daycare days | per day attended | 600 a day |
+| Admission fee | once, on joining | *not yet supplied — set it in Settings* |
+| Stationery | once a year | 4,500 (often paid 1,500 monthly) |
+| Insurance | once a year, new children | 1,500 |
+| Uniform | one-off, PP1 & PP2, optional | 10,000 |
+| Transport | every term, optional | no list price — agreed per family |
+
+Every amount in that table is a **default**. The figure actually charged lives on
+the child's own line and is always editable, because in practice the school
+negotiates: a parent who cannot pay stationery at once pays it monthly, and
+transport depends on how far the child lives.
+
+Returning children are billed tuition (plus transport if they use it). New
+admissions additionally get the one-off joining items. `itemsForStudent` in
+`src/data/selectors.ts` is what decides that.
+
+Payments are allocated to a line, so each line carries its own paid / remaining
+/ settled state. A payment recorded without a line still counts towards what the
+family has paid — it is never lost, just unallocated.
+
 ### Roles
 
 | | Admin | Staff |
@@ -115,7 +143,7 @@ dashboard can never disagree.
 | See salary expenses | ✓ | — |
 | Students, parents, notes | ✓ | ✓ |
 | Record fee payments | ✓ | ✓ |
-| Set what a term costs | ✓ | — |
+| Set the price list and bill a class | ✓ | — |
 | Log staff leave | ✓ | ✓ |
 | Manage the staff register | ✓ | — |
 | Manage users and roles | ✓ | — |

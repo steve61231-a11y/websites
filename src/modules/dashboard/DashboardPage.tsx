@@ -4,7 +4,8 @@ import { motion } from 'framer-motion'
 import { ArrowUpRight, Plus, TrendingDown, TrendingUp } from 'lucide-react'
 import { useAuth } from '@/auth/AuthProvider'
 import {
-  useExpenses, useInvoices, useLeave, useParents, usePayments, useStaff, useStudents, useTerms,
+  useCharges, useExpenses, useFeeItems, useLeave, useParents, usePayments, useStaff, useStudents,
+  useTerms,
 } from '@/data/queries'
 import {
   currentTerm, feeBalancesForTerm, onLeaveOn, fullName,
@@ -44,11 +45,12 @@ export function DashboardPage() {
   const staff = useStaff()
   const leave = useLeave()
   const terms = useTerms()
-  const invoices = useInvoices()
+  const charges = useCharges()
+  const feeItems = useFeeItems()
   const payments = usePayments()
 
   const loading =
-    expenses.isLoading || students.isLoading || terms.isLoading || invoices.isLoading
+    expenses.isLoading || students.isLoading || terms.isLoading || charges.isLoading
 
   const stats = useMemo(() => {
     const allExpenses = expenses.data ?? []
@@ -72,8 +74,9 @@ export function DashboardPage() {
     const balances = feeBalancesForTerm(
       (students.data ?? []).filter((s) => s.status === 'active'),
       term?.id ?? null,
-      invoices.data ?? [],
+      charges.data ?? [],
       payments.data ?? [],
+      feeItems.data ?? [],
       today,
     )
     const outstanding = sumCents(
@@ -94,7 +97,7 @@ export function DashboardPage() {
       onLeaveToday,
       term,
     }
-  }, [expenses.data, students.data, parents.data, leave.data, terms.data, invoices.data, payments.data, today])
+  }, [expenses.data, students.data, parents.data, leave.data, terms.data, charges.data, payments.data, feeItems.data, today])
 
   if (loading) {
     return (

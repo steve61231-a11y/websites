@@ -6,11 +6,16 @@
 -- or expenses: real records should be the school's own from day one.
 -- ============================================================================
 
+-- The school's classes. Daycare is kept separate from KG1 even though the
+-- children sit together, because daycare is billed per day attended (600) and
+-- the rest are billed per term.
 insert into public.classes (name, sort_order) values
-  ('Baby Class', 10),
-  ('Nursery',    20),
-  ('Pre-Unit',   30)
-on conflict (name) do nothing;
+  ('Daycare', 10),
+  ('KG1',     20),
+  ('KG2',     30),
+  ('PP1',     40),
+  ('PP2',     50)
+on conflict (name) do update set sort_order = excluded.sort_order;
 
 -- A term to hang the first invoices off. Adjust the dates in Settings.
 insert into public.terms (name, start_date, end_date, is_current) values

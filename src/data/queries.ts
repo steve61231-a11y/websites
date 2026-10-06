@@ -4,10 +4,10 @@ import {
 import { repo } from './index'
 import type {
   Expense, ExpenseDraft, ExpenseCategoryKey, Student, StudentDraft, Parent, ParentDraft,
-  StudentParentLink, Term, FeePayment, StaffMember, LeaveType, Role, Uuid,
+  StudentParentLink, Term, FeeItem, FeeChargeDraft, FeePayment, StaffMember,
+  LeaveType, Role, Uuid,
 } from './types'
 import type { IsoDate } from '@/lib/dates'
-import type { Cents } from '@/lib/money'
 
 /** One place for every cache key, so invalidation can never miss a screen. */
 export const qk = {
@@ -19,7 +19,8 @@ export const qk = {
   links: ['links'] as const,
   parentNotes: ['parent-notes'] as const,
   terms: ['terms'] as const,
-  invoices: ['invoices'] as const,
+  feeItems: ['fee-items'] as const,
+  charges: ['charges'] as const,
   payments: ['payments'] as const,
   staff: ['staff'] as const,
   leave: ['leave'] as const,
@@ -38,7 +39,8 @@ export const useParents = () => list(qk.parents, () => repo.listParents())
 export const useLinks = () => list(qk.links, () => repo.listLinks())
 export const useParentNotes = () => list(qk.parentNotes, () => repo.listParentNotes())
 export const useTerms = () => list(qk.terms, () => repo.listTerms())
-export const useInvoices = () => list(qk.invoices, () => repo.listInvoices())
+export const useFeeItems = () => list(qk.feeItems, () => repo.listFeeItems())
+export const useCharges = () => list(qk.charges, () => repo.listCharges())
 export const usePayments = () => list(qk.payments, () => repo.listPayments())
 export const useStaff = () => list(qk.staff, () => repo.listStaff())
 export const useLeave = () => list(qk.leave, () => repo.listLeave())
@@ -104,7 +106,7 @@ export const useUpdateStudent = () =>
   )
 
 export const useDeleteStudent = () =>
-  useRepoMutation((id: Uuid) => repo.deleteStudent(id), [qk.students, qk.links, qk.invoices, qk.payments])
+  useRepoMutation((id: Uuid) => repo.deleteStudent(id), [qk.students, qk.links, qk.charges, qk.payments])
 
 export const useUploadStudentPhoto = () =>
   useRepoMutation(
@@ -163,20 +165,31 @@ export const useUpdateTerm = () =>
     [qk.terms],
   )
 
-export const useUpsertInvoice = () =>
+export const useUpsertFeeItem = () =>
+  useRepoMutation((item: FeeItem) => repo.upsertFeeItem(item), [qk.feeItems])
+
+export const useDeleteFeeItem = () =>
+  useRepoMutation((key: string) => repo.deleteFeeItem(key), [qk.feeItems, qk.charges])
+
+export const useCreateCharge = () =>
+  useRepoMutation((draft: FeeChargeDraft) => repo.createCharge(draft), [qk.charges])
+
+export const useCreateCharges = () =>
+  useRepoMutation((drafts: FeeChargeDraft[]) => repo.createCharges(drafts), [qk.charges])
+
+export const useUpdateCharge = () =>
   useRepoMutation(
-    (input: { studentId: Uuid; termId: Uuid; amountDueCents: Cents; dueDate: IsoDate; notes?: string | null }) =>
-      repo.upsertInvoice(input),
-    [qk.invoices],
+    ({ id, patch }: { id: Uuid; patch: Partial<FeeChargeDraft> }) => repo.updateCharge(id, patch),
+    [qk.charges],
   )
 
-export const useDeleteInvoice = () =>
-  useRepoMutation((id: Uuid) => repo.deleteInvoice(id), [qk.invoices])
+export const useDeleteCharge = () =>
+  useRepoMutation((id: Uuid) => repo.deleteCharge(id), [qk.charges, qk.payments])
 
 type PaymentInput = Omit<FeePayment, 'id' | 'createdAt' | 'createdBy' | 'createdByName'>
 
 export const useCreatePayment = (extras?: MutationExtras<FeePayment, PaymentInput>) =>
-  useRepoMutation((input: PaymentInput) => repo.createPayment(input), [qk.payments], extras)
+  useRepoMutation((input: PaymentInput) => repo.createPayment(input), [qk.payments, qk.charges], extras)
 
 export const useDeletePayment = () =>
   useRepoMutation((id: Uuid) => repo.deletePayment(id), [qk.payments])

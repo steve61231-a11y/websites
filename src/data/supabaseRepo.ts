@@ -1,7 +1,7 @@
 import type { Repo } from './repo'
 import type {
   Expense, ExpenseDraft, Vendor, ExpenseCategoryKey, Student, StudentDraft, SchoolClass,
-  Parent, ParentDraft, ParentNote, StudentParentLink, Term, FeeInvoice, FeePayment,
+  Parent, ParentDraft, ParentNote, StudentParentLink, Term, FeeItem, FeeCharge, FeeChargeDraft, FeePayment,
   StaffMember, LeaveRecord, LeaveType, Profile, Role, Uuid,
 } from './types'
 import type { IsoDate } from '@/lib/dates'
@@ -95,20 +95,68 @@ const toTerm = (r: Record<string, any>): Term => ({
   id: r.id, name: r.name, startDate: r.start_date, endDate: r.end_date, isCurrent: r.is_current,
 })
 
-const toInvoice = (r: Record<string, any>): FeeInvoice => ({
+const toFeeItem = (r: Record<string, any>): FeeItem => ({
+  key: r.key,
+  label: r.label,
+  emoji: r.emoji ?? '📌',
+  cycle: r.cycle,
+  defaultAmountCents: r.default_amount_cents === null ? null : Number(r.default_amount_cents),
+  classAmounts: Object.fromEntries(
+    Object.entries((r.class_amounts ?? {}) as Record<string, unknown>)
+      .map(([k, v]) => [k, Number(v)]),
+  ),
+  isOptional: r.is_optional ?? false,
+  isAdmissionOnly: r.is_admission_only ?? false,
+  limitedToClassIds: r.limited_to_class_ids ?? [],
+  isNegotiated: r.is_negotiated ?? false,
+  sortOrder: r.sort_order ?? 100,
+  isArchived: r.is_archived ?? false,
+})
+
+const feeItemRow = (item: FeeItem) => ({
+  key: item.key,
+  label: item.label,
+  emoji: item.emoji,
+  cycle: item.cycle,
+  default_amount_cents: item.defaultAmountCents,
+  class_amounts: item.classAmounts,
+  is_optional: item.isOptional,
+  is_admission_only: item.isAdmissionOnly,
+  limited_to_class_ids: item.limitedToClassIds,
+  is_negotiated: item.isNegotiated,
+  sort_order: item.sortOrder,
+  is_archived: item.isArchived,
+})
+
+const toCharge = (r: Record<string, any>): FeeCharge => ({
   id: r.id,
   studentId: r.student_id,
+  itemKey: r.item_key,
   termId: r.term_id,
-  amountDueCents: Number(r.amount_due_cents),
+  amountCents: Number(r.amount_cents),
   dueDate: r.due_date,
+  quantity: r.quantity === null ? null : Number(r.quantity),
   notes: r.notes,
+  isWaived: r.is_waived ?? false,
   createdAt: r.created_at,
+})
+
+const chargeRow = (draft: Partial<FeeChargeDraft>) => ({
+  ...(draft.studentId !== undefined && { student_id: draft.studentId }),
+  ...(draft.itemKey !== undefined && { item_key: draft.itemKey }),
+  ...(draft.termId !== undefined && { term_id: draft.termId }),
+  ...(draft.amountCents !== undefined && { amount_cents: draft.amountCents }),
+  ...(draft.dueDate !== undefined && { due_date: draft.dueDate }),
+  ...(draft.quantity !== undefined && { quantity: draft.quantity }),
+  ...(draft.notes !== undefined && { notes: draft.notes }),
+  ...(draft.isWaived !== undefined && { is_waived: draft.isWaived }),
 })
 
 const toPayment = (r: Record<string, any>): FeePayment => ({
   id: r.id,
   studentId: r.student_id,
   termId: r.term_id,
+  chargeId: r.charge_id,
   amountCents: Number(r.amount_cents),
   paidOn: r.paid_on,
   method: r.method,
@@ -409,26 +457,48 @@ export const supabaseRepo: Repo = {
     return toTerm(row)
   },
 
-  async listInvoices() {
-    const rows = unwrap(await db().from('fee_invoices').select('*'))
-    return rows.map(toInvoice)
+  async listFeeItems() {
+    const rows = unwrap(await db().from('fee_items').select('*').order('sort_order'))
+    return rows.map(toFeeItem)
   },
 
-  async upsertInvoice(input) {
+  async upsertFeeItem(item: FeeItem) {
     const row = unwrap(
-      await db().from('fee_invoices').upsert({
-        student_id: input.studentId,
-        term_id: input.termId,
-        amount_due_cents: input.amountDueCents,
-        due_date: input.dueDate,
-        notes: input.notes ?? null,
-      }, { onConflict: 'student_id,term_id' }).select().single(),
+      await db().from('fee_items').upsert(feeItemRow(item), { onConflict: 'key' }).select().single(),
     )
-    return toInvoice(row)
+    return toFeeItem(row)
   },
 
-  async deleteInvoice(id: Uuid) {
-    const { error } = await db().from('fee_invoices').delete().eq('id', id)
+  async deleteFeeItem(key: string) {
+    const { error } = await db().from('fee_items').delete().eq('key', key)
+    if (error) throw new Error(error.message)
+  },
+
+  async listCharges() {
+    const rows = unwrap(await db().from('fee_charges').select('*'))
+    return rows.map(toCharge)
+  },
+
+  async createCharge(draft: FeeChargeDraft) {
+    const row = unwrap(await db().from('fee_charges').insert(chargeRow(draft)).select().single())
+    return toCharge(row)
+  },
+
+  async createCharges(drafts: FeeChargeDraft[]) {
+    if (drafts.length === 0) return []
+    const rows = unwrap(await db().from('fee_charges').insert(drafts.map(chargeRow)).select())
+    return rows.map(toCharge)
+  },
+
+  async updateCharge(id: Uuid, patch: Partial<FeeChargeDraft>) {
+    const row = unwrap(
+      await db().from('fee_charges').update(chargeRow(patch)).eq('id', id).select().single(),
+    )
+    return toCharge(row)
+  },
+
+  async deleteCharge(id: Uuid) {
+    const { error } = await db().from('fee_charges').delete().eq('id', id)
     if (error) throw new Error(error.message)
   },
 
@@ -445,6 +515,7 @@ export const supabaseRepo: Repo = {
       await db().from('fee_payments').insert({
         student_id: input.studentId,
         term_id: input.termId,
+        charge_id: input.chargeId,
         amount_cents: input.amountCents,
         paid_on: input.paidOn,
         method: input.method,

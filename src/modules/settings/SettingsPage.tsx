@@ -7,9 +7,9 @@ import {
 import { cn } from '@/lib/cn'
 import { formatDate, todayIso } from '@/lib/dates'
 import {
-  useClasses, useCreateClass, useCreateTerm, useCreateVendor, useDeleteClass,
+  useClasses, useCreateClass, useCreateTerm, useCreateVendor, useDeleteClass, useFeeItems,
   useProfiles, useSetVendorArchived, useStudents, useTerms, useUpdateProfileRole,
-  useUpdateTerm, useVendors,
+  useUpdateTerm, useUpsertFeeItem, useVendors,
 } from '@/data/queries'
 import { resetDemoData } from '@/data'
 import { CATEGORY_LIST, categoryToken } from '@/brand/categories'
@@ -21,7 +21,8 @@ import { ConfirmDialog, Sheet } from '@/components/ui/Sheet'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/auth/AuthProvider'
 import { ROLE_DESCRIPTION, ROLE_LABEL } from '@/auth/permissions'
-import type { ExpenseCategoryKey, Role } from '@/data/types'
+import { formatKes, parseKesToCents } from '@/lib/money'
+import type { ExpenseCategoryKey, FeeItem, Role } from '@/data/types'
 
 export default function SettingsPage() {
   const { can, profile, setDemoRole, isDemo } = useAuth()
@@ -36,9 +37,11 @@ export default function SettingsPage() {
 
       {isDemo && <DemoPanel role={profile?.role ?? 'admin'} onRoleChange={setDemoRole} />}
 
-      <VendorSettings />
-      <ClassSettings />
+      {/* Money first: the price list and the term are what the director checks. */}
+      {can('fees.setInvoice') && <FeeItemSettings />}
       {can('fees.setInvoice') && <TermSettings />}
+      <ClassSettings />
+      <VendorSettings />
       {can('settings.manageUsers') && <UserSettings />}
 
       <section className="card">
@@ -244,6 +247,178 @@ function VendorSettings() {
       >
         {showArchived ? 'Hide' : 'Show'} hidden shops
       </button>
+    </section>
+  )
+}
+
+/* ------------------------------------------------------------- price list */
+
+const CYCLE_LABEL: Record<FeeItem['cycle'], string> = {
+  term: 'Every term',
+  year: 'Once a year',
+  once: 'One-off, on joining',
+  daily: 'Per day attended',
+}
+
+/**
+ * The school's price list.
+ *
+ * These are starting points, not rules — every one can be overridden on an
+ * individual child when the parent agrees something different. Transport has no
+ * price at all here because it depends on how far the child lives.
+ */
+function FeeItemSettings() {
+  const { data: items = [], isLoading } = useFeeItems()
+  const { data: classes = [] } = useClasses()
+  const upsert = useUpsertFeeItem()
+  const { notify } = useToast()
+  const [openKey, setOpenKey] = useState<string | null>(null)
+  const [drafts, setDrafts] = useState<Record<string, string>>({})
+
+  if (isLoading) return <CardSkeleton rows={3} />
+
+  const draftKey = (itemKey: string, classId?: string) => `${itemKey}:${classId ?? 'flat'}`
+
+  const valueFor = (item: FeeItem, classId?: string) => {
+    const key = draftKey(item.key, classId)
+    if (drafts[key] !== undefined) return drafts[key]
+    const cents = classId ? item.classAmounts[classId] : item.defaultAmountCents
+    return cents === undefined || cents === null ? '' : String(cents / 100)
+  }
+
+  async function saveItem(item: FeeItem) {
+    const flat = drafts[draftKey(item.key)]
+    const classAmounts = { ...item.classAmounts }
+    for (const c of classes) {
+      const typed = drafts[draftKey(item.key, c.id)]
+      if (typed === undefined) continue
+      const cents = parseKesToCents(typed)
+      if (cents === null || cents === 0) delete classAmounts[c.id]
+      else classAmounts[c.id] = cents
+    }
+
+    const next: FeeItem = {
+      ...item,
+      classAmounts,
+      defaultAmountCents: flat === undefined
+        ? item.defaultAmountCents
+        : parseKesToCents(flat) ?? 0,
+    }
+
+    try {
+      await upsert.mutateAsync(next)
+      notify(`${item.label} updated.`)
+      setDrafts((d) => {
+        const copy = { ...d }
+        for (const k of Object.keys(copy)) if (k.startsWith(`${item.key}:`)) delete copy[k]
+        return copy
+      })
+      setOpenKey(null)
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'Could not save that price.', 'error')
+    }
+  }
+
+  return (
+    <section className="card">
+      <SectionTitle hint="Starting prices — any child's own bill can differ">
+        School fees price list
+      </SectionTitle>
+
+      <ul className="space-y-1.5">
+        {items.map((item) => {
+          const perClass = Object.keys(item.classAmounts).length > 0
+          const open = openKey === item.key
+          const summary = item.isNegotiated
+            ? 'Agreed per family'
+            : perClass
+              ? `${formatKes(Math.min(...Object.values(item.classAmounts)))} – ${formatKes(Math.max(...Object.values(item.classAmounts)))}`
+              : item.defaultAmountCents
+                ? `${formatKes(item.defaultAmountCents)}${item.cycle === 'daily' ? ' a day' : ''}`
+                : 'Not set yet'
+
+          return (
+            <li key={item.key} className={cn('rounded-2xl', open ? 'bg-white ring-2 ring-iris-200' : 'bg-sand-50')}>
+              <button
+                onClick={() => setOpenKey(open ? null : item.key)}
+                className="flex w-full items-center gap-3 px-3.5 py-3 text-left"
+              >
+                <span aria-hidden="true" className="text-xl">{item.emoji}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-extrabold text-sand-800">{item.label}</span>
+                  <span className="block text-xs font-semibold text-sand-400">
+                    {CYCLE_LABEL[item.cycle]}
+                    {item.isAdmissionOnly && ' · new children only'}
+                    {item.isOptional && ' · optional'}
+                  </span>
+                </span>
+                <span
+                  className={cn(
+                    'tnum shrink-0 text-sm font-extrabold',
+                    summary === 'Not set yet' ? 'text-bad-base' : 'text-sand-700',
+                  )}
+                >
+                  {summary}
+                </span>
+              </button>
+
+              {open && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="overflow-hidden border-t hairline px-3.5 py-4"
+                >
+                  {item.isNegotiated ? (
+                    <p className="text-sm leading-relaxed text-sand-500">
+                      {item.label} has no fixed price — you enter whatever you agreed with each
+                      family on the child's own page.
+                    </p>
+                  ) : perClass ? (
+                    <div className="space-y-2.5">
+                      {classes
+                        .filter((c) =>
+                          item.limitedToClassIds.length === 0 || item.limitedToClassIds.includes(c.id))
+                        .map((c) => (
+                          <label key={c.id} className="flex items-center gap-3">
+                            <span className="w-24 shrink-0 text-sm font-extrabold text-sand-600">{c.name}</span>
+                            <TextInput
+                              inputMode="decimal"
+                              value={valueFor(item, c.id)}
+                              onChange={(e) =>
+                                setDrafts((d) => ({ ...d, [draftKey(item.key, c.id)]: e.target.value }))
+                              }
+                              placeholder="0"
+                              className="h-11 text-sm"
+                            />
+                          </label>
+                        ))}
+                    </div>
+                  ) : (
+                    <Field label={item.cycle === 'daily' ? 'Rate per day (KES)' : 'Amount (KES)'}>
+                      <TextInput
+                        inputMode="decimal"
+                        value={valueFor(item)}
+                        onChange={(e) => setDrafts((d) => ({ ...d, [draftKey(item.key)]: e.target.value }))}
+                        placeholder="0"
+                      />
+                    </Field>
+                  )}
+
+                  {!item.isNegotiated && (
+                    <Button
+                      className="mt-4"
+                      loading={upsert.isPending}
+                      onClick={() => void saveItem(item)}
+                    >
+                      Save {item.label.toLowerCase()}
+                    </Button>
+                  )}
+                </motion.div>
+              )}
+            </li>
+          )
+        })}
+      </ul>
     </section>
   )
 }

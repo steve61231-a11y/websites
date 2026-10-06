@@ -5,7 +5,7 @@ import { Mail, MessageSquarePlus, Pencil, Phone, Trash2 } from 'lucide-react'
 import { formatDate, formatRelativeDay, todayIso } from '@/lib/dates'
 import { formatKes } from '@/lib/money'
 import {
-  useAddParentNote, useDeleteParent, useDeleteParentNote, useInvoices, useLinks,
+  useAddParentNote, useCharges, useDeleteParent, useDeleteParentNote, useFeeItems, useLinks,
   useParentNotes, useParents, usePayments, useStudents, useTerms,
 } from '@/data/queries'
 import {
@@ -33,7 +33,8 @@ export default function ParentProfilePage() {
   const links = useLinks()
   const notes = useParentNotes()
   const terms = useTerms()
-  const invoices = useInvoices()
+  const charges = useCharges()
+  const feeItems = useFeeItems()
   const payments = usePayments()
 
   const deleteParent = useDeleteParent()
@@ -48,10 +49,10 @@ export default function ParentProfilePage() {
   const familyBalance = useMemo(() => {
     if (!term) return 0
     return kids.reduce((total, kid) => {
-      const b = feeBalance(kid.id, term.id, invoices.data ?? [], payments.data ?? [])
+      const b = feeBalance(kid.id, term.id, charges.data ?? [], payments.data ?? [], feeItems.data ?? [])
       return total + Math.max(b.balanceCents, 0)
     }, 0)
-  }, [kids, term, invoices.data, payments.data])
+  }, [kids, term, charges.data, payments.data, feeItems.data])
 
   const timeline = useMemo(
     () => (notes.data ?? []).filter((n) => n.parentId === id),
@@ -137,7 +138,7 @@ export default function ParentProfilePage() {
           <ul className="space-y-2">
             {kids.map((kid) => {
               const balance = term
-                ? feeBalance(kid.id, term.id, invoices.data ?? [], payments.data ?? [])
+                ? feeBalance(kid.id, term.id, charges.data ?? [], payments.data ?? [], feeItems.data ?? [])
                 : null
               const meta = balance ? FEE_STATUS_META[balance.status] : null
               return (

@@ -1,6 +1,6 @@
 import type {
-  Expense, ExpenseCategoryKey, FeeBalance, FeeInvoice, FeePayment, FeeStatus,
-  LeaveRecord, Parent, Student, StudentParentLink, Term, Uuid,
+  ChargeBalance, Expense, ExpenseCategoryKey, FeeBalance, FeeCharge, FeeItem, FeePayment,
+  FeeStatus, LeaveRecord, Parent, Student, StudentParentLink, Term, Uuid,
 } from './types'
 import { sumCents, type Cents } from '@/lib/money'
 import {
@@ -124,57 +124,147 @@ export const categorySortIndex = (key: ExpenseCategoryKey) => CATEGORY_ORDER.ind
 
 /* ---------------------------------------------------------------------- fees */
 
-export function feeBalance(
-  studentId: Uuid,
-  termId: Uuid,
-  invoices: readonly FeeInvoice[],
+/** The price the catalogue suggests for this item and class, before any haggling. */
+export function defaultAmountFor(item: FeeItem, classId: Uuid | null): Cents {
+  if (item.isNegotiated) return 0
+  if (classId && item.classAmounts[classId] !== undefined) return item.classAmounts[classId]
+  return item.defaultAmountCents ?? 0
+}
+
+/** Does this item apply to a child in this class at all? (Uniform is PP1/PP2 only.) */
+export function itemAppliesTo(item: FeeItem, classId: Uuid | null): boolean {
+  if (item.isArchived) return false
+  if (item.limitedToClassIds.length === 0) return true
+  return classId !== null && item.limitedToClassIds.includes(classId)
+}
+
+/**
+ * What to put on a new child's first bill, versus a returning child's.
+ * A returning family only owes the recurring things — tuition, and transport if
+ * they use it; they are not charged admission or insurance a second time.
+ */
+export function itemsForStudent(
+  items: readonly FeeItem[],
+  classId: Uuid | null,
+  { isNewAdmission }: { isNewAdmission: boolean },
+): FeeItem[] {
+  return items
+    .filter((item) => itemAppliesTo(item, classId))
+    .filter((item) => (isNewAdmission ? true : !item.isAdmissionOnly))
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+}
+
+function statusForLine(
+  charge: FeeCharge,
+  paidCents: Cents,
+  today: IsoDate,
+): FeeStatus {
+  if (charge.isWaived) return 'waived'
+  // A negotiated line with nothing agreed yet is not a debt — it is a blank.
+  if (charge.amountCents === 0 && paidCents === 0) return 'no-invoice'
+  if (paidCents >= charge.amountCents) return 'paid'
+  if (charge.dueDate && charge.dueDate < today) return 'overdue'
+  if (paidCents > 0) return 'partial'
+  return 'unpaid'
+}
+
+export function chargeBalance(
+  charge: FeeCharge,
+  items: readonly FeeItem[],
   payments: readonly FeePayment[],
   today: IsoDate = todayIso(),
-): FeeBalance {
-  const invoice = invoices.find((i) => i.studentId === studentId && i.termId === termId)
+): ChargeBalance {
   const paidCents = sumCents(
-    payments.filter((p) => p.studentId === studentId && p.termId === termId).map((p) => p.amountCents),
+    payments.filter((p) => p.chargeId === charge.id).map((p) => p.amountCents),
   )
-  const dueCents = invoice?.amountDueCents ?? 0
-  const balanceCents = dueCents - paidCents
+  return {
+    charge,
+    item: items.find((i) => i.key === charge.itemKey) ?? null,
+    paidCents,
+    balanceCents: charge.isWaived ? 0 : Math.max(charge.amountCents - paidCents, 0),
+    status: statusForLine(charge, paidCents, today),
+  }
+}
+
+/**
+ * A student's whole position for a term.
+ *
+ * Annual and one-off lines (admission, stationery, insurance, uniform) carry no
+ * term of their own, so they are folded into whichever term you are looking at:
+ * from the school's point of view a family who still owes for stationery owes it
+ * now, not in some separate bucket.
+ */
+export function feeBalance(
+  studentId: Uuid,
+  termId: Uuid | null,
+  charges: readonly FeeCharge[],
+  payments: readonly FeePayment[],
+  items: readonly FeeItem[],
+  today: IsoDate = todayIso(),
+): FeeBalance {
+  const mine = charges.filter(
+    (c) => c.studentId === studentId && (c.termId === termId || c.termId === null),
+  )
+  const myPayments = payments.filter((p) => p.studentId === studentId)
+
+  const lines = mine
+    .map((c) => chargeBalance(c, items, myPayments, today))
+    .sort((a, b) => (a.item?.sortOrder ?? 999) - (b.item?.sortOrder ?? 999))
+
+  const chargeIds = new Set(mine.map((c) => c.id))
+  // Money recorded against this student but not put against a line yet. It is
+  // still their money, so it has to count towards what they have paid.
+  const unallocatedCents = sumCents(
+    myPayments
+      .filter((p) => (p.chargeId === null || !chargeIds.has(p.chargeId)) && p.termId === termId)
+      .map((p) => p.amountCents),
+  )
+
+  const dueCents = sumCents(lines.filter((l) => !l.charge.isWaived).map((l) => l.charge.amountCents))
+  const paidCents = sumCents(lines.map((l) => l.paidCents)) + unallocatedCents
+  const balanceCents = Math.max(dueCents - paidCents, 0)
+
+  const outstanding = lines.filter((l) => l.balanceCents > 0)
+  const dueDate = outstanding
+    .map((l) => l.charge.dueDate)
+    .filter((d): d is IsoDate => d !== null)
+    .sort()[0] ?? null
 
   let status: FeeStatus
-  if (!invoice) status = 'no-invoice'
+  if (lines.length === 0) status = 'no-invoice'
   else if (balanceCents <= 0) status = 'paid'
-  else if (invoice.dueDate < today) status = 'overdue'
+  else if (outstanding.some((l) => l.status === 'overdue')) status = 'overdue'
   else if (paidCents > 0) status = 'partial'
   else status = 'unpaid'
 
-  return {
-    studentId,
-    termId,
-    dueCents,
-    paidCents,
-    balanceCents,
-    dueDate: invoice?.dueDate ?? null,
-    status,
-  }
+  return { studentId, termId, lines, dueCents, paidCents, balanceCents, dueDate, status }
 }
 
 export function feeBalancesForTerm(
   students: readonly Student[],
   termId: Uuid | null,
-  invoices: readonly FeeInvoice[],
+  charges: readonly FeeCharge[],
   payments: readonly FeePayment[],
+  items: readonly FeeItem[],
   today: IsoDate = todayIso(),
 ): Map<Uuid, FeeBalance> {
   const out = new Map<Uuid, FeeBalance>()
-  if (!termId) return out
-  for (const s of students) out.set(s.id, feeBalance(s.id, termId, invoices, payments, today))
+  for (const s of students) {
+    out.set(s.id, feeBalance(s.id, termId, charges, payments, items, today))
+  }
   return out
 }
 
-export const FEE_STATUS_META: Record<FeeStatus, { label: string; tone: 'good' | 'warn' | 'bad' | 'muted'; icon: string }> = {
+export const FEE_STATUS_META: Record<
+  FeeStatus,
+  { label: string; tone: 'good' | 'warn' | 'bad' | 'muted'; icon: string }
+> = {
   paid: { label: 'Paid up', tone: 'good', icon: '✓' },
   partial: { label: 'Part paid', tone: 'warn', icon: '◑' },
   unpaid: { label: 'Not paid yet', tone: 'warn', icon: '○' },
   overdue: { label: 'Overdue', tone: 'bad', icon: '!' },
-  'no-invoice': { label: 'No fee set', tone: 'muted', icon: '–' },
+  waived: { label: 'Waived', tone: 'muted', icon: '–' },
+  'no-invoice': { label: 'Not set', tone: 'muted', icon: '–' },
 }
 
 export function currentTerm(terms: readonly Term[], today: IsoDate = todayIso()): Term | null {

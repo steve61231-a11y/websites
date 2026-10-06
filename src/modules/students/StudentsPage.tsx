@@ -5,7 +5,7 @@ import { ageInYears, formatDate } from '@/lib/dates'
 import { formatKes } from '@/lib/money'
 import { downloadCsv } from '@/lib/csv'
 import {
-  useClasses, useInvoices, useLinks, useParents, usePayments, useStudents, useTerms,
+  useCharges, useClasses, useFeeItems, useLinks, useParents, usePayments, useStudents, useTerms,
 } from '@/data/queries'
 import {
   currentTerm, FEE_STATUS_META, feeBalancesForTerm, fullName, guardiansOf,
@@ -25,7 +25,8 @@ export default function StudentsPage() {
   const students = useStudents()
   const classes = useClasses()
   const terms = useTerms()
-  const invoices = useInvoices()
+  const charges = useCharges()
+  const feeItems = useFeeItems()
   const payments = usePayments()
   const parents = useParents()
   const links = useLinks()
@@ -38,8 +39,8 @@ export default function StudentsPage() {
   const all = students.data ?? []
 
   const balances = useMemo(
-    () => feeBalancesForTerm(all, term?.id ?? null, invoices.data ?? [], payments.data ?? []),
-    [all, term, invoices.data, payments.data],
+    () => feeBalancesForTerm(all, term?.id ?? null, charges.data ?? [], payments.data ?? [], feeItems.data ?? []),
+    [all, term, charges.data, payments.data, feeItems.data],
   )
 
   const visible = useMemo(() => {

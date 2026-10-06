@@ -1,6 +1,6 @@
 import type {
   Expense, Vendor, Student, SchoolClass, Parent, ParentNote, StudentParentLink,
-  Term, FeeInvoice, FeePayment, StaffMember, LeaveRecord, Profile,
+  Term, FeeItem, FeeCharge, FeePayment, StaffMember, LeaveRecord, Profile,
   ExpenseCategoryKey, PaymentMethod,
 } from './types'
 import { addDays, addMonths, startOfMonth, todayIso, type IsoDate } from '@/lib/dates'
@@ -34,9 +34,11 @@ const TODAY = todayIso()
 /* --------------------------------------------------------------- reference */
 
 export const DEMO_CLASSES: SchoolClass[] = [
-  { id: 'class-baby', name: 'Baby Class', sortOrder: 10 },
-  { id: 'class-nursery', name: 'Nursery', sortOrder: 20 },
-  { id: 'class-preunit', name: 'Pre-Unit', sortOrder: 30 },
+  { id: 'class-daycare', name: 'Daycare', sortOrder: 10 },
+  { id: 'class-kg1', name: 'KG1', sortOrder: 20 },
+  { id: 'class-kg2', name: 'KG2', sortOrder: 30 },
+  { id: 'class-pp1', name: 'PP1', sortOrder: 40 },
+  { id: 'class-pp2', name: 'PP2', sortOrder: 50 },
 ]
 
 const VENDOR_SEED: Array<[ExpenseCategoryKey, string]> = [
@@ -138,27 +140,27 @@ type FamilySeed = {
 
 const FAMILIES: FamilySeed[] = [
   { parent: 'Grace Wanjiru', phone: '+254 722 145 903', relationship: 'mother',
-    children: [{ first: 'Amani', last: 'Wanjiru', age: 5, className: 'Pre-Unit' },
-               { first: 'Zawadi', last: 'Wanjiru', age: 3, className: 'Baby Class' }] },
+    children: [{ first: 'Amani', last: 'Wanjiru', age: 5, className: 'PP2' },
+               { first: 'Zawadi', last: 'Wanjiru', age: 3, className: 'Daycare' }] },
   { parent: 'Peter Otieno', phone: '+254 733 902 114', relationship: 'father',
-    children: [{ first: 'Baraka', last: 'Otieno', age: 4, className: 'Nursery', allergies: ['Peanut allergy'] }] },
+    children: [{ first: 'Baraka', last: 'Otieno', age: 4, className: 'PP1', allergies: ['Peanut allergy'] }] },
   { parent: 'Mercy Achieng', phone: '+254 710 556 218', relationship: 'mother',
-    children: [{ first: 'Neema', last: 'Achieng', age: 5, className: 'Pre-Unit' }] },
+    children: [{ first: 'Neema', last: 'Achieng', age: 5, className: 'PP2' }] },
   { parent: 'Samuel Kimani', phone: '+254 724 310 887', relationship: 'father',
-    children: [{ first: 'Mwangi', last: 'Kimani', age: 3, className: 'Baby Class' }] },
+    children: [{ first: 'Mwangi', last: 'Kimani', age: 3, className: 'KG1' }] },
   { parent: 'Faith Njeri', phone: '+254 701 224 675', relationship: 'mother',
-    children: [{ first: 'Imani', last: 'Njeri', age: 4, className: 'Nursery', allergies: ['Dairy — mild'] }] },
+    children: [{ first: 'Imani', last: 'Njeri', age: 4, className: 'KG2', allergies: ['Dairy — mild'] }] },
   { parent: 'Joseph Mwangi', phone: '+254 738 447 190', relationship: 'father',
-    children: [{ first: 'Tumaini', last: 'Mwangi', age: 4, className: 'Nursery' }] },
+    children: [{ first: 'Tumaini', last: 'Mwangi', age: 4, className: 'PP1' }] },
   { parent: 'Esther Kamau', phone: '+254 713 668 402', relationship: 'mother',
-    children: [{ first: 'Sanaa', last: 'Kamau', age: 5, className: 'Pre-Unit' }] },
+    children: [{ first: 'Sanaa', last: 'Kamau', age: 5, className: 'PP2' }] },
   { parent: 'Alice Adhiambo', phone: '+254 726 019 553', relationship: 'guardian',
-    children: [{ first: 'Jabali', last: 'Adhiambo', age: 3, className: 'Baby Class' }] },
+    children: [{ first: 'Jabali', last: 'Adhiambo', age: 3, className: 'Daycare' }] },
   { parent: 'Daniel Mutiso', phone: '+254 745 830 271', relationship: 'father',
-    children: [{ first: 'Upendo', last: 'Mutiso', age: 4, className: 'Nursery' }] },
+    children: [{ first: 'Upendo', last: 'Mutiso', age: 4, className: 'KG2' }] },
   { parent: 'Rose Chebet', phone: '+254 709 337 448', relationship: 'mother',
-    children: [{ first: 'Furaha', last: 'Chebet', age: 5, className: 'Pre-Unit' },
-               { first: 'Subira', last: 'Chebet', age: 3, className: 'Baby Class' }] },
+    children: [{ first: 'Furaha', last: 'Chebet', age: 5, className: 'PP2' },
+               { first: 'Subira', last: 'Chebet', age: 3, className: 'KG2' }] },
 ]
 
 export const DEMO_PARENTS: Parent[] = []
@@ -234,45 +236,205 @@ export const DEMO_TERMS: Term[] = [
   { id: 'term-3', name: `Term 3 ${year}`, startDate: `${year}-09-01`, endDate: `${year}-11-28`, isCurrent: true },
 ]
 
-const TERM_FEE: Record<string, number> = {
-  'Baby Class': 2_200_000,
-  Nursery: 2_500_000,
-  'Pre-Unit': 2_800_000,
-}
+/**
+ * The school's price list.
+ *
+ * Tuition and admission vary by class; stationery, insurance and uniform are
+ * flat; transport is negotiated with each family, so it carries no price at all.
+ * Every one of these is only a default — a student's own line can differ, which
+ * is what happens in practice the moment a parent asks to pay in instalments.
+ */
+export const DEMO_FEE_ITEMS: FeeItem[] = [
+  {
+    key: 'tuition',
+    label: 'Tuition & meals',
+    emoji: '🍽️',
+    cycle: 'term',
+    defaultAmountCents: null,
+    classAmounts: {
+      'class-kg1': 3_200_000,
+      'class-kg2': 3_400_000,
+      'class-pp1': 3_600_000,
+      'class-pp2': 3_700_000,
+    },
+    isOptional: false,
+    isAdmissionOnly: false,
+    limitedToClassIds: ['class-kg1', 'class-kg2', 'class-pp1', 'class-pp2'],
+    isNegotiated: false,
+    sortOrder: 10,
+    isArchived: false,
+  },
+  {
+    key: 'daycare',
+    label: 'Daycare days',
+    emoji: '🧸',
+    cycle: 'daily',
+    // 600 a day. The line's amount is days attended × this rate.
+    defaultAmountCents: 60_000,
+    classAmounts: {},
+    isOptional: false,
+    isAdmissionOnly: false,
+    limitedToClassIds: ['class-daycare'],
+    isNegotiated: false,
+    sortOrder: 20,
+    isArchived: false,
+  },
+  {
+    key: 'admission',
+    label: 'Admission fee',
+    emoji: '📝',
+    cycle: 'once',
+    // TODO: the school has not given us these figures yet — set in Settings.
+    defaultAmountCents: 0,
+    classAmounts: {},
+    isOptional: false,
+    isAdmissionOnly: true,
+    limitedToClassIds: [],
+    isNegotiated: false,
+    sortOrder: 30,
+    isArchived: false,
+  },
+  {
+    key: 'stationery',
+    label: 'Stationery',
+    emoji: '✏️',
+    cycle: 'year',
+    defaultAmountCents: 450_000,
+    classAmounts: {},
+    isOptional: false,
+    isAdmissionOnly: false,
+    limitedToClassIds: [],
+    isNegotiated: false,
+    sortOrder: 40,
+    isArchived: false,
+  },
+  {
+    key: 'insurance',
+    label: 'Insurance',
+    emoji: '🛡️',
+    cycle: 'year',
+    defaultAmountCents: 150_000,
+    classAmounts: {},
+    isOptional: false,
+    isAdmissionOnly: true,
+    limitedToClassIds: [],
+    isNegotiated: false,
+    sortOrder: 50,
+    isArchived: false,
+  },
+  {
+    key: 'uniform',
+    label: 'Uniform',
+    emoji: '👕',
+    cycle: 'once',
+    defaultAmountCents: 1_000_000,
+    classAmounts: {},
+    // Optional: plenty of parents have the uniform made elsewhere.
+    isOptional: true,
+    isAdmissionOnly: false,
+    limitedToClassIds: ['class-pp1', 'class-pp2'],
+    isNegotiated: false,
+    sortOrder: 60,
+    isArchived: false,
+  },
+  {
+    key: 'transport',
+    label: 'Transport',
+    emoji: '🚐',
+    cycle: 'term',
+    defaultAmountCents: null,
+    classAmounts: {},
+    isOptional: true,
+    isAdmissionOnly: false,
+    limitedToClassIds: [],
+    // Depends how far the child lives — agreed family by family.
+    isNegotiated: true,
+    sortOrder: 70,
+    isArchived: false,
+  },
+]
 
-export const DEMO_INVOICES: FeeInvoice[] = DEMO_STUDENTS.map((s) => ({
-  id: id('inv'),
-  studentId: s.id,
-  termId: 'term-3',
-  amountDueCents: TERM_FEE[s.className ?? 'Nursery'] ?? 2_500_000,
-  dueDate: `${year}-09-20`,
-  notes: null,
-  createdAt: NOW,
-}))
+const itemByKey = (key: string) => DEMO_FEE_ITEMS.find((i) => i.key === key)!
+const DUE = `${year}-09-20`
 
-/** A realistic spread: most families paid up, a few part-paid, two behind. */
-export const DEMO_PAYMENTS: FeePayment[] = DEMO_INVOICES.flatMap((inv, index) => {
+/* Charges: the lines on each family's bill for the current term. */
+export const DEMO_CHARGES: FeeCharge[] = []
+
+DEMO_STUDENTS.forEach((student, index) => {
+  const classId = student.classId
+  const isDaycare = classId === 'class-daycare'
+  // Treat the most recent joiners as this term's new admissions.
+  const isNewAdmission = index % 4 === 0
+
+  const push = (
+    itemKey: string,
+    amountCents: number,
+    opts: { termId?: string | null; quantity?: number | null; dueDate?: string | null } = {},
+  ) => {
+    DEMO_CHARGES.push({
+      id: id('chg'),
+      studentId: student.id,
+      itemKey,
+      termId: opts.termId !== undefined ? opts.termId : 'term-3',
+      amountCents,
+      dueDate: opts.dueDate !== undefined ? opts.dueDate : DUE,
+      quantity: opts.quantity ?? null,
+      notes: null,
+      isWaived: false,
+      createdAt: NOW,
+    })
+  }
+
+  if (isDaycare) {
+    // ~3 days a week across the term so far.
+    const days = between(18, 30)
+    push('daycare', days * itemByKey('daycare').defaultAmountCents!, { quantity: days })
+  } else {
+    push('tuition', itemByKey('tuition').classAmounts[classId ?? ''] ?? 3_200_000)
+  }
+
+  if (isNewAdmission) {
+    push('stationery', itemByKey('stationery').defaultAmountCents!, { termId: null })
+    push('insurance', itemByKey('insurance').defaultAmountCents!, { termId: null })
+    if (classId === 'class-pp1' || classId === 'class-pp2') {
+      push('uniform', itemByKey('uniform').defaultAmountCents!, { termId: null })
+    }
+  }
+
+  // Roughly a third of families use the bus, at a distance-dependent rate.
+  if (index % 3 === 0) {
+    push('transport', [800_000, 1_000_000, 1_000_000, 600_000][index % 4])
+  }
+})
+
+/** A realistic spread: most paid up, a few part paid, a couple not started. */
+export const DEMO_PAYMENTS: FeePayment[] = DEMO_CHARGES.flatMap((charge, index) => {
   const pattern = index % 5
-  const full = inv.amountDueCents
   const amounts =
     pattern === 0 ? [] :
-    pattern === 1 ? [Math.round(full * 0.4 / 5_000) * 5_000] :
-    pattern === 2 ? [Math.round(full * 0.6 / 5_000) * 5_000, Math.round(full * 0.4 / 5_000) * 5_000] :
-    [full]
+    pattern === 1 ? [Math.round(charge.amountCents * 0.4 / 5_000) * 5_000] :
+    pattern === 2 ? [
+      Math.round(charge.amountCents * 0.6 / 5_000) * 5_000,
+      Math.round(charge.amountCents * 0.4 / 5_000) * 5_000,
+    ] :
+    [charge.amountCents]
 
-  return amounts.map((amountCents, n) => ({
-    id: id('pay'),
-    studentId: inv.studentId,
-    termId: inv.termId,
-    amountCents,
-    paidOn: addDays(`${year}-09-02`, n * 9 + between(0, 5)),
-    method: pick(METHODS),
-    reference: pick(['QGH4X2LM01', 'QGJ8P1TR77', 'QGK2M9WD40', null, null]),
-    notes: null,
-    createdBy: null,
-    createdByName: 'Front office',
-    createdAt: NOW,
-  }))
+  return amounts
+    .filter((amountCents) => amountCents > 0)
+    .map((amountCents, n) => ({
+      id: id('pay'),
+      studentId: charge.studentId,
+      termId: charge.termId ?? 'term-3',
+      chargeId: charge.id,
+      amountCents,
+      paidOn: addDays(`${year}-09-02`, n * 9 + between(0, 5)),
+      method: pick(METHODS),
+      reference: pick(['QGH4X2LM01', 'QGJ8P1TR77', 'QGK2M9WD40', null, null]),
+      notes: null,
+      createdBy: null,
+      createdByName: 'Front office',
+      createdAt: NOW,
+    }))
 }).filter((p) => p.paidOn <= TODAY)
 
 /* ------------------------------------------------------------------- staff */

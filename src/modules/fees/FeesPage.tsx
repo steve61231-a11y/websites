@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Download, Plus, Receipt, Settings2 } from 'lucide-react'
@@ -8,10 +8,10 @@ import { formatDate, todayIso } from '@/lib/dates'
 import { downloadCsv } from '@/lib/csv'
 import { useCountUp } from '@/lib/useCountUp'
 import {
-  useClasses, useInvoices, usePayments, useStudents, useTerms, useUpsertInvoice,
+  useCharges, useClasses, useCreateCharges, useFeeItems, usePayments, useStudents, useTerms,
 } from '@/data/queries'
 import {
-  currentTerm, FEE_STATUS_META, feeBalancesForTerm, fullName,
+  currentTerm, defaultAmountFor, FEE_STATUS_META, feeBalancesForTerm, fullName, itemAppliesTo,
 } from '@/data/selectors'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button, Fab } from '@/components/ui/Button'
@@ -42,7 +42,8 @@ export default function FeesPage() {
   const { can } = useAuth()
   const students = useStudents()
   const terms = useTerms()
-  const invoices = useInvoices()
+  const charges = useCharges()
+  const feeItems = useFeeItems()
   const payments = usePayments()
   const classes = useClasses()
 
@@ -57,8 +58,8 @@ export default function FeesPage() {
   const roster = (students.data ?? []).filter((s) => s.status === 'active')
 
   const balances = useMemo(
-    () => feeBalancesForTerm(roster, term?.id ?? null, invoices.data ?? [], payments.data ?? []),
-    [roster, term, invoices.data, payments.data],
+    () => feeBalancesForTerm(roster, term?.id ?? null, charges.data ?? [], payments.data ?? [], feeItems.data ?? []),
+    [roster, term, charges.data, payments.data, feeItems.data],
   )
 
   const totals = useMemo(() => {
@@ -76,6 +77,7 @@ export default function FeesPage() {
         partial: rows.filter((b) => b.status === 'partial').length,
         unpaid: rows.filter((b) => b.status === 'unpaid').length,
         overdue: rows.filter((b) => b.status === 'overdue').length,
+        waived: rows.filter((b) => b.status === 'waived').length,
         none: rows.filter((b) => b.status === 'no-invoice').length,
       },
     }
@@ -113,7 +115,7 @@ export default function FeesPage() {
       .filter(({ student }) => (q ? fullName(student).toLowerCase().includes(q) : true))
       .sort((a, b) => {
         const rank: Record<FeeStatus, number> = {
-          overdue: 0, partial: 1, unpaid: 2, 'no-invoice': 3, paid: 4,
+          overdue: 0, partial: 1, unpaid: 2, 'no-invoice': 3, waived: 4, paid: 5,
         }
         const ra = a.balance ? rank[a.balance.status] : 5
         const rb = b.balance ? rank[b.balance.status] : 5
@@ -228,10 +230,25 @@ export default function FeesPage() {
             {totals.counts.partial > 0 && <Pill tone="warn">{totals.counts.partial} part paid</Pill>}
             {totals.counts.unpaid > 0 && <Pill tone="warn">{totals.counts.unpaid} not paid yet</Pill>}
             {totals.counts.paid > 0 && <Pill tone="good">{totals.counts.paid} paid up</Pill>}
-            {totals.counts.none > 0 && <Pill tone="muted">{totals.counts.none} no fee set</Pill>}
+            {totals.counts.none > 0 && <Pill tone="muted">{totals.counts.none} no fees set</Pill>}
           </div>
         </div>
       </motion.section>
+
+      {totals.due === 0 && can('fees.setInvoice') && (
+        <section className="card border-2 border-dashed border-iris-200 bg-iris-50/40 text-center">
+          <p className="font-display text-lg font-extrabold text-sand-900">
+            No fees billed for {term.name} yet
+          </p>
+          <p className="mx-auto mt-1 max-w-md text-sm text-sand-500">
+            Bill a whole class at once — tuition is the same figure for everyone in a class — then
+            adjust any child who agreed something different.
+          </p>
+          <Button className="mt-4" icon={<Settings2 className="h-5 w-5" />} onClick={() => setSettingFees(true)}>
+            Set this term's fees
+          </Button>
+        </section>
+      )}
 
       {/* -------------------------------------------------------- by class */}
       {byClass.length > 0 && totals.due > 0 && (
@@ -425,9 +442,12 @@ export default function FeesPage() {
 /* ---------------------------------------------------------- set term fees */
 
 /**
- * Setting what a term costs. Fees are usually one figure per class, so the
- * default path is "apply this amount to every child in Nursery" rather than
- * typing the same number twelve times.
+ * Billing a whole class in one go.
+ *
+ * Tuition is the same figure for every child in a class, so typing it twelve
+ * times would be the app's fault, not the user's. Pick an item, pick a class,
+ * confirm the amount, done — individual children can still be adjusted on their
+ * own profile afterwards.
  */
 function SetFeesSheet({
   open, onClose, termId,
@@ -435,33 +455,63 @@ function SetFeesSheet({
   const { notify } = useToast()
   const { data: students = [] } = useStudents()
   const { data: classes = [] } = useClasses()
-  const { data: invoices = [] } = useInvoices()
-  const upsert = useUpsertInvoice()
+  const { data: feeItems = [] } = useFeeItems()
+  const { data: charges = [] } = useCharges()
+  const createCharges = useCreateCharges()
 
-  const [classId, setClassId] = useState<string>(classes[0]?.id ?? '')
+  const billable = feeItems.filter((i) => !i.isArchived && !i.isNegotiated)
+  const [itemKey, setItemKey] = useState(billable[0]?.key ?? '')
+  const [classId, setClassId] = useState<string>('all')
   const [amountCents, setAmountCents] = useState(0)
   const [dueDate, setDueDate] = useState(todayIso())
-  const [busy, setBusy] = useState(false)
+  const [touchedAmount, setTouchedAmount] = useState(false)
 
-  const affected = students.filter(
-    (s) => s.status === 'active' && (classId === 'all' || s.classId === classId),
+  const item = feeItems.find((i) => i.key === itemKey) ?? null
+  const isTermly = item ? item.cycle === 'term' || item.cycle === 'daily' : true
+  const chargeTermId = isTermly ? termId : null
+
+  const affected = useMemo(
+    () => students.filter((s) =>
+      s.status === 'active' &&
+      (classId === 'all' || s.classId === classId) &&
+      (item ? itemAppliesTo(item, s.classId) : true)),
+    [students, classId, item],
   )
 
-  const existing = invoices.filter((i) => i.termId === termId)
+  // Follow the price list until somebody types their own figure.
+  useEffect(() => {
+    if (touchedAmount || !item) return
+    const sample = affected[0]
+    setAmountCents(defaultAmountFor(item, sample?.classId ?? null))
+  }, [item, affected, touchedAmount])
+
+  const alreadyBilled = affected.filter((s) =>
+    charges.some((c) => c.studentId === s.id && c.itemKey === itemKey && c.termId === chargeTermId),
+  )
+  const toBill = affected.filter((s) => !alreadyBilled.some((a) => a.id === s.id))
 
   async function apply() {
-    if (amountCents <= 0 || affected.length === 0) return
-    setBusy(true)
+    if (!item || amountCents <= 0 || toBill.length === 0) return
     try {
-      for (const student of affected) {
-        await upsert.mutateAsync({ studentId: student.id, termId, amountDueCents: amountCents, dueDate })
-      }
-      notify(`Fee set for ${affected.length} ${affected.length === 1 ? 'child' : 'children'}.`)
+      await createCharges.mutateAsync(
+        toBill.map((s) => ({
+          studentId: s.id,
+          itemKey: item.key,
+          termId: chargeTermId,
+          // Per-class pricing wins when billing everyone at once.
+          amountCents: classId === 'all' && !touchedAmount
+            ? defaultAmountFor(item, s.classId) || amountCents
+            : amountCents,
+          dueDate,
+          quantity: null,
+          notes: null,
+          isWaived: false,
+        })),
+      )
+      notify(`${item.label} billed to ${toBill.length} ${toBill.length === 1 ? 'child' : 'children'}.`)
       onClose()
     } catch (err) {
       notify(err instanceof Error ? err.message : 'Could not set those fees.', 'error')
-    } finally {
-      setBusy(false)
     }
   }
 
@@ -469,24 +519,44 @@ function SetFeesSheet({
     <Sheet
       open={open}
       onClose={onClose}
-      title="Set the fee for this term"
-      description="Apply one amount to a whole class at once. You can adjust an individual child afterwards."
+      title="Bill a whole class"
+      description="Adds one fee line to every child in the class. You can adjust an individual child afterwards."
       footer={
         <Button
           block
           size="lg"
-          disabled={amountCents <= 0 || affected.length === 0}
-          loading={busy}
+          disabled={!item || toBill.length === 0 || amountCents <= 0}
+          loading={createCharges.isPending}
           onClick={() => void apply()}
         >
-          Apply to {affected.length} {affected.length === 1 ? 'child' : 'children'}
+          Bill {toBill.length} {toBill.length === 1 ? 'child' : 'children'}
         </Button>
       }
     >
       <div className="space-y-5 pb-4">
+        <Field label="What are you billing?">
+          <Select
+            value={itemKey}
+            onChange={(e) => {
+              setItemKey(e.target.value)
+              setTouchedAmount(false)
+            }}
+          >
+            {billable.map((i) => (
+              <option key={i.key} value={i.key}>{i.emoji} {i.label}</option>
+            ))}
+          </Select>
+        </Field>
+
         <Field label="Which class?">
-          <Select value={classId} onChange={(e) => setClassId(e.target.value)}>
-            <option value="all">Every child ({students.filter((s) => s.status === 'active').length})</option>
+          <Select
+            value={classId}
+            onChange={(e) => {
+              setClassId(e.target.value)
+              setTouchedAmount(false)
+            }}
+          >
+            <option value="all">Every class</option>
             {classes.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name} ({students.filter((s) => s.classId === c.id && s.status === 'active').length})
@@ -495,18 +565,48 @@ function SetFeesSheet({
           </Select>
         </Field>
 
-        <Field label="Fee for the term" required>
-          <MoneyInput valueCents={amountCents} onChange={setAmountCents} autoFocus={false} />
-        </Field>
+        {classId === 'all' && !touchedAmount && item && Object.keys(item.classAmounts).length > 0 ? (
+          <div className="rounded-2xl bg-iris-50 p-4">
+            <p className="text-sm font-extrabold text-iris-700">Each class gets its own price</p>
+            <ul className="mt-2 space-y-1 text-sm font-semibold text-iris-600">
+              {classes
+                .filter((c) => item.classAmounts[c.id] !== undefined)
+                .map((c) => (
+                  <li key={c.id} className="tnum flex justify-between">
+                    <span>{c.name}</span>
+                    <span>{formatKes(item.classAmounts[c.id])}</span>
+                  </li>
+                ))}
+            </ul>
+            <button
+              onClick={() => setTouchedAmount(true)}
+              className="mt-3 text-sm font-extrabold text-iris-700 underline"
+            >
+              Use one amount for everyone instead
+            </button>
+          </div>
+        ) : (
+          <Field label="Amount each" required>
+            <MoneyInput
+              valueCents={amountCents}
+              onChange={(next) => {
+                setTouchedAmount(true)
+                setAmountCents(next)
+              }}
+              autoFocus={false}
+            />
+          </Field>
+        )}
 
         <Field label="Due by">
           <TextInput type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value || todayIso())} />
         </Field>
 
-        {existing.length > 0 && (
+        {alreadyBilled.length > 0 && (
           <p className="rounded-2xl bg-warn-soft px-4 py-3 text-sm font-bold text-warn-ink">
-            {existing.length} {existing.length === 1 ? 'child already has' : 'children already have'} a fee set for
-            this term. Applying a new amount will replace theirs — payments already recorded are kept.
+            {alreadyBilled.length} {alreadyBilled.length === 1 ? 'child already has' : 'children already have'}{' '}
+            this line for {isTermly ? 'this term' : 'the year'} — they will be skipped, so nobody is
+            billed twice.
           </p>
         )}
       </div>

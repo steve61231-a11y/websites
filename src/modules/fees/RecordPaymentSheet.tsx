@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { formatKes } from '@/lib/money'
 import { todayIso } from '@/lib/dates'
 import {
-  useCreatePayment, useInvoices, usePayments, useStudents, useTerms,
+  useCharges, useCreatePayment, useFeeItems, usePayments, useStudents, useTerms,
 } from '@/data/queries'
 import { currentTerm, feeBalance, fullName } from '@/data/selectors'
 import { PAYMENT_METHODS } from '@/brand/categories'
@@ -19,9 +19,13 @@ import { useToast } from '@/components/ui/Toast'
 import type { PaymentMethod } from '@/data/types'
 
 /**
- * Recording a fee payment. Same shape as logging an expense — pick who, tap the
- * amount, confirm — because the person doing both is the same person, and the
- * two jobs should not feel like two different apps.
+ * Recording a fee payment.
+ *
+ * The extra step over a plain amount is choosing *what the money is for* —
+ * tuition, transport, stationery. Without that the school can see a family has
+ * paid something but not whether the bus is settled, which is the question they
+ * actually ask. The line is pre-picked as the biggest thing still owing, so in
+ * the common case it is still pick-child, tap-amount, save.
  */
 export function RecordPaymentSheet({
   open, onClose, presetStudentId,
@@ -33,13 +37,15 @@ export function RecordPaymentSheet({
   const { notify } = useToast()
   const { data: students = [] } = useStudents()
   const { data: terms = [] } = useTerms()
-  const { data: invoices = [] } = useInvoices()
+  const { data: charges = [] } = useCharges()
   const { data: payments = [] } = usePayments()
+  const { data: feeItems = [] } = useFeeItems()
   const createPayment = useCreatePayment()
 
   const term = currentTerm(terms)
   const [studentId, setStudentId] = useState(presetStudentId ?? '')
   const [search, setSearch] = useState('')
+  const [chargeId, setChargeId] = useState<string | null>(null)
   const [amountCents, setAmountCents] = useState(0)
   const [method, setMethod] = useState<PaymentMethod>('mpesa')
   const [paidOn, setPaidOn] = useState(todayIso())
@@ -49,24 +55,34 @@ export function RecordPaymentSheet({
   const student = students.find((s) => s.id === studentId)
 
   const balance = useMemo(
-    () => (student && term ? feeBalance(student.id, term.id, invoices, payments) : null),
-    [student, term, invoices, payments],
+    () => (student ? feeBalance(student.id, term?.id ?? null, charges, payments, feeItems) : null),
+    [student, term, charges, payments, feeItems],
   )
 
-  const candidates = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return students
-      .filter((s) => s.status === 'active')
-      .filter((s) => (q ? fullName(s).toLowerCase().includes(q) : true))
-      .slice(0, 8)
-  }, [students, search])
+  const outstanding = useMemo(
+    () => (balance?.lines ?? []).filter((l) => l.balanceCents > 0 && !l.charge.isWaived),
+    [balance],
+  )
+
+  // Default to the biggest thing still owing — nearly always tuition.
+  useEffect(() => {
+    if (!student) {
+      setChargeId(null)
+      return
+    }
+    const biggest = [...outstanding].sort((a, b) => b.balanceCents - a.balanceCents)[0]
+    setChargeId(biggest?.charge.id ?? null)
+  }, [student, outstanding.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const selected = outstanding.find((l) => l.charge.id === chargeId) ?? null
 
   async function submit() {
-    if (!student || !term || amountCents <= 0) return
+    if (!student || amountCents <= 0) return
     try {
       await createPayment.mutateAsync({
         studentId: student.id,
-        termId: term.id,
+        termId: selected?.charge.termId ?? term?.id ?? null,
+        chargeId,
         amountCents,
         paidOn,
         method,
@@ -87,6 +103,14 @@ export function RecordPaymentSheet({
     onClose()
   }
 
+  const candidates = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return students
+      .filter((s) => s.status === 'active')
+      .filter((s) => (q ? fullName(s).toLowerCase().includes(q) : true))
+      .slice(0, 8)
+  }, [students, search])
+
   return (
     <>
       <Sheet
@@ -99,7 +123,7 @@ export function RecordPaymentSheet({
             block
             size="lg"
             icon={<Check className="h-5 w-5" />}
-            disabled={!student || !term || amountCents <= 0}
+            disabled={!student || amountCents <= 0}
             loading={createPayment.isPending}
             onClick={() => void submit()}
           >
@@ -154,23 +178,68 @@ export function RecordPaymentSheet({
             </Field>
           )}
 
-          {balance && balance.balanceCents > 0 && (
+          {student && (
+            <Field label="What is this payment for?" required>
+              {outstanding.length === 0 ? (
+                <p className="rounded-2xl bg-good-soft px-4 py-4 text-center text-sm font-bold text-good-ink">
+                  Nothing outstanding for {student.firstName} right now. Anything you record will be
+                  held against the term without a specific line.
+                </p>
+              ) : (
+                <div className="space-y-1.5">
+                  {outstanding.map((line) => {
+                    const active = chargeId === line.charge.id
+                    return (
+                      <button
+                        key={line.charge.id}
+                        onClick={() => setChargeId(line.charge.id)}
+                        className={cn(
+                          'flex w-full items-center gap-3 rounded-2xl border-2 p-3 text-left transition-all',
+                          active
+                            ? 'border-iris-500 bg-iris-50'
+                            : 'border-sand-200 bg-white hover:border-iris-300',
+                        )}
+                      >
+                        <span aria-hidden="true" className="shrink-0 text-xl">
+                          {line.item?.emoji ?? '📌'}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-extrabold text-sand-800">
+                            {line.item?.label ?? line.charge.itemKey}
+                          </span>
+                          <span className="tnum block text-sm text-sand-500">
+                            {formatKes(line.balanceCents)} still owing
+                            {line.paidCents > 0 && ` · ${formatKes(line.paidCents)} paid`}
+                          </span>
+                        </span>
+                        {active && <Check className="h-5 w-5 shrink-0 text-iris-600" aria-hidden="true" />}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </Field>
+          )}
+
+          {selected && selected.balanceCents > 0 && (
             <motion.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              onClick={() => setAmountCents(balance.balanceCents)}
+              onClick={() => setAmountCents(selected.balanceCents)}
               className={cn(
                 'flex w-full items-center justify-between gap-3 rounded-2xl px-4 py-3 text-left transition-colors',
-                amountCents === balance.balanceCents
+                amountCents === selected.balanceCents
                   ? 'bg-good-soft text-good-ink'
                   : 'bg-gold-50 text-gold-800 hover:bg-gold-100',
               )}
             >
               <span className="text-sm font-extrabold">
-                {amountCents === balance.balanceCents ? 'Clearing the full balance' : 'Pay the full balance'}
+                {amountCents === selected.balanceCents
+                  ? `Clearing ${selected.item?.label ?? 'this'} in full`
+                  : `Pay off ${selected.item?.label ?? 'this line'}`}
               </span>
               <span className="tnum font-display text-base font-extrabold">
-                {formatKes(balance.balanceCents)}
+                {formatKes(selected.balanceCents)}
               </span>
             </motion.button>
           )}
@@ -207,10 +276,12 @@ export function RecordPaymentSheet({
       {saved !== null && (
         <SuccessBurst
           message="Payment recorded"
-          sub={`${formatKes(saved)}${student ? ` from ${fullName(student)}'s family` : ''}`}
+          sub={`${formatKes(saved)}${selected?.item ? ` towards ${selected.item.label.toLowerCase()}` : ''}`}
           onDone={reset}
         />
       )}
     </>
   )
 }
+
+

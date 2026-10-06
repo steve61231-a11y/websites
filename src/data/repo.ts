@@ -2,11 +2,10 @@ import type {
   Expense, ExpenseDraft, Vendor, ExpenseCategoryKey,
   Student, StudentDraft, SchoolClass,
   Parent, ParentDraft, ParentNote, StudentParentLink, Relationship,
-  Term, FeeInvoice, FeePayment,
+  Term, FeeItem, FeeCharge, FeeChargeDraft, FeePayment,
   StaffMember, LeaveRecord, LeaveType,
   Profile, Role, Uuid,
 } from './types'
-import type { Cents } from '@/lib/money'
 import type { IsoDate } from '@/lib/dates'
 
 /**
@@ -65,11 +64,17 @@ export interface Repo {
   createTerm(term: Omit<Term, 'id'>): Promise<Term>
   updateTerm(id: Uuid, patch: Partial<Omit<Term, 'id'>>): Promise<Term>
 
-  listInvoices(): Promise<FeeInvoice[]>
-  upsertInvoice(input: {
-    studentId: Uuid; termId: Uuid; amountDueCents: Cents; dueDate: IsoDate; notes?: string | null
-  }): Promise<FeeInvoice>
-  deleteInvoice(id: Uuid): Promise<void>
+  /** The price list. Amounts here are defaults; a student's line can differ. */
+  listFeeItems(): Promise<FeeItem[]>
+  upsertFeeItem(item: FeeItem): Promise<FeeItem>
+  deleteFeeItem(key: string): Promise<void>
+
+  listCharges(): Promise<FeeCharge[]>
+  createCharge(draft: FeeChargeDraft): Promise<FeeCharge>
+  /** Used by the new-admission bill, which raises several lines at once. */
+  createCharges(drafts: FeeChargeDraft[]): Promise<FeeCharge[]>
+  updateCharge(id: Uuid, patch: Partial<FeeChargeDraft>): Promise<FeeCharge>
+  deleteCharge(id: Uuid): Promise<void>
 
   listPayments(): Promise<FeePayment[]>
   createPayment(input: Omit<FeePayment, 'id' | 'createdAt' | 'createdBy' | 'createdByName'>): Promise<FeePayment>

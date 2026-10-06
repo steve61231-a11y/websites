@@ -2,14 +2,14 @@ import { useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
-  Camera, Cake, CalendarCheck, Pencil, Phone, Trash2, UserPlus, Wallet,
+  Camera, Cake, CalendarCheck, Pencil, Phone, Plus, Trash2, UserPlus, Wallet,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { ageInYears, formatDate } from '@/lib/dates'
 import { formatKes } from '@/lib/money'
 import {
-  useDeleteStudent, useInvoices, useLinks, useLinkParent, useParents, usePayments,
-  useStudents, useTerms, useUnlinkParent, useUploadStudentPhoto,
+  useCharges, useDeleteCharge, useDeleteStudent, useFeeItems, useLinks, useLinkParent,
+  useParents, usePayments, useStudents, useTerms, useUnlinkParent, useUploadStudentPhoto,
 } from '@/data/queries'
 import {
   currentTerm, FEE_STATUS_META, feeBalance, fullName, guardiansOf,
@@ -24,6 +24,7 @@ import { Field, Select } from '@/components/ui/fields'
 import { useToast } from '@/components/ui/Toast'
 import { StudentForm } from './StudentForm'
 import { RecordPaymentSheet } from '@/modules/fees/RecordPaymentSheet'
+import { BillBuilder } from '@/modules/fees/BillBuilder'
 import { useAuth } from '@/auth/AuthProvider'
 import { paymentMethodLabel } from '@/brand/categories'
 import type { Relationship } from '@/data/types'
@@ -45,26 +46,30 @@ export default function StudentProfilePage() {
   const parents = useParents()
   const links = useLinks()
   const terms = useTerms()
-  const invoices = useInvoices()
+  const charges = useCharges()
+  const feeItems = useFeeItems()
   const payments = usePayments()
 
   const uploadPhoto = useUploadStudentPhoto()
   const deleteStudent = useDeleteStudent()
+  const deleteCharge = useDeleteCharge()
   const fileRef = useRef<HTMLInputElement>(null)
 
   const [editing, setEditing] = useState(false)
   const [linking, setLinking] = useState(false)
   const [payingFees, setPayingFees] = useState(false)
+  const [buildingBill, setBuildingBill] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [pendingLineDelete, setPendingLineDelete] = useState<string | null>(null)
 
   const student = (students.data ?? []).find((s) => s.id === id)
   const term = currentTerm(terms.data ?? [])
 
   const balance = useMemo(
-    () => (student && term
-      ? feeBalance(student.id, term.id, invoices.data ?? [], payments.data ?? [])
+    () => (student
+      ? feeBalance(student.id, term?.id ?? null, charges.data ?? [], payments.data ?? [], feeItems.data ?? [])
       : null),
-    [student, term, invoices.data, payments.data],
+    [student, term, charges.data, payments.data, feeItems.data],
   )
 
   const history = useMemo(
@@ -211,23 +216,98 @@ export default function StudentProfilePage() {
       {/* ------------------------------------------------------------ fees */}
       {can('fees.view') && (
         <section className="card">
-          <SectionTitle hint={term?.name ?? 'No term set up yet'}>School fees</SectionTitle>
+          <SectionTitle
+            hint={term?.name ?? 'No term set up yet'}
+            action={
+              can('fees.setInvoice') ? (
+                <Button size="sm" variant="soft" icon={<Plus className="h-4 w-4" />} onClick={() => setBuildingBill(true)}>
+                  Set fees
+                </Button>
+              ) : undefined
+            }
+          >
+            School fees
+          </SectionTitle>
 
-          {!term || !balance ? (
-            <p className="text-sm text-sand-500">
-              Set up a term in Settings to start tracking fees.
-            </p>
+          {!balance || balance.lines.length === 0 ? (
+            <div className="rounded-2xl bg-sand-50 px-4 py-8 text-center">
+              <p className="font-display text-base font-extrabold text-sand-800">
+                No fees set for {student.firstName} yet
+              </p>
+              <p className="mx-auto mt-1 max-w-sm text-sm text-sand-500">
+                Add what they owe this term — tuition, and anything else like transport or
+                stationery — and every payment will be tracked against it.
+              </p>
+              {can('fees.setInvoice') && (
+                <Button className="mt-4" onClick={() => setBuildingBill(true)}>Set their fees</Button>
+              )}
+            </div>
           ) : (
             <>
               <div className="grid gap-3 sm:grid-cols-3">
-                <FeeFigure label="Fee for the term" value={formatKes(balance.dueCents)} />
+                <FeeFigure label="Total billed" value={formatKes(balance.dueCents)} />
                 <FeeFigure label="Paid so far" value={formatKes(balance.paidCents)} tone="good" />
                 <FeeFigure
                   label="Balance"
-                  value={formatKes(Math.max(balance.balanceCents, 0))}
+                  value={formatKes(balance.balanceCents)}
                   tone={balance.balanceCents > 0 ? 'bad' : 'good'}
                 />
               </div>
+
+              <ul className="mt-4 space-y-1.5">
+                {balance.lines.map((line) => {
+                  const meta = FEE_STATUS_META[line.status]
+                  const pct = line.charge.amountCents > 0
+                    ? Math.min(line.paidCents / line.charge.amountCents, 1)
+                    : 0
+                  return (
+                    <li key={line.charge.id} className="rounded-2xl bg-sand-50 p-3.5">
+                      <div className="flex items-center gap-3">
+                        <span aria-hidden="true" className="shrink-0 text-xl">
+                          {line.item?.emoji ?? '📌'}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-extrabold text-sand-800">
+                            {line.item?.label ?? line.charge.itemKey}
+                            {line.charge.quantity !== null && (
+                              <span className="ml-1.5 font-bold text-sand-400">
+                                × {line.charge.quantity} days
+                              </span>
+                            )}
+                          </p>
+                          <p className="tnum truncate text-sm text-sand-500">
+                            {formatKes(line.paidCents)} of {formatKes(line.charge.amountCents)}
+                            {line.balanceCents > 0 && ` · ${formatKes(line.balanceCents)} to go`}
+                          </p>
+                        </div>
+                        <Pill tone={meta.tone === 'muted' ? 'muted' : meta.tone}>
+                          <span aria-hidden="true">{meta.icon}</span> {meta.label}
+                        </Pill>
+                        {can('fees.setInvoice') && (
+                          <button
+                            onClick={() => setPendingLineDelete(line.charge.id)}
+                            aria-label={`Remove ${line.item?.label ?? 'line'}`}
+                            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sand-300 transition-colors hover:bg-white hover:text-bad-base"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                      {line.charge.amountCents > 0 && (
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.max(pct * 100, 2)}%`,
+                              backgroundColor: pct >= 1 ? '#17845A' : '#B0730A',
+                            }}
+                          />
+                        </div>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
 
               <div className="mt-4 flex flex-wrap items-center gap-3">
                 {statusMeta && (
@@ -235,12 +315,12 @@ export default function StudentProfilePage() {
                     <span aria-hidden="true">{statusMeta.icon}</span> {statusMeta.label}
                   </Pill>
                 )}
-                {balance.dueDate && (
+                {balance.dueDate && balance.balanceCents > 0 && (
                   <span className="text-sm font-semibold text-sand-500">
                     Due {formatDate(balance.dueDate, 'medium')}
                   </span>
                 )}
-                {can('fees.recordPayment') && balance.status !== 'no-invoice' && (
+                {can('fees.recordPayment') && (
                   <Button
                     size="sm"
                     className="ml-auto"
@@ -254,23 +334,29 @@ export default function StudentProfilePage() {
 
               {history.length > 0 && (
                 <ul className="mt-5 divide-y divide-sand-100 rounded-2xl bg-sand-50/70">
-                  {history.map((p) => (
-                    <li key={p.id} className="flex items-center gap-3 px-4 py-3">
-                      <span aria-hidden="true" className="text-lg">🧾</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-sm font-extrabold text-sand-800">
-                          {formatDate(p.paidOn, 'medium')}
+                  {history.map((p) => {
+                    const line = balance.lines.find((l) => l.charge.id === p.chargeId)
+                    return (
+                      <li key={p.id} className="flex items-center gap-3 px-4 py-3">
+                        <span aria-hidden="true" className="text-lg">{line?.item?.emoji ?? '🧾'}</span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-extrabold text-sand-800">
+                            {formatDate(p.paidOn, 'medium')}
+                            {line?.item && (
+                              <span className="ml-1.5 font-bold text-sand-400">{line.item.label}</span>
+                            )}
+                          </span>
+                          <span className="block truncate text-xs font-semibold text-sand-500">
+                            {paymentMethodLabel(p.method)}
+                            {p.reference && ` · ${p.reference}`}
+                          </span>
                         </span>
-                        <span className="block truncate text-xs font-semibold text-sand-500">
-                          {paymentMethodLabel(p.method)}
-                          {p.reference && ` · ${p.reference}`}
+                        <span className="tnum shrink-0 font-display text-base font-extrabold text-good-ink">
+                          +{formatKes(p.amountCents, { prefix: false })}
                         </span>
-                      </span>
-                      <span className="tnum shrink-0 font-display text-base font-extrabold text-good-ink">
-                        +{formatKes(p.amountCents, { prefix: false })}
-                      </span>
-                    </li>
-                  ))}
+                      </li>
+                    )
+                  })}
                 </ul>
               )}
             </>
@@ -334,13 +420,32 @@ export default function StudentProfilePage() {
         <LinkGuardianSheet studentId={student.id} open={linking} onClose={() => setLinking(false)} />
       )}
 
-      {payingFees && term && (
+      {payingFees && (
         <RecordPaymentSheet
           open={payingFees}
           onClose={() => setPayingFees(false)}
           presetStudentId={student.id}
         />
       )}
+
+      {buildingBill && (
+        <BillBuilder open={buildingBill} onClose={() => setBuildingBill(false)} student={student} />
+      )}
+
+      <ConfirmDialog
+        open={pendingLineDelete !== null}
+        onClose={() => setPendingLineDelete(null)}
+        busy={deleteCharge.isPending}
+        onConfirm={async () => {
+          if (!pendingLineDelete) return
+          await deleteCharge.mutateAsync(pendingLineDelete)
+          notify('Fee line removed. Any payments against it are kept.', 'info')
+          setPendingLineDelete(null)
+        }}
+        title="Remove this fee line?"
+        body="It stops counting towards what the family owes. Payments already recorded against it are kept and become unallocated."
+        confirmLabel="Remove"
+      />
 
       <ConfirmDialog
         open={confirmDelete}

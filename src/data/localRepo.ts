@@ -1,13 +1,13 @@
 import type { Repo } from './repo'
 import type {
   Expense, ExpenseDraft, Vendor, ExpenseCategoryKey, Student, StudentDraft, SchoolClass,
-  Parent, ParentDraft, ParentNote, StudentParentLink, Term, FeeInvoice, FeePayment,
+  Parent, ParentDraft, ParentNote, StudentParentLink, Term, FeeItem, FeeCharge, FeeChargeDraft, FeePayment,
   StaffMember, LeaveRecord, LeaveType, Profile, Role, Uuid,
 } from './types'
 import type { Cents } from '@/lib/money'
 import type { IsoDate } from '@/lib/dates'
 import {
-  DEMO_CLASSES, DEMO_EXPENSES, DEMO_INVOICES, DEMO_LEAVE, DEMO_LINKS, DEMO_PARENTS,
+  DEMO_CHARGES, DEMO_CLASSES, DEMO_EXPENSES, DEMO_FEE_ITEMS, DEMO_LEAVE, DEMO_LINKS, DEMO_PARENTS,
   DEMO_PARENT_NOTES, DEMO_PAYMENTS, DEMO_PROFILE, DEMO_PROFILES, DEMO_STAFF,
   DEMO_STUDENTS, DEMO_TERMS, DEMO_VENDORS,
 } from './seed'
@@ -32,7 +32,8 @@ type Store = {
   links: StudentParentLink[]
   parentNotes: ParentNote[]
   terms: Term[]
-  invoices: FeeInvoice[]
+  feeItems: FeeItem[]
+  charges: FeeCharge[]
   payments: FeePayment[]
   staff: StaffMember[]
   leave: LeaveRecord[]
@@ -49,7 +50,8 @@ function freshStore(): Store {
     links: [...DEMO_LINKS],
     parentNotes: [...DEMO_PARENT_NOTES],
     terms: [...DEMO_TERMS],
-    invoices: [...DEMO_INVOICES],
+    feeItems: [...DEMO_FEE_ITEMS],
+    charges: [...DEMO_CHARGES],
     payments: [...DEMO_PAYMENTS],
     staff: [...DEMO_STAFF],
     leave: [...DEMO_LEAVE],
@@ -228,7 +230,7 @@ export const localRepo: Repo = {
     const s = load()
     s.students = s.students.filter((st) => st.id !== id)
     s.links = s.links.filter((l) => l.studentId !== id)
-    s.invoices = s.invoices.filter((i) => i.studentId !== id)
+    s.charges = s.charges.filter((c) => c.studentId !== id)
     s.payments = s.payments.filter((p) => p.studentId !== id)
     save()
     return settle(undefined)
@@ -331,37 +333,56 @@ export const localRepo: Repo = {
     return settle(row)
   },
 
-  listInvoices: () => settle([...load().invoices]),
+  listFeeItems: () => settle([...load().feeItems].sort((a, b) => a.sortOrder - b.sortOrder)),
 
-  async upsertInvoice(input) {
+  async upsertFeeItem(item: FeeItem) {
     const s = load()
-    const existing = s.invoices.find(
-      (i) => i.studentId === input.studentId && i.termId === input.termId,
-    )
-    if (existing) {
-      existing.amountDueCents = input.amountDueCents
-      existing.dueDate = input.dueDate
-      existing.notes = input.notes ?? null
-      save()
-      return settle(existing)
-    }
-    const invoice: FeeInvoice = {
-      id: uid(),
-      studentId: input.studentId,
-      termId: input.termId,
-      amountDueCents: input.amountDueCents,
-      dueDate: input.dueDate,
-      notes: input.notes ?? null,
-      createdAt: now(),
-    }
-    s.invoices.push(invoice)
+    const index = s.feeItems.findIndex((i) => i.key === item.key)
+    if (index >= 0) s.feeItems[index] = item
+    else s.feeItems.push(item)
     save()
-    return settle(invoice)
+    return settle(item)
   },
 
-  async deleteInvoice(id: Uuid) {
+  async deleteFeeItem(key: string) {
     const s = load()
-    s.invoices = s.invoices.filter((i) => i.id !== id)
+    s.feeItems = s.feeItems.filter((i) => i.key !== key)
+    save()
+    return settle(undefined)
+  },
+
+  listCharges: () => settle([...load().charges]),
+
+  async createCharge(draft: FeeChargeDraft) {
+    const s = load()
+    const charge: FeeCharge = { ...draft, id: uid(), createdAt: now() }
+    s.charges.push(charge)
+    save()
+    return settle(charge)
+  },
+
+  async createCharges(drafts: FeeChargeDraft[]) {
+    const s = load()
+    const created = drafts.map((draft): FeeCharge => ({ ...draft, id: uid(), createdAt: now() }))
+    s.charges.push(...created)
+    save()
+    return settle(created)
+  },
+
+  async updateCharge(id: Uuid, patch: Partial<FeeChargeDraft>) {
+    const s = load()
+    const row = requireRow(s.charges, id, 'fee line')
+    Object.assign(row, patch)
+    save()
+    return settle(row)
+  },
+
+  async deleteCharge(id: Uuid) {
+    const s = load()
+    s.charges = s.charges.filter((c) => c.id !== id)
+    // Money already recorded against a deleted line goes back to unallocated
+    // rather than vanishing — it was still paid.
+    s.payments = s.payments.map((p) => (p.chargeId === id ? { ...p, chargeId: null } : p))
     save()
     return settle(undefined)
   },
