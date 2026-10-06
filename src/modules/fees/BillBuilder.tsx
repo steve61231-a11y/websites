@@ -18,6 +18,8 @@ type Row = {
   amountText: string
   /** Days attended, for the daycare line. */
   quantity: number
+  /** Spread across the terms rather than paid in one go. */
+  byInstalment: boolean
 }
 
 /**
@@ -63,6 +65,7 @@ export function BillBuilder({
         include: !item.isOptional,
         amountText: unit === 0 ? '' : String((unit * quantity) / 100),
         quantity,
+        byInstalment: false,
       }
     })
   }, [applicable]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -79,6 +82,16 @@ export function BillBuilder({
     update(key, { quantity: days, amountText: String((unit * days) / 100) })
   }
 
+  /** Switch a line between the whole-year price and one term's instalment. */
+  const setInstalment = (key: string, byInstalment: boolean) => {
+    const row = effective.find((r) => r.item.key === key)
+    if (!row || row.item.instalmentAmountCents === null) return
+    const cents = byInstalment
+      ? row.item.instalmentAmountCents
+      : defaultAmountFor(row.item, student.classId)
+    update(key, { byInstalment, amountText: String(cents / 100) })
+  }
+
   const chosen = effective.filter((r) => r.include)
   const total = chosen.reduce((sum, r) => sum + (parseKesToCents(r.amountText) ?? 0), 0)
 
@@ -86,8 +99,11 @@ export function BillBuilder({
     const drafts: FeeChargeDraft[] = chosen.map((r) => ({
       studentId: student.id,
       itemKey: r.item.key,
-      // Annual and one-off lines belong to no single term.
-      termId: r.item.cycle === 'term' || r.item.cycle === 'daily' ? term?.id ?? null : null,
+      // Annual and one-off lines belong to no single term — unless the parent
+      // is paying this one by instalments, in which case the line IS this term's.
+      termId: r.item.cycle === 'term' || r.item.cycle === 'daily' || r.byInstalment
+        ? term?.id ?? null
+        : null,
       amountCents: parseKesToCents(r.amountText) ?? 0,
       dueDate,
       quantity: r.item.cycle === 'daily' ? r.quantity : null,
@@ -160,12 +176,37 @@ export function BillBuilder({
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-extrabold text-sand-800">{row.item.label}</span>
                     <span className="block text-xs font-semibold text-sand-400">
-                      {CYCLE_LABEL[row.item.cycle]}
+                      {row.byInstalment ? 'this term only' : CYCLE_LABEL[row.item.cycle]}
                       {row.item.isOptional && ' · optional'}
                       {row.item.isNegotiated && ' · agreed per family'}
                     </span>
                   </span>
                 </div>
+
+                {row.include && row.item.instalmentAmountCents !== null && (
+                  <div className="mt-3 flex gap-2 pl-10">
+                    {[
+                      { value: false, label: 'Whole year', cents: defaultAmountFor(row.item, student.classId) },
+                      { value: true, label: 'This term', cents: row.item.instalmentAmountCents },
+                    ].map((choice) => (
+                      <button
+                        key={String(choice.value)}
+                        onClick={() => setInstalment(row.item.key, choice.value)}
+                        className={cn(
+                          'flex-1 rounded-xl border-2 px-3 py-2 text-sm font-extrabold transition-colors',
+                          row.byInstalment === choice.value
+                            ? 'border-iris-500 bg-iris-50 text-iris-700'
+                            : 'border-sand-200 bg-white text-sand-500 hover:border-iris-300',
+                        )}
+                      >
+                        {choice.label}
+                        <span className="tnum mt-0.5 block text-xs font-bold opacity-70">
+                          {formatKes(choice.cents)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {row.include && (
                   <div className="mt-3 flex flex-wrap items-end gap-2 pl-10">

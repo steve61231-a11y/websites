@@ -117,10 +117,10 @@ up on tuition and still owe for the bus, and the office needs to see that.
 | Tuition & meals | every term | KG1 32,000 · KG2 34,000 · PP1 36,000 · PP2 37,000 |
 | Daycare days | per day attended | 600 a day |
 | Admission fee | once, on joining | *not yet supplied — set it in Settings* |
-| Stationery | once a year | 4,500 (often paid 1,500 monthly) |
+| Stationery | once a year | 4,500, or 1,500 a term across the three terms |
 | Insurance | once a year, new children | 1,500 |
 | Uniform | one-off, PP1 & PP2, optional | 10,000 |
-| Transport | every term, optional | no list price — agreed per family |
+| Transport | every term, optional | 10,000, routinely adjusted for distance |
 
 Every amount in that table is a **default**. The figure actually charged lives on
 the child's own line and is always editable, because in practice the school
@@ -130,6 +130,12 @@ transport depends on how far the child lives.
 Returning children are billed tuition (plus transport if they use it). New
 admissions additionally get the one-off joining items. `itemsForStudent` in
 `src/data/selectors.ts` is what decides that.
+
+Whether a yearly or one-off item is charged to **everyone** or only to **new
+children** is a switch per item in Settings, not a rule in the code — the two
+cases genuinely differ and the school is still settling which is which.
+Items with an instalment price (stationery) can be raised either as the whole
+year or as this term's share.
 
 Payments are allocated to a line, so each line carries its own paid / remaining
 / settled state. A payment recorded without a line still counts towards what the

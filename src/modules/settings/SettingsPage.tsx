@@ -279,15 +279,32 @@ function FeeItemSettings() {
 
   const draftKey = (itemKey: string, classId?: string) => `${itemKey}:${classId ?? 'flat'}`
 
-  const valueFor = (item: FeeItem, classId?: string) => {
-    const key = draftKey(item.key, classId)
+  const valueFor = (item: FeeItem, slot?: string) => {
+    const key = draftKey(item.key, slot)
     if (drafts[key] !== undefined) return drafts[key]
-    const cents = classId ? item.classAmounts[classId] : item.defaultAmountCents
+    const cents =
+      slot === 'instalment' ? item.instalmentAmountCents
+      : slot ? item.classAmounts[slot]
+      : item.defaultAmountCents
     return cents === undefined || cents === null ? '' : String(cents / 100)
+  }
+
+  async function setWhoPays(item: FeeItem, newChildrenOnly: boolean) {
+    try {
+      await upsert.mutateAsync({ ...item, isAdmissionOnly: newChildrenOnly })
+      notify(
+        newChildrenOnly
+          ? `${item.label} is now charged to new children only.`
+          : `${item.label} is now charged to everyone.`,
+      )
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'Could not change that.', 'error')
+    }
   }
 
   async function saveItem(item: FeeItem) {
     const flat = drafts[draftKey(item.key)]
+    const instalment = drafts[draftKey(item.key, 'instalment')]
     const classAmounts = { ...item.classAmounts }
     for (const c of classes) {
       const typed = drafts[draftKey(item.key, c.id)]
@@ -303,6 +320,9 @@ function FeeItemSettings() {
       defaultAmountCents: flat === undefined
         ? item.defaultAmountCents
         : parseKesToCents(flat) ?? 0,
+      instalmentAmountCents: instalment === undefined
+        ? item.instalmentAmountCents
+        : parseKesToCents(instalment) || null,
     }
 
     try {
@@ -334,7 +354,10 @@ function FeeItemSettings() {
             : perClass
               ? `${formatKes(Math.min(...Object.values(item.classAmounts)))} – ${formatKes(Math.max(...Object.values(item.classAmounts)))}`
               : item.defaultAmountCents
-                ? `${formatKes(item.defaultAmountCents)}${item.cycle === 'daily' ? ' a day' : ''}`
+                ? `${formatKes(item.defaultAmountCents)}${item.cycle === 'daily' ? ' a day' : ''}` +
+                  (item.instalmentAmountCents
+                    ? ` · or ${formatKes(item.instalmentAmountCents)} a term`
+                    : '')
                 : 'Not set yet'
 
           return (
@@ -402,6 +425,49 @@ function FeeItemSettings() {
                         placeholder="0"
                       />
                     </Field>
+                  )}
+
+                  {item.cycle === 'year' && (
+                    <Field
+                      label="Or per term, if the parent spreads it"
+                      hint="Leave blank to always charge in one go"
+                      className="mt-4"
+                    >
+                      <TextInput
+                        inputMode="decimal"
+                        value={valueFor(item, 'instalment')}
+                        onChange={(e) =>
+                          setDrafts((d) => ({ ...d, [draftKey(item.key, 'instalment')]: e.target.value }))
+                        }
+                        placeholder="e.g. 1500"
+                      />
+                    </Field>
+                  )}
+
+                  {(item.cycle === 'year' || item.cycle === 'once') && (
+                    <div className="mt-4">
+                      <p className="mb-2 text-sm font-extrabold text-sand-700">Who pays this?</p>
+                      <div className="flex gap-2">
+                        {[
+                          { value: false, label: 'Everyone', hint: `Charged ${item.cycle === 'year' ? 'every year' : 'once'} to every child` },
+                          { value: true, label: 'New children only', hint: 'Only when a child first joins' },
+                        ].map((choice) => (
+                          <button
+                            key={String(choice.value)}
+                            onClick={() => void setWhoPays(item, choice.value)}
+                            className={cn(
+                              'flex-1 rounded-xl border-2 px-3 py-2.5 text-left transition-colors',
+                              item.isAdmissionOnly === choice.value
+                                ? 'border-iris-500 bg-iris-50'
+                                : 'border-sand-200 bg-white hover:border-iris-300',
+                            )}
+                          >
+                            <span className="block text-sm font-extrabold text-sand-800">{choice.label}</span>
+                            <span className="mt-0.5 block text-xs font-semibold text-sand-400">{choice.hint}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
                   {!item.isNegotiated && (

@@ -168,8 +168,14 @@ export type FeeItem = {
    * Empty means it applies to everyone.
    */
   limitedToClassIds: Uuid[]
-  /** No price list entry at all — the amount is agreed per family (transport). */
+  /** No price list entry at all — the amount is agreed per family. */
   isNegotiated: boolean
+  /**
+   * What one instalment costs, when the school lets a parent spread the item
+   * across the terms. Stationery is 4,500 a year or 1,500 a term. Null means
+   * the item is only ever paid in one go.
+   */
+  instalmentAmountCents: Cents | null
   sortOrder: number
   isArchived: boolean
 }

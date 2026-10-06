@@ -109,6 +109,10 @@ const toFeeItem = (r: Record<string, any>): FeeItem => ({
   isAdmissionOnly: r.is_admission_only ?? false,
   limitedToClassIds: r.limited_to_class_ids ?? [],
   isNegotiated: r.is_negotiated ?? false,
+  instalmentAmountCents:
+    r.instalment_amount_cents === null || r.instalment_amount_cents === undefined
+      ? null
+      : Number(r.instalment_amount_cents),
   sortOrder: r.sort_order ?? 100,
   isArchived: r.is_archived ?? false,
 })
@@ -124,6 +128,7 @@ const feeItemRow = (item: FeeItem) => ({
   is_admission_only: item.isAdmissionOnly,
   limited_to_class_ids: item.limitedToClassIds,
   is_negotiated: item.isNegotiated,
+  instalment_amount_cents: item.instalmentAmountCents,
   sort_order: item.sortOrder,
   is_archived: item.isArchived,
 })
