@@ -49,10 +49,10 @@ export default function ParentProfilePage() {
   const familyBalance = useMemo(() => {
     if (!term) return 0
     return kids.reduce((total, kid) => {
-      const b = feeBalance(kid.id, term.id, charges.data ?? [], payments.data ?? [], feeItems.data ?? [])
+      const b = feeBalance(kid.id, term.id, charges.data ?? [], payments.data ?? [], feeItems.data ?? [], terms.data ?? [])
       return total + Math.max(b.balanceCents, 0)
     }, 0)
-  }, [kids, term, charges.data, payments.data, feeItems.data])
+  }, [kids, term, charges.data, payments.data, feeItems.data, terms.data])
 
   const timeline = useMemo(
     () => (notes.data ?? []).filter((n) => n.parentId === id),
@@ -138,7 +138,7 @@ export default function ParentProfilePage() {
           <ul className="space-y-2">
             {kids.map((kid) => {
               const balance = term
-                ? feeBalance(kid.id, term.id, charges.data ?? [], payments.data ?? [], feeItems.data ?? [])
+                ? feeBalance(kid.id, term.id, charges.data ?? [], payments.data ?? [], feeItems.data ?? [], terms.data ?? [])
                 : null
               const meta = balance ? FEE_STATUS_META[balance.status] : null
               return (

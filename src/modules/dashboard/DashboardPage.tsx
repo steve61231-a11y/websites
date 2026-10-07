@@ -77,6 +77,7 @@ export function DashboardPage() {
       charges.data ?? [],
       payments.data ?? [],
       feeItems.data ?? [],
+      terms.data ?? [],
       today,
     )
     const outstanding = sumCents(

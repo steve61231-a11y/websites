@@ -55,8 +55,8 @@ export function RecordPaymentSheet({
   const student = students.find((s) => s.id === studentId)
 
   const balance = useMemo(
-    () => (student ? feeBalance(student.id, term?.id ?? null, charges, payments, feeItems) : null),
-    [student, term, charges, payments, feeItems],
+    () => (student ? feeBalance(student.id, term?.id ?? null, charges, payments, feeItems, terms) : null),
+    [student, term, charges, payments, feeItems, terms],
   )
 
   const outstanding = useMemo(

@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react'
 import { Check, Info } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { formatKes, parseKesToCents } from '@/lib/money'
-import { todayIso } from '@/lib/dates'
+import { formatDate, isWithin, todayIso } from '@/lib/dates'
 import { useCreateCharges, useFeeItems, useTerms } from '@/data/queries'
-import { currentTerm, defaultAmountFor, itemsForStudent } from '@/data/selectors'
+import {
+  currentTerm, defaultAmountFor, itemsForStudent, proratedAmount, prorationFactor,
+} from '@/data/selectors'
 import { Button } from '@/components/ui/Button'
 import { Sheet } from '@/components/ui/Sheet'
 import { Field, TextInput } from '@/components/ui/fields'
@@ -46,6 +48,21 @@ export function BillBuilder({
   const [dueDate, setDueDate] = useState(todayIso())
   const [rows, setRows] = useState<Row[] | null>(null)
 
+  // A child who starts part-way through a term pays for the part they attend.
+  // Default the join date to their enrolment date when that falls inside the
+  // term — which is exactly the case this is for.
+  const joinsMidTerm =
+    term !== null &&
+    isWithin(student.enrollmentDate, term.startDate, term.endDate) &&
+    student.enrollmentDate > term.startDate
+  const [prorate, setProrate] = useState(joinsMidTerm)
+  const [joinDate, setJoinDate] = useState(
+    joinsMidTerm ? student.enrollmentDate : todayIso(),
+  )
+  const factor = term && prorate ? prorationFactor(joinDate, term) : 1
+  const scale = (item: FeeItem, cents: number) =>
+    term && prorate && item.isProratable ? proratedAmount(cents, joinDate, term) : cents
+
   const applicable = useMemo(
     () => itemsForStudent(feeItems, student.classId, { isNewAdmission }),
     [feeItems, student.classId, isNewAdmission],
@@ -59,16 +76,17 @@ export function BillBuilder({
       if (kept) return { ...kept, item }
       const quantity = item.cycle === 'daily' ? 20 : 1
       const unit = defaultAmountFor(item, student.classId)
+      const full = unit * quantity
       return {
         item,
         // Optional things (uniform, transport) start unticked — somebody chooses.
         include: !item.isOptional,
-        amountText: unit === 0 ? '' : String((unit * quantity) / 100),
+        amountText: full === 0 ? '' : String(scale(item, full) / 100),
         quantity,
         byInstalment: false,
       }
     })
-  }, [applicable]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [applicable, prorate, joinDate]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const effective = rows ?? current
 
@@ -89,7 +107,7 @@ export function BillBuilder({
     const cents = byInstalment
       ? row.item.instalmentAmountCents
       : defaultAmountFor(row.item, student.classId)
-    update(key, { byInstalment, amountText: String(cents / 100) })
+    update(key, { byInstalment, amountText: String(scale(row.item, cents) / 100) })
   }
 
   const chosen = effective.filter((r) => r.include)
@@ -105,6 +123,11 @@ export function BillBuilder({
         ? term?.id ?? null
         : null,
       amountCents: parseKesToCents(r.amountText) ?? 0,
+      fullAmountCents:
+        prorate && r.item.isProratable
+          ? defaultAmountFor(r.item, student.classId) * (r.item.cycle === 'daily' ? r.quantity : 1)
+          : null,
+      proratedFrom: prorate && r.item.isProratable ? joinDate : null,
       dueDate,
       quantity: r.item.cycle === 'daily' ? r.quantity : null,
       notes: null,
@@ -145,8 +168,40 @@ export function BillBuilder({
           checked={isNewAdmission}
           onChange={setIsNewAdmission}
           label="This is a new admission"
-          description="Adds the one-off joining items — admission fee and insurance — on top of the usual ones."
+          description="Adds the admission fee, which is only ever charged when a child first joins."
         />
+
+        {term && (
+          <div className="space-y-3">
+            <Toggle
+              checked={prorate}
+              onChange={setProrate}
+              label="Joining part-way through the term"
+              description="Scales tuition, stationery and transport to the part of the term they will actually attend."
+            />
+            {prorate && (
+              <div className="rounded-2xl bg-iris-50 p-4">
+                <label className="block text-xs font-extrabold text-iris-700">
+                  Starting on
+                  <TextInput
+                    type="date"
+                    value={joinDate}
+                    min={term.startDate}
+                    max={term.endDate}
+                    onChange={(e) => setJoinDate(e.target.value || todayIso())}
+                    className="mt-1.5 h-11 text-sm"
+                  />
+                </label>
+                <p className="tnum mt-2.5 text-sm font-bold text-iris-600">
+                  {Math.round(factor * 100)}% of {term.name} left
+                  <span className="font-semibold text-iris-500">
+                    {' '}· {formatDate(joinDate, 'medium')} – {formatDate(term.endDate, 'medium')}
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="space-y-2">
           {effective.map((row) => {
@@ -233,8 +288,15 @@ export function BillBuilder({
                       />
                     </label>
                     {cents > 0 && (
-                      <span className="tnum pb-3 text-sm font-extrabold text-sand-700">
-                        {formatKes(cents)}
+                      <span className="pb-3 text-right">
+                        {prorate && row.item.isProratable && (
+                          <span className="tnum block text-xs font-bold text-sand-400 line-through">
+                            {formatKes(defaultAmountFor(row.item, student.classId) * (row.item.cycle === 'daily' ? row.quantity : 1))}
+                          </span>
+                        )}
+                        <span className="tnum text-sm font-extrabold text-sand-700">
+                          {formatKes(cents)}
+                        </span>
                       </span>
                     )}
                   </div>

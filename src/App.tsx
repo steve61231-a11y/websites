@@ -19,6 +19,7 @@ const ParentProfilePage = lazy(() => import('@/modules/parents/ParentProfilePage
 const FeesPage = lazy(() => import('@/modules/fees/FeesPage'))
 const StaffPage = lazy(() => import('@/modules/staff/StaffPage'))
 const SettingsPage = lazy(() => import('@/modules/settings/SettingsPage'))
+const TermReportPage = lazy(() => import('@/modules/reports/TermReportPage'))
 
 /**
  * Clean URLs (/expenses) need a server that rewrites every path to index.html.
@@ -70,6 +71,7 @@ function Gate() {
         <Route path="parents/:id" element={<Page cap="parents.view"><ParentProfilePage /></Page>} />
         <Route path="fees" element={<Page cap="fees.view"><FeesPage /></Page>} />
         <Route path="staff" element={<Page cap="staff.view"><StaffPage /></Page>} />
+        <Route path="summary" element={<Page cap="reports.view"><TermReportPage /></Page>} />
         <Route path="settings" element={<Page cap="settings.manageLists"><SettingsPage /></Page>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

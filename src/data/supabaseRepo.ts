@@ -113,6 +113,7 @@ const toFeeItem = (r: Record<string, any>): FeeItem => ({
     r.instalment_amount_cents === null || r.instalment_amount_cents === undefined
       ? null
       : Number(r.instalment_amount_cents),
+  isProratable: r.is_proratable ?? false,
   sortOrder: r.sort_order ?? 100,
   isArchived: r.is_archived ?? false,
 })
@@ -129,6 +130,7 @@ const feeItemRow = (item: FeeItem) => ({
   limited_to_class_ids: item.limitedToClassIds,
   is_negotiated: item.isNegotiated,
   instalment_amount_cents: item.instalmentAmountCents,
+  is_proratable: item.isProratable,
   sort_order: item.sortOrder,
   is_archived: item.isArchived,
 })
@@ -139,6 +141,10 @@ const toCharge = (r: Record<string, any>): FeeCharge => ({
   itemKey: r.item_key,
   termId: r.term_id,
   amountCents: Number(r.amount_cents),
+  fullAmountCents: r.full_amount_cents === null || r.full_amount_cents === undefined
+    ? null
+    : Number(r.full_amount_cents),
+  proratedFrom: r.prorated_from ?? null,
   dueDate: r.due_date,
   quantity: r.quantity === null ? null : Number(r.quantity),
   notes: r.notes,
@@ -151,6 +157,8 @@ const chargeRow = (draft: Partial<FeeChargeDraft>) => ({
   ...(draft.itemKey !== undefined && { item_key: draft.itemKey }),
   ...(draft.termId !== undefined && { term_id: draft.termId }),
   ...(draft.amountCents !== undefined && { amount_cents: draft.amountCents }),
+  ...(draft.fullAmountCents !== undefined && { full_amount_cents: draft.fullAmountCents }),
+  ...(draft.proratedFrom !== undefined && { prorated_from: draft.proratedFrom }),
   ...(draft.dueDate !== undefined && { due_date: draft.dueDate }),
   ...(draft.quantity !== undefined && { quantity: draft.quantity }),
   ...(draft.notes !== undefined && { notes: draft.notes }),

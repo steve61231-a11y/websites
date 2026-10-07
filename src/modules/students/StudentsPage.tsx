@@ -39,8 +39,8 @@ export default function StudentsPage() {
   const all = students.data ?? []
 
   const balances = useMemo(
-    () => feeBalancesForTerm(all, term?.id ?? null, charges.data ?? [], payments.data ?? [], feeItems.data ?? []),
-    [all, term, charges.data, payments.data, feeItems.data],
+    () => feeBalancesForTerm(all, term?.id ?? null, charges.data ?? [], payments.data ?? [], feeItems.data ?? [], terms.data ?? []),
+    [all, term, charges.data, payments.data, feeItems.data, terms.data],
   )
 
   const visible = useMemo(() => {

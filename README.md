@@ -31,6 +31,7 @@ any keys are issued.
 | `npm run build` | Type-check and build to `dist/` |
 | `npm run preview` | Serve the production build locally |
 | `npm run typecheck` | Types only |
+| `npm test` | The fee rules — proration, arrears, allocation |
 
 ### Connecting the real database
 
@@ -118,7 +119,7 @@ up on tuition and still owe for the bus, and the office needs to see that.
 | Daycare days | per day attended | 600 a day |
 | Admission fee | once, on joining | *not yet supplied — set it in Settings* |
 | Stationery | once a year | 4,500, or 1,500 a term across the three terms |
-| Insurance | once a year, new children | 1,500 |
+| Insurance | once a year | 1,500 |
 | Uniform | one-off, PP1 & PP2, optional | 10,000 |
 | Transport | every term, optional | 10,000, routinely adjusted for distance |
 
@@ -140,6 +141,20 @@ year or as this term's share.
 Payments are allocated to a line, so each line carries its own paid / remaining
 / settled state. A payment recorded without a line still counts towards what the
 family has paid — it is never lost, just unallocated.
+
+**Arrears follow the family.** Anything unpaid when a term ends is carried into
+the next term as a separate "brought forward" figure, never folded into the new
+term's bill — so the office can always tell this term's fees from an old debt.
+
+**A child joining part-way through a term pays for the part they attend.**
+Tuition, stationery and transport are scaled by how much of the term is left and
+rounded to the nearest 50 shillings; admission, uniform and insurance are not
+divisible and stay whole. Each prorated line keeps the full price and the join
+date it was worked out from, so the figure can still be explained to a parent
+months later.
+
+The three rules above are the ones families argue about, so they are covered by
+`src/data/fees.test.ts` rather than checked by eye.
 
 ### Roles
 
@@ -198,3 +213,6 @@ not flipping it.
   onto the students list.
 * **A dark theme.** The chart palette is validated for the light surface; doing
   dark properly means re-stepping it, not inverting it.
+* **A teacher login.** The role system has room for a third role that could add
+  students and notes but see no money. Deliberately not built yet — the school
+  wants the main system settled first.

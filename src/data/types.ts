@@ -176,6 +176,12 @@ export type FeeItem = {
    * the item is only ever paid in one go.
    */
   instalmentAmountCents: Cents | null
+  /**
+   * Scaled down when a child joins part-way through a term. True for tuition,
+   * stationery and transport; false for things that do not divide — the
+   * admission fee, the uniform, the insurance premium.
+   */
+  isProratable: boolean
   sortOrder: number
   isArchived: boolean
 }
@@ -192,6 +198,14 @@ export type FeeCharge = {
   /** Null for annual and one-off items, which do not belong to a single term. */
   termId: Uuid | null
   amountCents: Cents
+  /**
+   * The full price this line was scaled down from, when a child joined
+   * part-way through the term. Null when charged in full — kept so the figure
+   * can still be explained to a parent months later.
+   */
+  fullAmountCents: Cents | null
+  /** The join date the proration was worked out from. */
+  proratedFrom: IsoDate | null
   dueDate: IsoDate | null
   /** For 'daily' items: how many days this line covers. */
   quantity: number | null
@@ -235,8 +249,19 @@ export type FeeBalance = {
   studentId: Uuid
   termId: Uuid | null
   lines: ChargeBalance[]
+  /** Billed on this term's lines. */
   dueCents: Cents
+  /** Paid against this term's lines, plus anything not yet allocated. */
   paidCents: Cents
+  /** Still owing on this term's lines alone. */
+  lineBalanceCents: Cents
+  /**
+   * Arrears from terms that have already ended. Unpaid fees follow the family
+   * into the next term rather than being stranded on the old one — but they are
+   * kept as a separate figure so nobody mistakes them for this term's bill.
+   */
+  broughtForwardCents: Cents
+  /** What the family actually owes: this term's outstanding plus arrears. */
   balanceCents: Cents
   /** Earliest unmet due date across the lines, for the overdue check. */
   dueDate: IsoDate | null

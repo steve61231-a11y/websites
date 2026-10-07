@@ -33,6 +33,9 @@ export const CAPABILITIES = [
 
   'settings.manageLists',
   'settings.manageUsers',
+
+  /** The termly summary: the whole school's money in one place. */
+  'reports.view',
 ] as const
 
 export type Capability = (typeof CAPABILITIES)[number]

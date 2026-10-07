@@ -1,4 +1,6 @@
-import { Home, Wallet, Users, GraduationCap, HeartHandshake, CalendarDays, Settings } from 'lucide-react'
+import {
+  Home, Wallet, Users, GraduationCap, HeartHandshake, CalendarDays, Settings, LineChart,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { Capability } from '@/auth/permissions'
 
@@ -21,6 +23,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/fees', label: 'School Fees', tab: 'Fees', icon: Wallet, emoji: '🏫', capability: 'fees.view', primary: true },
   { to: '/parents', label: 'Parents', tab: 'Parents', icon: HeartHandshake, emoji: '👪', capability: 'parents.view' },
   { to: '/staff', label: 'Staff Leave', tab: 'Staff', icon: CalendarDays, emoji: '🗓️', capability: 'staff.view' },
+  { to: '/summary', label: 'Term Summary', tab: 'Summary', icon: LineChart, emoji: '📊', capability: 'reports.view' },
   { to: '/settings', label: 'Settings', tab: 'Settings', icon: Settings, emoji: '⚙️', capability: 'settings.manageLists' },
 ]
 

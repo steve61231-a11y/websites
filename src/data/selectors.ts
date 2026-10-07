@@ -187,12 +187,57 @@ export function chargeBalance(
 }
 
 /**
+ * How much of a term is left on a given day, as a fraction.
+ * "If a parent joins later, we prorate the amount as per where the term is."
+ */
+export function prorationFactor(joinDate: IsoDate, term: Term): number {
+  const totalDays = daysBetween(term.startDate, term.endDate) + 1
+  if (totalDays <= 0) return 1
+  const from = joinDate < term.startDate ? term.startDate : joinDate
+  if (from > term.endDate) return 0
+  const remainingDays = daysBetween(from, term.endDate) + 1
+  return Math.min(Math.max(remainingDays / totalDays, 0), 1)
+}
+
+/** A full price scaled to the part of the term a child will actually attend. */
+export function proratedAmount(amountCents: Cents, joinDate: IsoDate, term: Term): Cents {
+  // Rounded to the nearest 50 shillings: the school quotes round figures to
+  // parents, not 19,384.62.
+  return Math.round((amountCents * prorationFactor(joinDate, term)) / 5_000) * 5_000
+}
+
+/** What is still owing on one term's lines alone, used for the arrears total. */
+function outstandingForTerm(
+  studentId: Uuid,
+  termId: Uuid,
+  charges: readonly FeeCharge[],
+  payments: readonly FeePayment[],
+): Cents {
+  const mine = charges.filter(
+    (c) => c.studentId === studentId && c.termId === termId && !c.isWaived,
+  )
+  if (mine.length === 0) return 0
+  const ids = new Set(mine.map((c) => c.id))
+  const billed = sumCents(mine.map((c) => c.amountCents))
+  const paid = sumCents(
+    payments
+      .filter((p) => p.studentId === studentId)
+      .filter((p) => (p.chargeId && ids.has(p.chargeId)) || (!p.chargeId && p.termId === termId))
+      .map((p) => p.amountCents),
+  )
+  return Math.max(billed - paid, 0)
+}
+
+/**
  * A student's whole position for a term.
  *
  * Annual and one-off lines (admission, stationery, insurance, uniform) carry no
  * term of their own, so they are folded into whichever term you are looking at:
  * from the school's point of view a family who still owes for stationery owes it
  * now, not in some separate bucket.
+ *
+ * Anything left unpaid when a term ends follows the family forward as arrears,
+ * shown separately from the current bill.
  */
 export function feeBalance(
   studentId: Uuid,
@@ -200,6 +245,7 @@ export function feeBalance(
   charges: readonly FeeCharge[],
   payments: readonly FeePayment[],
   items: readonly FeeItem[],
+  terms: readonly Term[] = [],
   today: IsoDate = todayIso(),
 ): FeeBalance {
   const mine = charges.filter(
@@ -222,7 +268,19 @@ export function feeBalance(
 
   const dueCents = sumCents(lines.filter((l) => !l.charge.isWaived).map((l) => l.charge.amountCents))
   const paidCents = sumCents(lines.map((l) => l.paidCents)) + unallocatedCents
-  const balanceCents = Math.max(dueCents - paidCents, 0)
+  const lineBalanceCents = Math.max(dueCents - paidCents, 0)
+
+  // Everything still owing from terms that started before this one.
+  const thisTerm = terms.find((t) => t.id === termId) ?? null
+  const broughtForwardCents = thisTerm
+    ? sumCents(
+        terms
+          .filter((t) => t.startDate < thisTerm.startDate)
+          .map((t) => outstandingForTerm(studentId, t.id, charges, payments)),
+      )
+    : 0
+
+  const balanceCents = lineBalanceCents + broughtForwardCents
 
   const outstanding = lines.filter((l) => l.balanceCents > 0)
   const dueDate = outstanding
@@ -231,13 +289,17 @@ export function feeBalance(
     .sort()[0] ?? null
 
   let status: FeeStatus
-  if (lines.length === 0) status = 'no-invoice'
+  if (lines.length === 0 && broughtForwardCents === 0) status = 'no-invoice'
   else if (balanceCents <= 0) status = 'paid'
-  else if (outstanding.some((l) => l.status === 'overdue')) status = 'overdue'
+  // Money owed from a term that has already finished is overdue by definition.
+  else if (broughtForwardCents > 0 || outstanding.some((l) => l.status === 'overdue')) status = 'overdue'
   else if (paidCents > 0) status = 'partial'
   else status = 'unpaid'
 
-  return { studentId, termId, lines, dueCents, paidCents, balanceCents, dueDate, status }
+  return {
+    studentId, termId, lines, dueCents, paidCents,
+    lineBalanceCents, broughtForwardCents, balanceCents, dueDate, status,
+  }
 }
 
 export function feeBalancesForTerm(
@@ -246,11 +308,12 @@ export function feeBalancesForTerm(
   charges: readonly FeeCharge[],
   payments: readonly FeePayment[],
   items: readonly FeeItem[],
+  terms: readonly Term[] = [],
   today: IsoDate = todayIso(),
 ): Map<Uuid, FeeBalance> {
   const out = new Map<Uuid, FeeBalance>()
   for (const s of students) {
-    out.set(s.id, feeBalance(s.id, termId, charges, payments, items, today))
+    out.set(s.id, feeBalance(s.id, termId, charges, payments, items, terms, today))
   }
   return out
 }

@@ -67,9 +67,9 @@ export default function StudentProfilePage() {
 
   const balance = useMemo(
     () => (student
-      ? feeBalance(student.id, term?.id ?? null, charges.data ?? [], payments.data ?? [], feeItems.data ?? [])
+      ? feeBalance(student.id, term?.id ?? null, charges.data ?? [], payments.data ?? [], feeItems.data ?? [], terms.data ?? [])
       : null),
-    [student, term, charges.data, payments.data, feeItems.data],
+    [student, term, charges.data, payments.data, feeItems.data, terms.data],
   )
 
   const history = useMemo(
@@ -245,14 +245,29 @@ export default function StudentProfilePage() {
           ) : (
             <>
               <div className="grid gap-3 sm:grid-cols-3">
-                <FeeFigure label="Total billed" value={formatKes(balance.dueCents)} />
+                <FeeFigure label="Billed this term" value={formatKes(balance.dueCents)} />
                 <FeeFigure label="Paid so far" value={formatKes(balance.paidCents)} tone="good" />
                 <FeeFigure
-                  label="Balance"
+                  label={balance.broughtForwardCents > 0 ? 'Owing in total' : 'Balance'}
                   value={formatKes(balance.balanceCents)}
                   tone={balance.balanceCents > 0 ? 'bad' : 'good'}
                 />
               </div>
+
+              {balance.broughtForwardCents > 0 && (
+                <div className="mt-4 flex items-center gap-3 rounded-2xl bg-bad-soft p-3.5">
+                  <span aria-hidden="true" className="shrink-0 text-xl">↩️</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-extrabold text-bad-ink">Brought forward</p>
+                    <p className="text-sm text-bad-ink/80">
+                      Still unpaid from an earlier term — it follows the family until it is settled.
+                    </p>
+                  </div>
+                  <p className="tnum shrink-0 font-display text-base font-extrabold text-bad-ink">
+                    {formatKes(balance.broughtForwardCents)}
+                  </p>
+                </div>
+              )}
 
               <ul className="mt-4 space-y-1.5">
                 {balance.lines.map((line) => {
@@ -279,6 +294,12 @@ export default function StudentProfilePage() {
                             {formatKes(line.paidCents)} of {formatKes(line.charge.amountCents)}
                             {line.balanceCents > 0 && ` · ${formatKes(line.balanceCents)} to go`}
                           </p>
+                          {line.charge.proratedFrom && line.charge.fullAmountCents && (
+                            <p className="tnum truncate text-xs font-bold text-sand-400">
+                              Prorated from {formatKes(line.charge.fullAmountCents)} · joined{' '}
+                              {formatDate(line.charge.proratedFrom, 'medium')}
+                            </p>
+                          )}
                         </div>
                         <Pill tone={meta.tone === 'muted' ? 'muted' : meta.tone}>
                           <span aria-hidden="true">{meta.icon}</span> {meta.label}

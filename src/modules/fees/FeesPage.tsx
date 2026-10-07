@@ -58,8 +58,8 @@ export default function FeesPage() {
   const roster = (students.data ?? []).filter((s) => s.status === 'active')
 
   const balances = useMemo(
-    () => feeBalancesForTerm(roster, term?.id ?? null, charges.data ?? [], payments.data ?? [], feeItems.data ?? []),
-    [roster, term, charges.data, payments.data, feeItems.data],
+    () => feeBalancesForTerm(roster, term?.id ?? null, charges.data ?? [], payments.data ?? [], feeItems.data ?? [], terms.data ?? []),
+    [roster, term, charges.data, payments.data, feeItems.data, terms.data],
   )
 
   const totals = useMemo(() => {
@@ -502,6 +502,8 @@ function SetFeesSheet({
           amountCents: classId === 'all' && !touchedAmount
             ? defaultAmountFor(item, s.classId) || amountCents
             : amountCents,
+          fullAmountCents: null,
+          proratedFrom: null,
           dueDate,
           quantity: null,
           notes: null,
