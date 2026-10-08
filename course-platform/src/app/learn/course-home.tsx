@@ -33,7 +33,7 @@ export function CourseHome() {
     step.kind === "lesson"
       ? { href: `/learn/${step.module.slug}`, label: step.started ? "Resume" : "Start the course", icon: true }
       : step.kind === "quiz"
-        ? { href: `/learn/${step.module.slug}/quiz`, label: "Take the quiz", icon: false }
+        ? { href: `/learn/${step.module.slug}/quiz`, label: step.module.kind === "wrap" ? "Start the final assessment" : "Take the quiz", icon: false }
         : { href: cert ? `/certificate/${cert.number}` : "/learn/complete", label: "View certificate", icon: false };
 
   return (
@@ -44,7 +44,7 @@ export function CourseHome() {
           key={focus.still}
           src={focus.still}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover md:left-[32%] md:w-[68%]"
           initial={{ scale: 1.12, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 2.2, ease: EASE }}
@@ -62,8 +62,8 @@ export function CourseHome() {
               as="h1"
               inView={false}
               delay={0.3}
-              text={finished ? "You did it." : step.kind === "quiz" ? `${focus.label} quiz` : focus.label}
-              className="display mt-4 text-[clamp(56px,11vw,140px)] text-white"
+              text={finished ? "You did it." : step.kind === "quiz" ? (focus.kind === "wrap" ? "Final assessment" : `${focus.label} quiz`) : focus.label}
+              className="display mt-4 text-[clamp(56px,9vw,120px)] text-white"
             />
             <FadeIn inView={false} delay={0.6} y={12}>
               <p className="headline mt-3 max-w-[22ch] text-[clamp(22px,2.6vw,32px)] text-white">
@@ -73,7 +73,7 @@ export function CourseHome() {
                 {step.kind === "lesson"
                   ? `${formatDuration(step.lesson.durationSec)} · ${step.started ? "Pick up where you left off" : "Your first lesson"}`
                   : step.kind === "quiz"
-                    ? `${focus.quiz!.questions.length} questions · unlocks the next day`
+                    ? `${focus.quiz!.questions.length} questions · ${focus.kind === "wrap" ? "unlocks your certificate" : "unlocks the next day"}`
                     : cert?.number}
               </p>
               <div className="mt-8 flex flex-wrap gap-3">

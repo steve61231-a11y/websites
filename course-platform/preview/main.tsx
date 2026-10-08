@@ -1,51 +1,78 @@
-import { Component, useEffect, useState, type ReactNode } from "react";
+import { Component, Suspense, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import { RouterProvider } from "./shims/router";
 import Link from "./shims/link";
 
+import { SmoothScroll } from "@/components/motion/smooth-scroll";
 import Home from "@/app/page";
-import Courses from "@/app/courses/page";
-import CoursePage from "@/app/courses/[slug]/page";
-import Checkout from "@/app/checkout/[slug]/page";
-import Login from "@/app/login/page";
-import Dashboard from "@/app/dashboard/page";
-import LearnCourse from "@/app/learn/[slug]/page";
-import Lesson from "@/app/learn/[slug]/[lesson]/page";
-import Quiz from "@/app/learn/[slug]/quiz/[module]/page";
-import Complete from "@/app/learn/[slug]/complete/page";
-import Certificates from "@/app/certificates/page";
-import { CertificateView } from "@/app/certificates/[number]/certificate-view";
-import Verify from "@/app/verify/page";
-import Profile from "@/app/profile/page";
+import { EnrollFlow } from "@/app/enroll/enroll-flow";
+import { Welcome } from "@/app/welcome/welcome";
+import { SignInFlow } from "@/app/sign-in/sign-in-flow";
+import LearnPage from "@/app/learn/page";
+import CompletePage from "@/app/learn/complete/page";
+import { LessonView } from "@/app/learn/[episode]/lesson-view";
+import { QuizView } from "@/app/learn/[episode]/quiz/quiz-view";
+import { CertificateView } from "@/app/certificate/[number]/certificate-view";
+import VerifyPage from "@/app/verify/page";
+import AccountPage from "@/app/account/page";
+import { AppBar } from "@/components/learn/app-bar";
+import { StudentGate } from "@/components/student-gate";
+import { course, getEpisode } from "@/lib/catalog";
 
-// The same page modules the Next.js app uses, called with resolved params.
-type Page = (props: { params: Promise<Record<string, string>>; searchParams: Promise<Record<string, string>> }) => ReactNode | Promise<ReactNode>;
+// The same screens the Next.js app renders, mapped to an in-memory router.
+type Render = (params: Record<string, string>) => ReactNode;
 
-const routes: [string, Page][] = [
-  ["/", Home as Page],
-  ["/courses", Courses as Page],
-  ["/courses/:slug", CoursePage as Page],
-  ["/checkout/:slug", Checkout as Page],
-  ["/login", Login as Page],
-  ["/dashboard", Dashboard as Page],
-  ["/learn/:slug", LearnCourse as Page],
-  ["/learn/:slug/quiz/:module", Quiz as Page],
-  ["/learn/:slug/complete", Complete as Page],
-  ["/learn/:slug/:lesson", Lesson as Page],
-  ["/certificates", Certificates as Page],
-  ["/certificates/:number", (({ params }) => params.then((p) => <CertificateView number={decodeURIComponent(p.number)} />)) as Page],
-  ["/verify", Verify as Page],
-  ["/profile", Profile as Page],
+const routes: [string, Render][] = [
+  ["/", () => <Home />],
+  ["/enroll", () => <EnrollFlow />],
+  ["/welcome", () => <Welcome />],
+  ["/sign-in", () => <SignInFlow />],
+  ["/learn", () => <LearnPage />],
+  ["/learn/complete", () => <CompletePage />],
+  [
+    "/learn/:episode",
+    ({ episode }) => {
+      const ep = getEpisode(episode);
+      if (!ep) return null;
+      return (
+        <>
+          <AppBar center={<span className="hidden sm:inline"><span className="text-white">{ep.label}</span> · {ep.title}</span>} />
+          <main className="min-h-dvh bg-black">
+            <StudentGate courseId={course.id}>
+              <LessonView key={ep.slug} slug={ep.slug} />
+            </StudentGate>
+          </main>
+        </>
+      );
+    },
+  ],
+  [
+    "/learn/:episode/quiz",
+    ({ episode }) => {
+      const ep = getEpisode(episode);
+      if (!ep?.quiz) return null;
+      return (
+        <main className="min-h-dvh bg-black">
+          <StudentGate courseId={course.id}>
+            <QuizView key={ep.slug} slug={ep.slug} />
+          </StudentGate>
+        </main>
+      );
+    },
+  ],
+  ["/certificate/:number", ({ number }) => <CertificateView number={decodeURIComponent(number)} />],
+  ["/verify", () => <VerifyPage />],
+  ["/account", () => <AccountPage />],
 ];
 
 function match(path: string) {
   const parts = path.split("/").filter(Boolean);
-  for (const [pattern, page] of routes) {
+  for (const [pattern, render] of routes) {
     const segs = pattern.split("/").filter(Boolean);
     if (segs.length !== parts.length) continue;
     const params: Record<string, string> = {};
-    if (segs.every((s, i) => (s.startsWith(":") ? ((params[s.slice(1)] = parts[i]), true) : s === parts[i]))) return { page, params };
+    if (segs.every((s, i) => (s.startsWith(":") ? ((params[s.slice(1)] = parts[i]), true) : s === parts[i]))) return { render, params };
   }
   return null;
 }
@@ -53,27 +80,10 @@ function match(path: string) {
 function NotFound() {
   return (
     <div className="wrap flex min-h-dvh flex-col items-center justify-center text-center">
-      <h1 className="text-[28px] font-semibold tracking-[-0.02em]">This page doesn&apos;t exist.</h1>
-      <Link href="/" className="btn btn-primary mt-8">Go home</Link>
+      <h1 className="headline text-[30px] text-white">This page doesn&apos;t exist.</h1>
+      <Link href="/" className="btn btn-white mt-8">Go home</Link>
     </div>
   );
-}
-
-function Route({ path }: { path: string }) {
-  const [node, setNode] = useState<ReactNode>(null);
-  const known = match(path) !== null;
-  useEffect(() => {
-    let live = true;
-    const m = match(path);
-    if (!m) return;
-    Promise.resolve()
-      .then(() => m.page({ params: Promise.resolve(m.params), searchParams: Promise.resolve({}) }))
-      .then((n) => live && setNode(n), () => live && setNode(<NotFound />));
-    return () => {
-      live = false;
-    };
-  }, [path]);
-  return known ? <>{node}</> : <NotFound />;
 }
 
 class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -86,6 +96,23 @@ class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   }
 }
 
+function Route({ path }: { path: string }) {
+  const m = match(path);
+  const node = m ? m.render(m.params) : null;
+  return node ?? <NotFound />;
+}
+
 createRoot(document.getElementById("root")!).render(
-  <RouterProvider>{(loc) => <Boundary key={loc.path}><Route path={loc.path} /></Boundary>}</RouterProvider>,
+  <>
+    <SmoothScroll />
+    <RouterProvider>
+      {(loc) => (
+        <Boundary key={loc.path}>
+          <Suspense fallback={<div className="min-h-dvh bg-black" />}>
+            <Route path={loc.path} />
+          </Suspense>
+        </Boundary>
+      )}
+    </RouterProvider>
+  </>,
 );

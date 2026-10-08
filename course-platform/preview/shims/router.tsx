@@ -1,14 +1,15 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { addTransitionType, createContext, startTransition, useContext, useEffect, useState, type ReactNode } from "react";
 
 // In-memory router for the single-file preview. The artifact frame only allows
 // bare #anchors in its URL, so routes live in React state (and sessionStorage
-// so a reload returns to the same screen).
+// so a reload returns to the same screen). Navigations run as transitions so
+// React <ViewTransition> animations play, as they do in the Next.js app.
 
 type Loc = { path: string; query: string };
-type Ctx = { loc: Loc; push: (href: string) => void; replace: (href: string) => void; back: () => void };
+type Ctx = { loc: Loc; push: (href: string, types?: string[]) => void; replace: (href: string) => void; back: () => void };
 
 const RouterCtx = createContext<Ctx | null>(null);
-const KEY = "lumen-preview-route";
+const KEY = "the-prod-preview-route";
 
 function parse(href: string): { loc: Loc; anchor?: string } {
   const [beforeHash, anchor] = href.split("#");
@@ -43,15 +44,19 @@ export function RouterProvider({ children }: { children: (loc: Loc) => ReactNode
     } catch {}
   }, [loc]);
 
-  const go = (href: string, mode: "push" | "replace") => {
+  const go = (href: string, mode: "push" | "replace", types: string[] = []) => {
     if (href.startsWith("#")) return scrollToAnchor(href.slice(1));
     const { loc: next, anchor } = parse(href);
     const same = next.path === loc.path && next.query === loc.query;
-    if (!same) setStack((s) => (mode === "push" ? [...s, next] : [...s.slice(0, -1), next]));
+    if (!same) {
+      startTransition(() => {
+        types.forEach((t) => addTransitionType(t));
+        setStack((s) => (mode === "push" ? [...s, next] : [...s.slice(0, -1), next]));
+      });
+    }
     scrollToAnchor(anchor);
   };
 
-  // Plain in-page anchors (<a href="#curriculum">) scroll instead of changing the URL.
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       const a = (e.target as HTMLElement).closest?.("a");
@@ -67,7 +72,7 @@ export function RouterProvider({ children }: { children: (loc: Loc) => ReactNode
 
   const ctx: Ctx = {
     loc,
-    push: (h) => go(h, "push"),
+    push: (h, types) => go(h, "push", types),
     replace: (h) => go(h, "replace"),
     back: () => setStack((s) => (s.length > 1 ? s.slice(0, -1) : s)),
   };

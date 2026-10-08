@@ -1,63 +1,44 @@
-# Lumen — course platform
+# THE PROD
 
-Phase 1 of the course platform described in the PRD: the complete visual product, running on realistic sample data, so the client can experience it before payments, auth and video are connected.
+The learning platform for **THE PROD: E-commerce Product Photography with AI**, a seven-day course by Product Photography Kenya. This is the clickable prototype, running on the real course outline with sample progress, payments and video, so the client can judge the experience before the backend is connected.
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev              # http://localhost:3000
+npm run preview:build    # one-file shareable preview in preview/dist/index.html
 ```
 
-## The walkthrough
+## The journey
 
-1. **Home** → *Explore courses* → **Photography & Camera Masterclass**
-2. **Enroll** → name + email → demo payment (M-Pesa or card) → watch the payment get verified → the access email
-3. **Begin learning** → email → any 6-digit code
-4. **Your path**: progress dial, *Up next*, and the seven-module journey (later modules locked)
-5. **Lesson player**: plays a simulated video with captions, a viewer watermark, resume position, and speed up to 8× for demos. *Mark as complete* or let it finish → *Up next* countdown
-6. Finish a module's lessons → **quiz** (one question per screen, instant feedback) → pass → confetti, the dial fills, next module unlocks
-7. Pass the final assessment → **"You did it."** → certificate → Download PDF (print) / Share
-8. **/verify** checks any certificate ID (try `CERT-2026-PHOTO-000142`)
+1. **Landing** (`/`): a live 3D product studio. The bottle turns matte, reflective, transparent and translucent as you scroll, straight from Day 1. Then the seven-day filmstrip, how we help, Duncan and his clients, pricing and FAQ.
+2. **Get access** (`/enroll`): name and email, then M-Pesa or card, the "check your phone" step, and the payment verification steps.
+3. **Welcome** (`/welcome`): the branded access email.
+4. **Sign in** (`/sign-in`): email and a 6-digit code, or Google. In the demo any code works and Google signs in a sample student.
+5. **Course home** (`/learn`): what's next, overall progress, and the nine-episode path. Later days unlock as each quiz is passed.
+6. **Lesson** (`/learn/day-1`): the thumbnail morphs into the player. Lesson notes are written from the course summary.
+7. **Quiz** (`/learn/day-1/quiz`): one question per screen with instant feedback. Passing unlocks the next day.
+8. **Certificate** (`/learn/complete`, `/certificate/[id]`, `/verify`).
 
-Shortcuts: on the login page, *continue as an enrolled student*. On **Profile → Demo controls** you can jump to the middle or the final module, or reset everything. Demo state lives in `localStorage`.
-
-## Design
-
-Apple-inspired and restrained: system fonts (SF on Apple devices, Inter elsewhere), lots of whitespace, one blue for actions, green for completion, and gold kept only for the certificate.
-
-- **The lens.** The course's "product shot" is a rendered SVG lens whose aperture blades open as the page loads, and open further while a lesson plays. It needs no photography to look premium.
-- **The progress dial.** Progress is a ring split into one arc per module, like a camera's mode dial. Each arc fills as you go, and the current module glows softly.
-- **One next step.** Every learner screen leads with a single obvious action (*Continue*, *Take the quiz*, *View certificate*). There are no sidebars; the lesson list is a slide-over.
-- **Earned moments.** A check mark draws itself for a finished lesson. Confetti appears only when a module is passed. The final screen is dark, gold and cinematic.
-- **Mobile first.** A bottom tab bar for learners, a sticky action bar in the player, bottom-sheet feedback in quizzes, and large tap targets.
+On **Account → Demo controls** you can jump to Day 4 or the wrap-up, or reset everything.
 
 ## Structure
 
 ```
-src/lib/types.ts        domain types (mirror the Supabase tables)
-src/lib/catalog.ts      sample course: 7 modules, 20 lessons, 7 quizzes
-src/lib/progress.ts     pure rules: unlocking, % complete, next step, eligibility
-src/lib/demo-store.ts   Phase 1 persistence (swapped for Supabase in Phase 2)
-src/components/         lens art, dial, player, certificate, celebration, nav
-src/app/                routes: /, /courses, /courses/[slug], /checkout/[slug],
-                        /login, /dashboard, /learn/[slug], /learn/[slug]/[lesson],
-                        /learn/[slug]/quiz/[module], /learn/[slug]/complete,
-                        /certificates, /certificates/[number], /verify, /profile
-supabase/migrations/    Phase 2 schema with Row Level Security
+brand/                       THE PROD wordmark as vector files
+public/stills/               episode covers rendered from the 3D studio
+src/lib/catalog.ts           course content: welcome, days 1–7, wrap-up, quizzes
+src/lib/progress.ts          unlock and completion rules (shared with the server in Phase 2)
+src/lib/demo-store.ts        prototype persistence; becomes Supabase in Phase 2
+src/components/studio/       the real-time 3D product studio
+src/components/landing/      landing sections
+src/components/learn/        player, notes, episode covers, certificate
+src/app/                     routes
+supabase/migrations/         Phase 2 schema with row-level security
+preview/                     single-file build for sharing a link
 ```
 
-Nothing assumes one course or seven modules. Add a course to `catalog.ts` (later, a row in `courses`) and it appears everywhere.
+## Still needed from the client
 
-## What's simulated in Phase 1
-
-| Demo | Production (later phases) |
-| --- | --- |
-| Payment sheet + verification steps | Paystack checkout → webhook → verify → enrollment row → access email |
-| Any OTP code works | Supabase Auth email OTP; entitlement checked server-side |
-| Locks enforced in the browser | Same `progress.ts` rules run on the server; RLS on every table |
-| Quiz graded in the browser | Server-side grading; `is_correct` never reaches the client |
-| Lens animation in the player | Mux / Bunny / Cloudflare Stream with signed, expiring playback |
-| Certificate printed to PDF | Server-generated PDF, emailed, stored, publicly verifiable |
-
-## Shareable preview
-
-`npm run preview:build` bundles the same screens into one self-contained file, `preview/dist/index.html`, for sharing as a link without a server. Small shims in `preview/shims/` stand in for Next.js routing, links and fonts.
+- Final video files, durations and transcripts (quizzes will be rewritten from the transcripts)
+- Price (KES 15,000 is a placeholder), the WhatsApp number to confirm, and the booking calendar link
+- Instructor photo

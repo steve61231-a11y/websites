@@ -1,16 +1,35 @@
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type Plugin } from "vite";
 import { viteSingleFile } from "vite-plugin-singlefile";
 
 // Bundles the Phase 1 demo into one self-contained HTML file for sharing a
 // preview link. Next.js APIs are swapped for small client-side shims.
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
+// Embed the studio stills referenced as "/stills/name.jpg" so the preview is one file.
+function inlineStills(): Plugin {
+  return {
+    name: "inline-stills",
+    enforce: "pre",
+    transform(code, id) {
+      if (!/\/src\/.*\.(t|j)sx?$/.test(id) || !code.includes("/stills/")) return;
+      const names = new Set<string>();
+      const out = code.replace(/(=)?(["'])\/stills\/([\w-]+)\.jpg\2/g, (_m, eq: string | undefined, _q, name: string) => {
+        names.add(name);
+        const id = `__still_${name.replace(/-/g, "_")}`;
+        return eq ? `={${id}}` : id; // JSX attributes need braces
+      });
+      const imports = [...names].map((n) => `import __still_${n.replace(/-/g, "_")} from ${JSON.stringify(here(`../public/stills/${n}.jpg`) + "?inline")};`).join("\n");
+      return { code: `${imports}\n${out}`, map: null };
+    },
+  };
+}
+
 export default defineConfig({
   root: here("."),
-  plugins: [react(), tailwindcss(), viteSingleFile()],
+  plugins: [inlineStills(), react(), tailwindcss(), viteSingleFile()],
   resolve: {
     alias: [
       { find: "next/link", replacement: here("./shims/link.tsx") },
@@ -20,6 +39,5 @@ export default defineConfig({
       { find: /^@\//, replacement: here("../src/") },
     ],
   },
-  // One file: the lazy three.js chunk is inlined too.
-  build: { outDir: here("./dist"), emptyOutDir: true, rollupOptions: { output: { inlineDynamicImports: true } } },
+    build: { outDir: here("./dist"), emptyOutDir: true },
 });
