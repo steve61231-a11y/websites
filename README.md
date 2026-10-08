@@ -117,7 +117,7 @@ up on tuition and still owe for the bus, and the office needs to see that.
 |---|---|---|
 | Tuition & meals | every term | KG1 32,000 · KG2 34,000 · PP1 36,000 · PP2 37,000 |
 | Daycare days | per day attended | 600 a day |
-| Admission fee | once, on joining | *not yet supplied — set it in Settings* |
+| Admission fee | once, on joining | 2,500, the same for every class |
 | Stationery | once a year | 4,500, or 1,500 a term across the three terms |
 | Insurance | once a year | 1,500 |
 | Uniform | one-off, PP1 & PP2, optional | 10,000 |

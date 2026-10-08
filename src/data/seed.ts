@@ -288,8 +288,8 @@ export const DEMO_FEE_ITEMS: FeeItem[] = [
     label: 'Admission fee',
     emoji: '📝',
     cycle: 'once',
-    // TODO: the school has not given us these figures yet — set in Settings.
-    defaultAmountCents: 0,
+    // Flat across every class, unlike tuition.
+    defaultAmountCents: 250_000,
     classAmounts: {},
     isOptional: false,
     isAdmissionOnly: true,
