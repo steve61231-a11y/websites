@@ -5,14 +5,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { useDemo } from "@/lib/demo-store";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const links = [
-  { href: "/#course", label: "The course" },
-  { href: "/#instructor", label: "Instructor" },
-  { href: "/#pricing", label: "Pricing" },
+  { href: "/#courses", label: "Courses" },
+  { href: "/#how", label: "How it works" },
+  { href: "/verify", label: "Verify a certificate" },
 ];
 
-export function SiteNav() {
+/** `overDark`: the page opens on a dark hero, so the bar stays light-on-dark until it turns solid. */
+export function SiteNav({ overDark = false }: { overDark?: boolean }) {
   const { user, enrolled } = useDemo();
   const { scrollY } = useScroll();
   const [solid, setSolid] = useState(false);
@@ -27,12 +29,12 @@ export function SiteNav() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 px-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-5" style={{ viewTransitionName: "site-nav" }}>
+      <header className={`fixed inset-x-0 top-0 z-50 px-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-5 ${overDark && !solid && !open ? "theme-dark" : ""}`} style={{ viewTransitionName: "site-nav" }}>
         <motion.nav
           className="mx-auto flex h-14 max-w-[1160px] items-center justify-between rounded-full pl-5 pr-2 transition-[background-color,box-shadow] duration-500"
           animate={{
-            backgroundColor: solid || open ? "rgba(18,18,20,0.72)" : "rgba(18,18,20,0)",
-            boxShadow: solid ? "inset 0 0 0 1px rgba(255,255,255,0.08), 0 20px 40px -20px rgba(0,0,0,0.8)" : "inset 0 0 0 1px rgba(255,255,255,0)",
+            backgroundColor: solid || open ? "var(--glass-strong)" : "rgba(0,0,0,0)",
+            boxShadow: solid ? "inset 0 0 0 1px var(--line), 0 20px 40px -20px rgba(0,0,0,0.35)" : "inset 0 0 0 1px rgba(0,0,0,0)",
           }}
           style={{ backdropFilter: solid || open ? "blur(24px) saturate(1.6)" : "none", WebkitBackdropFilter: solid || open ? "blur(24px) saturate(1.6)" : "none" }}
         >
@@ -49,12 +51,13 @@ export function SiteNav() {
           </div>
 
           <div className="flex items-center gap-1.5">
+            <ThemeToggle />
             {signedIn ? (
               <Link href="/learn" className="btn btn-white min-h-10 px-5 text-[14px]">Continue learning</Link>
             ) : (
               <>
                 <Link href="/sign-in" className="btn btn-ghost hidden min-h-10 px-4 text-[14px] sm:inline-flex">Sign in</Link>
-                <Link href="/enroll" className="btn btn-white min-h-10 px-5 text-[14px]">Get access</Link>
+                <Link href="/#courses" className="btn btn-white min-h-10 px-5 text-[14px]">Get started</Link>
               </>
             )}
             <button
@@ -75,7 +78,7 @@ export function SiteNav() {
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 z-40 bg-black/80 px-6 pt-28 backdrop-blur-2xl md:hidden"
+            className="fixed inset-0 z-40 bg-(--glass-strong) px-6 pt-28 backdrop-blur-2xl md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { delay: 0.15 } }}
@@ -88,7 +91,7 @@ export function SiteNav() {
                   animate={{ opacity: 1, y: 0, transition: { delay: 0.05 + i * 0.06, duration: 0.6, ease: [0.16, 1, 0.3, 1] } }}
                   exit={{ opacity: 0, y: -10, transition: { delay: (3 - i) * 0.03 } }}
                 >
-                  <Link href={signedIn && l.href === "/sign-in" ? "/learn" : l.href} onClick={() => setOpen(false)} className="block py-2 font-[family-name:var(--font-display)] text-[40px] font-extrabold uppercase tracking-[-0.03em] text-white">
+                  <Link href={signedIn && l.href === "/sign-in" ? "/learn" : l.href} onClick={() => setOpen(false)} className="block py-2 font-[family-name:var(--font-display)] text-[34px] font-extrabold uppercase tracking-[-0.03em] text-white">
                     {l.label}
                   </Link>
                 </motion.li>

@@ -1,10 +1,10 @@
 "use client";
 
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { useEffect, useState, ViewTransition } from "react";
+import { useEffect, useState, ViewTransition, type ReactNode } from "react";
 import { CheckDraw } from "@/components/celebrate";
-import { Check, ChevronLeft, ChevronRight, Lock } from "@/components/icons";
+import { Check, ChevronLeft, ChevronRight, Download, Lock } from "@/components/icons";
 import { EpisodeThumb } from "@/components/learn/episode-thumb";
 import { Notes } from "@/components/learn/notes";
 import { Player } from "@/components/learn/player";
@@ -12,10 +12,20 @@ import { FadeIn } from "@/components/motion/reveal";
 import { course, formatDuration, getLesson, lessonLabel } from "@/lib/catalog";
 import { demo, useDemo } from "@/lib/demo-store";
 import { moduleLessonsComplete, moduleUnlocked, quizPassed } from "@/lib/progress";
+import type { Resource } from "@/lib/types";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-export function LessonView({ episodeSlug, lessonSlug }: { episodeSlug: string; lessonSlug: string }) {
+export function LessonView({
+  episodeSlug,
+  lessonSlug,
+  transcript,
+}: {
+  episodeSlug: string;
+  lessonSlug: string;
+  /** Paragraphs of the video transcript, when there is one. */
+  transcript?: string[] | null;
+}) {
   const state = useDemo();
   const { ep, lesson } = getLesson(episodeSlug, lessonSlug)!;
   const dayIndex = course.modules.indexOf(ep);
@@ -129,10 +139,15 @@ export function LessonView({ episodeSlug, lessonSlug }: { episodeSlug: string; l
               </div>
             </motion.div>
 
-            <div className="hairline mt-10" />
-            <div className="mt-10">
-              <Notes notes={lesson.notes} />
-            </div>
+            <LessonTabs
+              notes={
+                <>
+                  <Notes notes={lesson.notes} />
+                  {lesson.resources?.length ? <Downloads items={lesson.resources} /> : null}
+                </>
+              }
+              transcript={transcript}
+            />
           </div>
         </div>
 
@@ -236,4 +251,89 @@ function ScrollTop({ id }: { id: string }) {
     window.scrollTo(0, 0);
   }, [id]);
   return null;
+}
+
+/** Notes and transcript, one at a time, under a segmented switch. */
+function LessonTabs({ notes, transcript }: { notes: ReactNode; transcript?: string[] | null }) {
+  const [tab, setTab] = useState<"notes" | "transcript">("notes");
+  const tabs = [
+    { key: "notes" as const, label: "Notes" },
+    ...(transcript?.length ? [{ key: "transcript" as const, label: "Transcript" }] : []),
+  ];
+  return (
+    <div className="mt-10">
+      {tabs.length > 1 && (
+        <div role="tablist" aria-label="Lesson material" className="inline-flex rounded-full bg-white/[0.06] p-1 ring-1 ring-inset ring-white/10">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              role="tab"
+              aria-selected={tab === t.key}
+              onClick={() => setTab(t.key)}
+              className={`relative rounded-full px-5 py-2 text-[14px] font-semibold transition-colors ${tab === t.key ? "text-black" : "text-ink-2 hover:text-white"}`}
+            >
+              {tab === t.key && <motion.span layoutId="lesson-tab" className="absolute inset-0 rounded-full bg-white" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
+              <span className="relative">{t.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="hairline mt-8" />
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={tab}
+          role="tabpanel"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.35, ease: EASE }}
+          className="mt-10"
+        >
+          {tab === "notes" || !transcript ? notes : <Transcript paragraphs={transcript} />}
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function Transcript({ paragraphs }: { paragraphs: string[] }) {
+  return (
+    <div className="max-w-[68ch]">
+      <p className="text-[13px] text-faint">Transcribed from the video. Small slips in names and numbers are possible; the notes have the corrected details.</p>
+      <div className="mt-6 space-y-5 text-[17px] leading-[1.75] text-ink-2">
+        {paragraphs.map((p, i) => (
+          <p key={i}>{p}</p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Downloads({ items }: { items: Resource[] }) {
+  return (
+    <div className="mt-14">
+      <h3 className="font-[family-name:var(--font-display)] text-[13px] font-bold uppercase tracking-[0.22em] text-amber">Downloads</h3>
+      <ul className="mt-5 grid gap-3 sm:grid-cols-2">
+        {items.map((r) => (
+          <li key={r.href}>
+            <a
+              href={r.href}
+              target="_blank"
+              rel="noreferrer"
+              download={r.kind !== "Link" ? "" : undefined}
+              className="group flex items-center gap-4 rounded-2xl bg-white/[0.05] p-4 ring-1 ring-inset ring-white/10 transition-colors hover:bg-white/[0.08]"
+            >
+              <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-amber/15 text-amber">
+                <Download size={18} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[15px] font-semibold text-white">{r.title}</span>
+                <span className="text-[12px] text-muted">{r.kind}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }

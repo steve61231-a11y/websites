@@ -1,44 +1,64 @@
 # THE PROD
 
-The learning platform for **THE PROD: E-commerce Product Photography with AI**, a seven-day course by Product Photography Kenya. This is the clickable prototype, running on the real course outline with sample progress, payments and video, so the client can judge the experience before the backend is connected.
+The online school for **Product Photography Kenya**. Its first course is **THE PROD: E-commerce Product Photography with AI**: seven days, 33 videos, a quiz each day and a final assessment. This is the clickable prototype. It runs on the real course content, with sample progress, payments and a stand-in video player, so the client can judge the experience before the backend is connected.
 
 ```bash
 npm install
-npm run dev              # http://localhost:3000
-npm run preview:build    # one-file shareable preview in preview/dist/index.html
+npm run dev                # http://localhost:3000
+npm run preview:artifact   # one-file shareable preview in preview/dist/
 ```
 
 ## The journey
 
-1. **Landing** (`/`): a live 3D product studio. The bottle turns matte, reflective, transparent and translucent as you scroll, straight from Day 1. Then the seven-day filmstrip, how we help, Duncan and his clients, pricing and FAQ.
-2. **Get access** (`/enroll`): name and email, then M-Pesa or card, the "check your phone" step, and the payment verification steps.
-3. **Welcome** (`/welcome`): the branded access email.
-4. **Sign in** (`/sign-in`): email and a 6-digit code, or Google. In the demo any code works and Google signs in a sample student.
-5. **Course home** (`/learn`): what's next, overall progress, and the nine-episode path. Later days unlock as each quiz is passed.
-6. **Lesson** (`/learn/day-1`): the thumbnail morphs into the player. Lesson notes are written from the course summary.
-7. **Quiz** (`/learn/day-1/quiz`): one question per screen with instant feedback. Passing unlocks the next day.
+1. **Home** (`/`): what the school is and the course catalog. There's one course for now, plus a "more on the way" card.
+2. **Course page** (`/courses/the-prod`): a live 3D studio that cycles through the four product surfaces, then the curriculum, outcomes, instructor, pricing and FAQ.
+3. **Get access** (`/enroll`): name and email, then M-Pesa or card. **Welcome** (`/welcome`) shows the access email.
+4. **Sign in** (`/sign-in`): email and a 6-digit code, or Google. In the demo any code works.
+5. **Course home** (`/learn`): what's next and overall progress. Each day opens to show its videos and quiz.
+6. **Lesson** (`/learn/day-2/2-3`): the player, the notes, and the full transcript. Finishing a video moves you on to the next one, then to the day's quiz.
+7. **Quiz** (`/learn/day-2/quiz`): one question per screen with instant feedback. Passing unlocks the next day.
 8. **Certificate** (`/learn/complete`, `/certificate/[id]`, `/verify`).
+
+Light and dark mode: the sun/moon button in every top bar switches theme. Dark is the default, and the choice is remembered on the device.
 
 On **Account → Demo controls** you can jump to Day 4 or the wrap-up, or reset everything.
 
 ## Structure
 
 ```
-brand/                       THE PROD wordmark as vector files
-public/stills/               episode covers rendered from the 3D studio
-src/lib/catalog.ts           course content: welcome, days 1–7, wrap-up, quizzes
-src/lib/progress.ts          unlock and completion rules (shared with the server in Phase 2)
-src/lib/demo-store.ts        prototype persistence; becomes Supabase in Phase 2
-src/components/studio/       the real-time 3D product studio
-src/components/landing/      landing sections
-src/components/learn/        player, notes, episode covers, certificate
-src/app/                     routes
-supabase/migrations/         Phase 2 schema with row-level security
-preview/                     single-file build for sharing a link
+content/transcripts/the-prod/   one transcript per video (2-3.md = video 2.3)
+content/REVIEW.md               transcript points for the client to confirm
+src/lib/content/the-prod/       the course: index.ts (details, days), day files (notes + quiz), media.ts (video links, downloads)
+src/lib/catalog.ts              school details (WhatsApp, email…) and the list of courses
+src/lib/progress.ts             unlock and completion rules (shared with the server in Phase 2)
+src/lib/demo-store.ts           prototype persistence; becomes Supabase in Phase 2
+src/components/home/            home page catalog
+src/components/course/          course page sections and the 3D studio hero
+src/components/learn/           player, notes, covers, certificate
+src/components/theme-toggle.tsx light/dark switch
+src/app/                        routes
+scripts/                        transcript import, preview packaging
+supabase/migrations/            Phase 2 schema with row-level security
+preview/                        single-file build for sharing a link
 ```
+
+## Day-to-day changes
+
+Skills in `/.claude/skills` walk Claude through each routine job:
+
+| Skill | For |
+|---|---|
+| `add-videos` | paste video links and PDFs per lesson |
+| `update-images` | covers, day images, instructor photo |
+| `update-transcripts` | import a new transcript export, or fix words |
+| `edit-lessons-and-quizzes` | notes, video titles, quiz questions |
+| `edit-course-details` | price, day names, WhatsApp, FAQs, home page text |
+| `add-course` | a second course in the catalog |
+| `check-and-publish` | checks, click-through, refresh the preview link, commit |
 
 ## Still needed from the client
 
-- Final video files, durations and transcripts (quizzes will be rewritten from the transcripts)
-- Price (KES 15,000 is a placeholder), the WhatsApp number to confirm, and the booking calendar link
+- Video links (Bunny Stream recommended) and the gear-list PDF
+- The points in `content/REVIEW.md`, especially the 2.6 title
+- Price (KES 15,000 is a placeholder), the WhatsApp number to confirm, the booking calendar link
 - Instructor photo

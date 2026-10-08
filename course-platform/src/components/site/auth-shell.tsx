@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { brand } from "@/lib/catalog";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 /**
  * Split layout for checkout and sign-in: the form on one side, a studio shot
@@ -17,15 +18,16 @@ export function AuthShell({ image, caption, children }: { image: string; caption
           alt=""
           className="absolute inset-0 h-full w-full animate-[focus-pull_2.2s_cubic-bezier(0.16,1,0.3,1)_both] object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent lg:from-black/80" />
-        {caption && <div className="absolute inset-x-0 bottom-0 hidden p-12 lg:block">{caption}</div>}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent lg:from-[rgba(0,0,0,0.8)] lg:via-[rgba(0,0,0,0.2)]" />
+        {caption && <div className="theme-dark absolute inset-x-0 bottom-0 hidden p-12 lg:block">{caption}</div>}
       </aside>
 
       <div className="relative flex flex-col px-6 pb-[max(24px,env(safe-area-inset-bottom))] sm:px-12 lg:px-16">
-        <header className="flex h-20 items-center">
+        <header className="flex h-20 items-center justify-between">
           <Link href="/" aria-label="THE PROD home" className="text-white">
             <Wordmark className="h-7 w-auto" />
           </Link>
+          <ThemeToggle className="-mr-2" />
         </header>
         <main className="flex flex-1 items-start justify-center py-6 lg:items-center">
           <div className="w-full max-w-[420px]">{children}</div>

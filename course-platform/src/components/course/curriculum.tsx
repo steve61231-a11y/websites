@@ -3,14 +3,14 @@
 import { motion, useScroll, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { FadeIn, TextReveal } from "@/components/motion/reveal";
-import { course, formatDuration } from "@/lib/catalog";
-import type { Module } from "@/lib/types";
+import { formatDuration } from "@/lib/catalog";
+import type { Course, Module } from "@/lib/types";
 
 function EpisodeCard({ m, index }: { m: Module; index: number }) {
   const minutes = m.lessons.reduce((s, l) => s + l.durationSec, 0);
   const number = m.kind === "day" ? String(m.position).padStart(2, "0") : m.kind === "welcome" ? "00" : "08";
   return (
-    <article className="group relative aspect-[4/5] w-[min(360px,78vw,calc((100svh-300px)*0.8))] shrink-0 snap-start overflow-hidden rounded-[28px] bg-surface ring-1 ring-inset ring-white/[0.06]">
+    <article className="theme-dark group relative aspect-[4/5] w-[min(360px,78vw,calc((100svh-300px)*0.8))] shrink-0 snap-start overflow-hidden rounded-[28px] bg-surface ring-1 ring-inset ring-white/[0.06]">
       <img
         src={m.still}
         alt=""
@@ -38,7 +38,7 @@ function EpisodeCard({ m, index }: { m: Module; index: number }) {
 }
 
 /** The curriculum as a filmstrip. On desktop vertical scroll drives it sideways. */
-export function SevenDays() {
+export function Curriculum({ course }: { course: Course }) {
   const section = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const [distance, setDistance] = useState(0);
@@ -65,19 +65,19 @@ export function SevenDays() {
   const header = (
     <div className="wrap flex flex-col justify-between gap-6 md:flex-row md:items-end">
       <div>
-        <p className="eyebrow">The course</p>
+        <p className="eyebrow">What&apos;s inside</p>
         <TextReveal text="Seven days. One clear path." className="display mt-4 text-[clamp(40px,6.5vw,88px)] text-white" />
       </div>
       <FadeIn delay={0.2}>
         <p className="max-w-[34ch] text-[17px] leading-relaxed text-ink-2">
-          A welcome, a short run of focused videos each day, and a wrap-up. Pass each day&apos;s quiz to unlock the next.
+          An introduction, a short run of focused videos each day, and a conclusion. Pass each day&apos;s quiz to unlock the next.
         </p>
       </FadeIn>
     </div>
   );
 
   return (
-    <section id="course" ref={section} className="relative bg-black md:h-[300vh]" style={{ scrollMarginTop: 0 }}>
+    <section id="curriculum" ref={section} className="relative bg-black md:h-[300vh]" style={{ scrollMarginTop: 0 }}>
       <div className="py-24 md:sticky md:top-0 md:flex md:h-[100svh] md:flex-col md:justify-center md:py-0">
         {header}
         {/* Desktop: scroll-driven track */}

@@ -4,6 +4,7 @@ import { Suspense, ViewTransition } from "react";
 import { AppBar } from "@/components/learn/app-bar";
 import { StudentGate } from "@/components/student-gate";
 import { course, getLesson } from "@/lib/catalog";
+import { getTranscript } from "@/lib/transcripts";
 import { LessonView } from "./lesson-view";
 
 type Params = PageProps<"/learn/[episode]/[lesson]">["params"];
@@ -57,9 +58,10 @@ async function Lesson({ params }: { params: Params }) {
   const { episode, lesson } = await params;
   const found = getLesson(episode, lesson);
   if (!found) notFound();
+  const transcript = await getTranscript(course.id, found.lesson.slug);
   return (
     <StudentGate courseId={course.id}>
-      <LessonView key={found.lesson.id} episodeSlug={found.ep.slug} lessonSlug={found.lesson.slug} />
+      <LessonView key={found.lesson.id} episodeSlug={found.ep.slug} lessonSlug={found.lesson.slug} transcript={transcript} />
     </StudentGate>
   );
 }

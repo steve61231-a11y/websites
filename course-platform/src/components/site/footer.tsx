@@ -8,12 +8,12 @@ export function SiteFooter() {
       <div className="wrap grid gap-12 pt-20 sm:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <p className="max-w-xs text-[15px] leading-relaxed text-muted">
-            {brand.subtitle}. A course by {brand.organisation}, Nairobi.
+            Practical creative courses by {brand.organisation}, Nairobi.
           </p>
         </div>
         <div className="space-y-3 text-[14px]">
-          <p className="eyebrow !text-faint">Course</p>
-          <Link href="/#course" className="block text-ink-2 hover:text-white">Curriculum</Link>
+          <p className="eyebrow !text-faint">Learn</p>
+          <Link href="/#courses" className="block text-ink-2 hover:text-white">Courses</Link>
           <Link href="/sign-in" className="block text-ink-2 hover:text-white">Sign in</Link>
           <Link href="/verify" className="block text-ink-2 hover:text-white">Verify a certificate</Link>
         </div>

@@ -31,7 +31,7 @@ export function EpisodeThumb({
 }) {
   const number = code ?? (episode.kind === "day" ? String(episode.position).padStart(2, "0") : episode.kind === "welcome" ? "00" : "08");
   const body = (
-    <div className={`@container relative aspect-video overflow-hidden rounded-[14px] bg-surface ${className}`}>
+    <div className={`theme-dark @container relative aspect-video overflow-hidden rounded-[14px] bg-surface ${className}`}>
       <img src={episode.still} alt="" loading="lazy" className={`absolute inset-0 h-full w-full object-cover ${state === "locked" ? "opacity-40 grayscale" : ""}`} />
       <div className="absolute inset-0 bg-gradient-to-tr from-black/70 via-black/10 to-transparent" />
       <span
@@ -41,7 +41,7 @@ export function EpisodeThumb({
         {number}
       </span>
       {state === "complete" && (
-        <span className="absolute right-[5cqw] top-[5cqw] grid size-[clamp(18px,13cqw,28px)] place-items-center rounded-full bg-amber text-black">
+        <span className="absolute right-[5cqw] top-[5cqw] grid size-[clamp(18px,13cqw,28px)] place-items-center rounded-full bg-amber text-on-amber">
           <Check className="size-[65%]" strokeWidth={3} />
         </span>
       )}

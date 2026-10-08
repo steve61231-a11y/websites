@@ -38,7 +38,7 @@ function AccessEmail({ first, email }: { first: string; email: string }) {
         animate={{ opacity: 1, y: 0, rotateX: 0 }}
         transition={{ duration: 1.3, ease: EASE, delay: 0.9 }}
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        className="overflow-hidden rounded-[22px] bg-white text-left text-[#111] shadow-[0_60px_120px_-30px_rgba(245,165,36,0.35),0_30px_60px_-30px_rgba(0,0,0,0.9)]"
+        className="theme-dark overflow-hidden rounded-[22px] bg-white text-left text-[#111] shadow-[0_60px_120px_-30px_rgba(245,165,36,0.35),0_30px_60px_-30px_rgba(0,0,0,0.9)]"
       >
         {/* Inbox row */}
         <div className="flex items-center gap-3 border-b border-black/[0.07] px-5 py-3.5">

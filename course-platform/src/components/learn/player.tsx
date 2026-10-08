@@ -6,9 +6,11 @@ import { formatClock } from "@/lib/catalog";
 import type { Lesson, Module } from "@/lib/types";
 import { Back10, Expand, Pause, Play } from "@/components/icons";
 
-// Stand-in player until the videos are uploaded. In Phase 4 the stage below
-// becomes the video provider's player (Bunny Stream or Mux) fed a short-lived
-// signed token from the server; controls, watermark and progress stay.
+// Plays the lesson's video when it has one (`lesson.video`), with our own
+// controls, watermark and progress saving. Lessons without a video yet get a
+// stand-in that simulates playback over the cover still, so the course can be
+// walked through end to end. In Phase 4 the URL becomes a short-lived signed
+// link from the video host (Bunny Stream or Mux).
 
 type Props = {
   episode: Module;
@@ -23,7 +25,9 @@ type Props = {
 const RATES = [1, 1.5, 2, 8];
 
 export function Player({ episode, lesson, startAt, watermark, onProgress, onEnded, overlay }: Props) {
-  const duration = lesson.durationSec;
+  const real = !!lesson.video;
+  const video = useRef<HTMLVideoElement>(null);
+  const [duration, setDuration] = useState(lesson.durationSec);
   const [time, setTime] = useState(startAt >= duration - 1 ? 0 : startAt);
   const [playing, setPlaying] = useState(false);
   const [rate, setRate] = useState(1);
@@ -34,7 +38,7 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
   const lastSaved = useRef(0);
 
   useEffect(() => {
-    if (!playing) return;
+    if (real || !playing) return;
     let last = performance.now();
     let frame = 0;
     const tick = (now: number) => {
@@ -45,19 +49,23 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [playing, rate, duration]);
+  }, [real, playing, rate, duration]);
+
+  useEffect(() => {
+    if (video.current) video.current.playbackRate = rate;
+  }, [rate]);
 
   useEffect(() => {
     if (Math.abs(time - lastSaved.current) > 5) {
       lastSaved.current = time;
       onProgress(time);
     }
-    if (time >= duration && !ended.current) {
+    if (!real && time >= duration && !ended.current) {
       ended.current = true;
       setPlaying(false);
       onEnded();
     }
-  }, [time, duration, onProgress, onEnded]);
+  }, [real, time, duration, onProgress, onEnded]);
 
   const poke = useCallback(() => {
     setChrome(true);
@@ -66,17 +74,25 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
   }, []);
 
   function toggle() {
+    if (playing) clearTimeout(hideTimer.current);
+    else poke();
+    const v = video.current;
+    if (v) {
+      if (v.paused) v.play().catch(() => {});
+      else v.pause();
+      return; // state follows the element's play/pause events
+    }
     if (time >= duration) {
       ended.current = false;
       setTime(0);
     }
-    if (playing) clearTimeout(hideTimer.current);
-    else poke();
     setPlaying(!playing);
   }
 
   function seek(t: number) {
-    setTime(Math.max(0, Math.min(duration - 0.01, t)));
+    const next = Math.max(0, Math.min(duration - 0.01, t));
+    if (video.current) video.current.currentTime = next;
+    setTime(next);
     ended.current = false;
   }
 
@@ -102,18 +118,47 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
       ref={box}
       onMouseMove={poke}
       onTouchStart={poke}
-      className="group relative aspect-video w-full select-none overflow-hidden bg-black sm:rounded-[28px]"
+      className="theme-dark group relative aspect-video w-full select-none overflow-hidden bg-black sm:rounded-[28px]"
     >
       {/* Stage */}
       <div className="absolute inset-0" onClick={toggle}>
-        <motion.img
-          src={episode.still}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-          animate={playing ? { scale: 1.12, x: "-2%" } : { scale: 1, x: "0%" }}
-          transition={{ duration: playing ? 40 : 1.2, ease: playing ? "linear" : [0.16, 1, 0.3, 1] }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30" />
+        {real ? (
+          <video
+            ref={video}
+            src={lesson.video}
+            poster={episode.still}
+            playsInline
+            preload="metadata"
+            controlsList="nodownload noplaybackrate"
+            disablePictureInPicture
+            onContextMenu={(e) => e.preventDefault()}
+            onLoadedMetadata={(e) => {
+              const v = e.currentTarget;
+              if (Number.isFinite(v.duration) && v.duration > 0) setDuration(v.duration);
+              if (startAt > 0 && startAt < v.duration - 1) v.currentTime = startAt;
+            }}
+            onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
+            onEnded={() => {
+              setPlaying(false);
+              if (!ended.current) {
+                ended.current = true;
+                onEnded();
+              }
+            }}
+            className="absolute inset-0 h-full w-full bg-black object-contain"
+          />
+        ) : (
+          <motion.img
+            src={episode.still}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            animate={playing ? { scale: 1.12, x: "-2%" } : { scale: 1, x: "0%" }}
+            transition={{ duration: playing ? 40 : 1.2, ease: playing ? "linear" : [0.16, 1, 0.3, 1] }}
+          />
+        )}
+        <div className={`pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 transition-opacity duration-500 ${real && playing ? "opacity-0" : ""}`} />
         <AnimatePresence>
           {!playing && time === 0 && (
             <motion.div

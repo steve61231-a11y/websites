@@ -40,7 +40,7 @@ export function CourseHome() {
   return (
     <>
       {/* Cinematic header: the next thing to do */}
-      <section className="relative flex min-h-[78svh] items-end overflow-hidden pt-14">
+      <section className="theme-dark relative flex min-h-[78svh] items-end overflow-hidden bg-black pt-14">
         <motion.img
           key={focus.still}
           src={focus.still}
@@ -129,7 +129,7 @@ export function CourseHome() {
           <FadeIn>
             <div className="panel p-6">
               <div className="flex items-center gap-3">
-                <span className={`grid size-11 place-items-center rounded-full ${finished ? "bg-amber text-black" : "bg-white/[0.06] text-muted"}`}>
+                <span className={`grid size-11 place-items-center rounded-full ${finished ? "bg-amber text-on-amber" : "bg-white/[0.06] text-muted"}`}>
                   <Award size={20} />
                 </span>
                 <div>
@@ -149,7 +149,7 @@ export function CourseHome() {
           </FadeIn>
           <FadeIn delay={0.1}>
             <div className="panel flex items-center gap-4 p-6">
-              <span className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#2c2c2e] to-black font-[family-name:var(--font-display)] text-[15px] font-bold text-white ring-1 ring-white/10">
+              <span className="theme-dark grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#2c2c2e] to-black font-[family-name:var(--font-display)] text-[15px] font-bold text-white ring-1 ring-white/10">
                 {course.instructor.initials}
               </span>
               <div>
@@ -248,7 +248,7 @@ function DayGroup({ index }: { index: number }) {
                   <>
                     <span
                       className={`grid h-8 min-w-11 shrink-0 place-items-center rounded-full px-2 font-[family-name:var(--font-display)] text-[12px] font-bold tabular-nums ${
-                        lessonDone ? "bg-amber text-black" : isNext ? "bg-white text-black" : "bg-white/[0.06] text-ink-2"
+                        lessonDone ? "bg-amber text-on-amber" : isNext ? "bg-white text-black" : "bg-white/[0.06] text-ink-2"
                       }`}
                     >
                       {lessonDone ? <Check size={14} strokeWidth={3} /> : lessonLabel(l.code, m.kind) === "Conclusion" ? "End" : l.code}
@@ -314,7 +314,7 @@ function DayGroup({ index }: { index: number }) {
 function QuizRow({ done, final, count, best, locked = false }: { done: boolean; final: boolean; count: number; best: number; locked?: boolean }) {
   return (
     <>
-      <span className={`grid h-8 min-w-11 shrink-0 place-items-center rounded-full ${done ? "bg-amber text-black" : locked ? "bg-white/[0.06] text-ink-2" : "bg-amber text-black"}`}>
+      <span className={`grid h-8 min-w-11 shrink-0 place-items-center rounded-full ${done ? "bg-amber text-on-amber" : locked ? "bg-white/[0.06] text-ink-2" : "bg-amber text-on-amber"}`}>
         {done ? <Check size={14} strokeWidth={3} /> : locked ? <Lock size={13} /> : <Award size={15} />}
       </span>
       <span className="min-w-0 flex-1 text-[15px] font-semibold text-white">{final ? "Final assessment" : "Day quiz"}</span>

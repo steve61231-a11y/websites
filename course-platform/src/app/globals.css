@@ -2,7 +2,12 @@
 
 /* THE PROD: a black studio, lit by one warm key light.
    Display type is Montserrat (the logo's face); reading type is Inter. */
-:root {
+/* Two themes. Dark is the house look; light is the same studio by day.
+   Tailwind's white/black are remapped too, so `text-white` means "primary
+   ink" and `bg-black` means "page" in either theme. Anything that sits on a
+   photo or video gets `.theme-dark` so it stays lit like a studio. */
+:root,
+[data-theme="light"] .theme-dark {
   --bg: #000000;
   --bg-2: #0a0a0b;
   --surface: #131315;
@@ -20,7 +25,49 @@
   --danger: #ff5a4f;
   --paper: #f5f5f7;
   --paper-ink: #0b0b0c;
+  --on-amber: #000000;
+  --glass: rgba(18, 18, 20, 0.62);
+  --glass-strong: rgba(18, 18, 20, 0.72);
+  --shadow-btn: rgba(255, 255, 255, 0.35);
+  --btn-hover: #e9e9ee;
+  --sheet-good: rgba(26, 19, 6, 0.95);
+  --sheet-bad: rgba(28, 11, 10, 0.95);
+  --color-white: #ffffff;
+  --color-black: #000000;
   color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-2: #f5f5f7;
+  --surface: #f5f5f7;
+  --surface-2: #ebebef;
+  --line: rgba(0, 0, 0, 0.08);
+  --line-2: rgba(0, 0, 0, 0.16);
+  --ink: #1d1d1f;
+  --ink-2: #3a3a3e;
+  --muted: #6e6e73;
+  --faint: #9a9aa0;
+  --amber: #e8940c;
+  --amber-2: #f5a524;
+  --amber-deep: #a4560a;
+  --success: #248a3d;
+  --danger: #d70015;
+  --on-amber: #000000;
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-strong: rgba(255, 255, 255, 0.8);
+  --shadow-btn: rgba(0, 0, 0, 0.25);
+  --btn-hover: #3a3a3e;
+  --sheet-good: rgba(255, 246, 230, 0.96);
+  --sheet-bad: rgba(255, 238, 237, 0.96);
+  --color-white: #1d1d1f;
+  --color-black: #ffffff;
+  color-scheme: light;
+}
+
+/* Islands keep their own background, so dark sections read as dark. */
+[data-theme="light"] .theme-dark {
+  color: var(--ink);
 }
 
 @theme inline {
@@ -41,6 +88,7 @@
   --color-danger: var(--danger);
   --color-paper: var(--paper);
   --color-paper-ink: var(--paper-ink);
+  --color-on-amber: var(--on-amber);
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
   --font-display: var(--font-montserrat), "Montserrat", "Helvetica Neue", Arial, sans-serif;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -71,7 +119,27 @@ body {
 
 ::selection {
   background: rgba(245, 165, 36, 0.35);
-  color: #fff;
+  color: var(--ink);
+}
+
+/* Theme switch: the new theme opens as a circle from the button. */
+html[data-theme-switching]::view-transition-group(*),
+html[data-theme-switching]::view-transition-old(*),
+html[data-theme-switching]::view-transition-new(*) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* The top bars are pinned at the top, so the same circle lines up for them. */
+html[data-theme-switching]::view-transition-new(*) {
+  animation: theme-reveal 0.7s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+@keyframes theme-reveal {
+  from {
+    clip-path: circle(0 at var(--theme-x, 50%) var(--theme-y, 0%));
+  }
+  to {
+    clip-path: circle(var(--theme-r, 150vmax) at var(--theme-x, 50%) var(--theme-y, 0%));
+  }
 }
 
 :focus-visible {
@@ -106,10 +174,10 @@ body {
       active:scale-[0.96] disabled:pointer-events-none disabled:opacity-35;
   }
   .btn-white {
-    @apply bg-white text-black hover:bg-[#e9e9ee] shadow-[0_8px_30px_-10px_rgba(255,255,255,0.35)];
+    @apply bg-white text-black hover:bg-(--btn-hover) shadow-[0_8px_30px_-10px_var(--shadow-btn)];
   }
   .btn-amber {
-    @apply bg-amber text-black hover:bg-amber-2 shadow-[0_10px_40px_-12px_rgba(245,165,36,0.7)];
+    @apply bg-amber text-on-amber hover:bg-amber-2 shadow-[0_10px_40px_-12px_rgba(245,165,36,0.7)];
   }
   .btn-glass {
     @apply bg-white/[0.08] text-ink backdrop-blur-xl hover:bg-white/[0.14] ring-1 ring-inset ring-white/10;
@@ -122,7 +190,7 @@ body {
   }
 
   .glass {
-    @apply bg-[rgba(18,18,20,0.62)] backdrop-blur-2xl backdrop-saturate-[1.6];
+    @apply bg-(--glass) backdrop-blur-2xl backdrop-saturate-[1.6];
   }
 
   .panel {

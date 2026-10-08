@@ -155,7 +155,7 @@ export function QuizView({ slug }: { slug: string }) {
                   {q.type !== "true_false" && (
                     <span
                       className={`grid size-8 shrink-0 place-items-center rounded-full font-[family-name:var(--font-display)] text-[13px] font-bold ${
-                        right ? "bg-amber text-black" : wrong ? "bg-danger text-white" : isPicked ? "bg-black text-white" : "bg-white/[0.08] text-muted"
+                        right ? "bg-amber text-on-amber" : wrong ? "bg-danger text-[#fff]" : isPicked ? "bg-black text-white" : "bg-white/[0.08] text-muted"
                       }`}
                     >
                       {right ? <Check size={15} strokeWidth={3} /> : wrong ? <Close size={13} strokeWidth={3} /> : String.fromCharCode(65 + k)}
@@ -179,7 +179,7 @@ export function QuizView({ slug }: { slug: string }) {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 34 }}
-              className={`border-t px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-6 backdrop-blur-2xl ${picked === correctId ? "border-amber/30 bg-[#1a1306]/95" : "border-danger/30 bg-[#1c0b0a]/95"}`}
+              className={`border-t px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-6 backdrop-blur-2xl ${picked === correctId ? "border-amber/30 bg-(--sheet-good)" : "border-danger/30 bg-(--sheet-bad)"}`}
             >
               <div className="mx-auto max-w-[760px]">
                 <p className={`text-[20px] font-semibold ${picked === correctId ? "text-amber" : "text-danger"}`}>{picked === correctId ? "Correct." : "Not quite."}</p>

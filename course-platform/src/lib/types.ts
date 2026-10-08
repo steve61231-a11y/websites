@@ -45,8 +45,13 @@ export type Lesson = {
   summary: string;
   durationSec: number;
   notes: Note[];
-  resources?: { title: string; kind: "PDF" | "Checklist" | "Preset" | "Link" }[];
+  /** Video file or stream URL (MP4, or any URL the browser can play). Unset = stand-in player. */
+  video?: string;
+  /** Downloads shown under the notes, e.g. a gear list PDF. */
+  resources?: Resource[];
 };
+
+export type Resource = { title: string; kind: "PDF" | "Checklist" | "Preset" | "Link"; href: string };
 
 export type Module = {
   id: string;
@@ -63,6 +68,8 @@ export type Module = {
 
 export type Instructor = {
   name: string;
+  /** Portrait for the course page, e.g. "/people/duncan.jpg". */
+  photo?: string;
   title: string;
   bio: string;
   initials: string;
@@ -74,6 +81,8 @@ export type Course = {
   slug: string;
   code: string; // used in certificate numbers, e.g. PHOTO
   status: "published" | "coming_soon";
+  category: string; // shown on the catalog card, e.g. "Photography"
+  cover: string; // catalog and course page image
   title: string;
   shortTitle: string;
   tagline: string;
@@ -83,6 +92,7 @@ export type Course = {
   currency: string;
   instructor: Instructor;
   outcomes: { title: string; body: string }[];
+  faqs: { q: string; a: string }[];
   modules: Module[];
 };
 

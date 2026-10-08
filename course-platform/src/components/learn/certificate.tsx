@@ -7,7 +7,7 @@ import { brand, course } from "@/lib/catalog";
 export function Certificate({ name, date, number }: { name: string; date: string; number: string }) {
   return (
     <div className="@container w-full">
-      <div className="relative aspect-[297/210] w-full overflow-hidden rounded-[1.4cqw] bg-[#070707] text-left text-white print:rounded-none">
+      <div className="theme-dark relative aspect-[297/210] w-full overflow-hidden rounded-[1.4cqw] bg-[#070707] text-left text-white print:rounded-none">
         <div className="absolute -right-[20cqw] -top-[30cqw] size-[70cqw] rounded-full bg-[radial-gradient(circle,rgba(194,106,18,0.32),transparent_62%)]" />
         <div className="absolute -bottom-[40cqw] -left-[20cqw] size-[70cqw] rounded-full bg-[radial-gradient(circle,rgba(194,106,18,0.14),transparent_62%)]" />
         <div className="absolute inset-[2.6cqw] rounded-[0.8cqw] border-[0.12cqw] border-amber/50" />

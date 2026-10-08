@@ -13,19 +13,46 @@ import LearnPage from "@/app/learn/page";
 import CompletePage from "@/app/learn/complete/page";
 import { LessonView } from "@/app/learn/[episode]/[lesson]/lesson-view";
 import { ResumeDay } from "@/app/learn/[episode]/resume-day";
+import { transcriptFor } from "./shims/transcripts";
 import { QuizView } from "@/app/learn/[episode]/quiz/quiz-view";
 import { CertificateView } from "@/app/certificate/[number]/certificate-view";
 import VerifyPage from "@/app/verify/page";
 import AccountPage from "@/app/account/page";
 import { AppBar } from "@/components/learn/app-bar";
 import { StudentGate } from "@/components/student-gate";
-import { course, getEpisode, getLesson } from "@/lib/catalog";
+import { course, getCourse, getEpisode, getLesson } from "@/lib/catalog";
+import { CourseHero } from "@/components/course/hero";
+import { Curriculum } from "@/components/course/curriculum";
+import { Faq, Instructor, Outcomes, Pricing } from "@/components/course/sections";
+import { SiteFooter } from "@/components/site/footer";
+import { SiteNav } from "@/components/site/nav";
 
 // The same screens the Next.js app renders, mapped to an in-memory router.
 type Render = (params: Record<string, string>) => ReactNode;
 
 const routes: [string, Render][] = [
   ["/", () => <Home />],
+  [
+    "/courses/:slug",
+    ({ slug }) => {
+      const c = getCourse(slug);
+      if (!c) return null;
+      return (
+        <>
+          <SiteNav overDark />
+          <main className="bg-black">
+            <CourseHero course={c} />
+            <Curriculum course={c} />
+            <Outcomes course={c} />
+            <Instructor course={c} />
+            <Pricing course={c} />
+            <Faq course={c} />
+          </main>
+          <SiteFooter />
+        </>
+      );
+    },
+  ],
   ["/enroll", () => <EnrollFlow />],
   ["/welcome", () => <Welcome />],
   ["/sign-in", () => <SignInFlow />],
@@ -73,7 +100,7 @@ const routes: [string, Render][] = [
           <AppBar center={<span className="hidden sm:inline"><span className="text-white">{found.ep.label}</span> · {found.lesson.title}</span>} />
           <main className="min-h-dvh bg-black">
             <StudentGate courseId={course.id}>
-              <LessonView key={found.lesson.id} episodeSlug={found.ep.slug} lessonSlug={found.lesson.slug} />
+              <LessonView key={found.lesson.id} episodeSlug={found.ep.slug} lessonSlug={found.lesson.slug} transcript={transcriptFor(course.id, found.lesson.slug)} />
             </StudentGate>
           </main>
         </>
