@@ -3,7 +3,8 @@ import { useRouterCtx } from "./router";
 
 type Props = AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; prefetch?: boolean };
 
-export default function Link({ href, onClick, prefetch: _prefetch, ...rest }: Props) {
+export default function Link({ href, onClick, prefetch, ...rest }: Props) {
+  void prefetch;
   const { push } = useRouterCtx();
   return (
     <a

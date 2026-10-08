@@ -4,6 +4,7 @@ import { LensArt } from "@/components/lens-art";
 import { Footer, SiteNav } from "@/components/nav";
 import { Reveal } from "@/components/reveal";
 import { CertificateMini } from "@/components/certificate";
+import HeroGeometric from "@/components/ui/hero-geometric";
 import { comingSoon, courses, courseStats, formatPrice, photographyCourse } from "@/lib/catalog";
 
 const steps = [
@@ -22,22 +23,19 @@ export default function Home() {
       <SiteNav />
       <main>
         {/* Hero */}
-        <section className="wrap pb-20 pt-20 text-center sm:pb-28 sm:pt-32">
-          <Reveal>
-            <h1 className="display mx-auto max-w-[12ch] text-[clamp(44px,9vw,96px)]">Learn something worth knowing.</h1>
-          </Reveal>
-          <Reveal delay={0.1}>
-            <p className="mx-auto mt-6 max-w-[34ch] text-[clamp(19px,2.4vw,24px)] leading-snug text-muted">
-              Practical courses from people who do the work. Learn at your pace. Finish with a certificate.
-            </p>
-          </Reveal>
-          <Reveal delay={0.2}>
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link href="/courses" className="btn btn-primary btn-lg">Explore courses</Link>
-              <Link href="/login" className="link text-[17px]">Already enrolled? Log in ›</Link>
-            </div>
-          </Reveal>
-        </section>
+        <HeroGeometric
+          title1="Learn something"
+          title2="worth knowing."
+          description="Practical courses from people who do the work. Learn at your pace. Finish with a certificate."
+          className="-mt-12 h-[min(80svh,700px)] min-h-[560px] sm:h-[min(92svh,880px)] sm:min-h-[620px]"
+        >
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/courses" className="btn btn-primary btn-lg">Explore courses</Link>
+            <Link href="/login" className="btn btn-lg bg-white/80 text-ink backdrop-blur-md hover:bg-white">
+              Already enrolled? Log in
+            </Link>
+          </div>
+        </HeroGeometric>
 
         {/* Featured course: product-launch style */}
         <section className="bg-night text-night-ink">

@@ -16,8 +16,10 @@ export default defineConfig({
       { find: "next/link", replacement: here("./shims/link.tsx") },
       { find: "next/navigation", replacement: here("./shims/navigation.ts") },
       { find: "next/font/google", replacement: here("./shims/font.ts") },
+      { find: "next/dynamic", replacement: here("./shims/dynamic.tsx") },
       { find: /^@\//, replacement: here("../src/") },
     ],
   },
-  build: { outDir: here("./dist"), emptyOutDir: true },
+  // One file: the lazy three.js chunk is inlined too.
+  build: { outDir: here("./dist"), emptyOutDir: true, rollupOptions: { output: { inlineDynamicImports: true } } },
 });

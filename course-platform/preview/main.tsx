@@ -61,13 +61,11 @@ function NotFound() {
 
 function Route({ path }: { path: string }) {
   const [node, setNode] = useState<ReactNode>(null);
+  const known = match(path) !== null;
   useEffect(() => {
     let live = true;
     const m = match(path);
-    if (!m) {
-      setNode(<NotFound />);
-      return;
-    }
+    if (!m) return;
     Promise.resolve()
       .then(() => m.page({ params: Promise.resolve(m.params), searchParams: Promise.resolve({}) }))
       .then((n) => live && setNode(n), () => live && setNode(<NotFound />));
@@ -75,7 +73,7 @@ function Route({ path }: { path: string }) {
       live = false;
     };
   }, [path]);
-  return <>{node}</>;
+  return known ? <>{node}</> : <NotFound />;
 }
 
 class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {

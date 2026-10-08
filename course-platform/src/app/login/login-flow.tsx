@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
 import { ChevronLeft } from "@/components/icons";
 import { Logo } from "@/components/nav";
+import { GradientBackdrop } from "@/components/ui/hero-geometric";
 import { photographyCourse } from "@/lib/catalog";
 import { demo } from "@/lib/demo-store";
 
@@ -57,11 +58,22 @@ export function LoginFlow() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-bg">
+    <div className="grid min-h-dvh bg-bg lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      {/* Gradient side: a band on phones, a full panel on desktop */}
+      <aside className="relative h-44 overflow-hidden sm:h-56 lg:order-2 lg:m-3 lg:h-auto lg:rounded-[28px]">
+        <GradientBackdrop />
+        <div className="relative z-10 flex h-full flex-col justify-end p-6 lg:p-12">
+          <p className="max-w-[14ch] text-[clamp(28px,3.4vw,48px)] font-semibold leading-[1.05] tracking-[-0.03em] text-ink">
+            Pick up where you left off.
+          </p>
+        </div>
+      </aside>
+
+      <div className="flex flex-col">
       <header className="wrap flex h-14 items-center">
         <Logo />
       </header>
-      <main className="flex flex-1 items-start justify-center px-5 pt-[8vh] sm:items-center sm:pt-0">
+      <main className="flex flex-1 items-start justify-center px-5 pt-[6vh] lg:items-center lg:pt-0">
         <div className="w-full max-w-[400px] pb-20">
           <AnimatePresence mode="wait">
             {stage === "email" ? (
@@ -144,6 +156,7 @@ export function LoginFlow() {
           </div>
         </div>
       </main>
+      </div>
     </div>
   );
 }

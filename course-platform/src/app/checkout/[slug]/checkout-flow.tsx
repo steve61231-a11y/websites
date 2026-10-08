@@ -8,6 +8,7 @@ import { CheckDraw } from "@/components/celebrate";
 import { Check, ChevronLeft, Lock, Mail } from "@/components/icons";
 import { LensArt } from "@/components/lens-art";
 import { Logo } from "@/components/nav";
+import { GradientBackdrop } from "@/components/ui/hero-geometric";
 import { courseStats, formatDuration, formatPrice } from "@/lib/catalog";
 import { demo } from "@/lib/demo-store";
 import type { Course } from "@/lib/types";
@@ -40,8 +41,8 @@ export function CheckoutFlow({ course }: { course: Course }) {
   const valid = name.trim().length > 1 && /^\S+@\S+\.\S+$/.test(email);
 
   return (
-    <div className="min-h-dvh bg-[#f5f5f7]">
-      <header className="wrap flex h-14 items-center justify-between">
+    <div className="relative min-h-dvh overflow-hidden bg-[#f5f5f7]">
+      <header className="wrap relative z-10 flex h-14 items-center justify-between">
         <Logo />
         <span className="flex items-center gap-1.5 text-[12px] text-muted">
           <Lock size={13} /> Secure checkout
@@ -219,18 +220,24 @@ function Done({ course, email, name }: { course: Course; email: string; name: st
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       className="wrap flex flex-col items-center pb-24 pt-10 text-center sm:pt-16"
     >
+      {/* Celebration backdrop, fading into the page */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[460px] [mask-image:linear-gradient(to_bottom,black_45%,transparent)] sm:h-[520px]">
+        <GradientBackdrop speed={1.4} />
+      </div>
+      <div className="relative z-10 flex flex-col items-center">
       <CheckDraw size={72} />
       <h1 className="display mt-6 text-[clamp(36px,6vw,56px)]">You&apos;re in, {first}.</h1>
-      <p className="mt-3 max-w-md text-[17px] leading-relaxed text-muted">
+      <p className="mt-3 max-w-md text-[17px] leading-relaxed text-ink-2">
         We&apos;ve sent your access link to <span className="text-ink">{email}</span>. Here&apos;s what it looks like.
       </p>
+      </div>
 
       {/* Email preview */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="card mt-10 w-full max-w-md overflow-hidden text-left"
+        className="card relative z-10 mt-10 w-full max-w-md overflow-hidden text-left"
       >
         <div className="flex items-center gap-3 border-b border-line px-5 py-3.5">
           <span className="grid size-9 place-items-center rounded-full bg-ink text-white">
