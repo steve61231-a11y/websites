@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronDown, Trash2, User2 } from 'lucide-react'
+import { ChevronDown, Pencil, Trash2, User2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { formatKes } from '@/lib/money'
 import { formatDate, formatRelativeDay } from '@/lib/dates'
@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@/components/ui/Sheet'
 import { useDeleteExpense } from '@/data/queries'
 import { useToast } from '@/components/ui/Toast'
 import { useAuth } from '@/auth/AuthProvider'
+import { EditExpenseSheet } from './EditExpenseSheet'
 import type { Expense } from '@/data/types'
 
 /**
@@ -19,6 +20,7 @@ import type { Expense } from '@/data/types'
  */
 export function ExpenseList({ expenses }: { expenses: Expense[] }) {
   const [openId, setOpenId] = useState<string | null>(null)
+  const [editing, setEditing] = useState<Expense | null>(null)
   const [pendingDelete, setPendingDelete] = useState<Expense | null>(null)
   const deleteExpense = useDeleteExpense()
   const { notify } = useToast()
@@ -126,16 +128,28 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
                           <User2 className="h-3.5 w-3.5" aria-hidden="true" />
                           Logged by {expense.createdByName ?? 'the school'}
                         </p>
-                        {mayDelete && (
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            icon={<Trash2 className="h-4 w-4" />}
-                            onClick={() => setPendingDelete(expense)}
-                          >
-                            Delete
-                          </Button>
-                        )}
+                        <div className="flex gap-2">
+                          {can('expenses.edit') && (
+                            <Button
+                              size="sm"
+                              variant="soft"
+                              icon={<Pencil className="h-4 w-4" />}
+                              onClick={() => setEditing(expense)}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          {mayDelete && (
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              icon={<Trash2 className="h-4 w-4" />}
+                              onClick={() => setPendingDelete(expense)}
+                            >
+                              Delete
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </motion.div>
@@ -145,6 +159,10 @@ export function ExpenseList({ expenses }: { expenses: Expense[] }) {
           )
         })}
       </ul>
+
+      {editing && (
+        <EditExpenseSheet expense={editing} open onClose={() => setEditing(null)} />
+      )}
 
       <ConfirmDialog
         open={pendingDelete !== null}

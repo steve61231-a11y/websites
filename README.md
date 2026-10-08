@@ -186,9 +186,27 @@ reorder themselves around how often the school actually uses them. Payment
 methods are chips. Dates default to today with one-tap "Today"/"Yesterday".
 Free text is always the escape hatch, never the default.
 
-**The amount keypad.** Digits append right-to-left like a till or an M-Pesa
-prompt — type `4 5 2 0 0`, watch `KES 452.00` build up. There is no decimal point
-to miss and no way to typo a stray `.` into a ten-fold error.
+**The amount keypad.** Digits are whole shillings: `2 0 0 0 0` gives
+`KES 20,000`. Nobody at this school deals in cents, and making someone key two
+extra zeros on every amount was the fastest way to make the app annoying.
+Values are still stored as integer cents — the keypad just never produces a
+fraction.
+
+**Recording a payment asks two questions: who, and how much.** A parent pays
+whatever they have, whenever they have it, almost never the exact amount of one
+line. The money is applied to the oldest debt first and spills into the next —
+what the office does on paper — and the screen simply shows what it clears.
+Choosing a specific line is a link, not a question everyone has to answer.
+
+**Nothing about money is written in stone.** Expenses, payments and fee lines
+can all be corrected after saving, not just deleted, because people notice a
+mistyped amount days later while looking at a total that seems wrong.
+
+**Pages are prefetched.** Each section is a separate bundle, pulled in while the
+app sits idle on the dashboard, so tapping one opens it rather than showing a
+skeleton while a phone on mobile data fetches code. If a chunk fails anyway —
+dropped signal, or a deploy that happened while the tab was open — it retries,
+then reloads once, then offers a button rather than hanging.
 
 **Charts.** The expense category palette was validated with a colour-blindness
 checker against the app's light chart surface: it passes the lightness band,

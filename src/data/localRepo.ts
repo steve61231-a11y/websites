@@ -403,6 +403,27 @@ export const localRepo: Repo = {
     return settle(payment)
   },
 
+  async createPayments(inputs) {
+    const s = load()
+    const created = inputs.map((input): FeePayment => ({
+      ...input,
+      id: uid(),
+      createdBy: DEMO_PROFILE.id,
+      createdByName: DEMO_PROFILE.fullName,
+      createdAt: now(),
+    }))
+    s.payments.unshift(...created)
+    save()
+    return settle(created)
+  },
+
+  async updatePayment(id: Uuid, patch) {
+    const row = requireRow(load().payments, id, 'payment')
+    Object.assign(row, patch)
+    save()
+    return settle(row)
+  },
+
   async deletePayment(id: Uuid) {
     const s = load()
     s.payments = s.payments.filter((p) => p.id !== id)

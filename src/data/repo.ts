@@ -78,6 +78,9 @@ export interface Repo {
 
   listPayments(): Promise<FeePayment[]>
   createPayment(input: Omit<FeePayment, 'id' | 'createdAt' | 'createdBy' | 'createdByName'>): Promise<FeePayment>
+  /** One payment split across several lines lands as a single write. */
+  createPayments(inputs: Array<Omit<FeePayment, 'id' | 'createdAt' | 'createdBy' | 'createdByName'>>): Promise<FeePayment[]>
+  updatePayment(id: Uuid, patch: Partial<Omit<FeePayment, 'id' | 'createdAt' | 'createdBy' | 'createdByName'>>): Promise<FeePayment>
   deletePayment(id: Uuid): Promise<void>
 
   /* staff */

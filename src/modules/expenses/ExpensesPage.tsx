@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Download, Filter, Plus, TrendingDown, TrendingUp, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { formatKes, percentChange, sumCents } from '@/lib/money'
+import { formatKes, matchesAmount, percentChange, sumCents } from '@/lib/money'
 import { formatDate, todayIso } from '@/lib/dates'
 import { downloadCsv } from '@/lib/csv'
 import { useCountUp } from '@/lib/useCountUp'
@@ -66,7 +66,10 @@ export default function ExpensesPage() {
       return (
         e.vendorName.toLowerCase().includes(q) ||
         (e.notes ?? '').toLowerCase().includes(q) ||
-        categoryToken(e.categoryKey).label.toLowerCase().includes(q)
+        categoryToken(e.categoryKey).label.toLowerCase().includes(q) ||
+        paymentMethodLabel(e.paymentMethod).toLowerCase().includes(q) ||
+        // Searching "20000", "20,000" or "20k" should all find the same entry.
+        matchesAmount(q, e.amountCents)
       )
     })
   }, [inPeriod, category, method, search])
@@ -280,7 +283,7 @@ export default function ExpensesPage() {
                 <SearchInput
                   value={search}
                   onChange={setSearch}
-                  placeholder="Search a shop, a note…"
+                  placeholder="Search a shop, an amount, a note…"
                   className="flex-1"
                 />
                 <button

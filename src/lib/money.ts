@@ -56,6 +56,53 @@ export function percentChange(current: number, previous: number): number | null 
   return ((current - previous) / Math.abs(previous)) * 100
 }
 
+/**
+ * Append digits to an amount as whole shillings. The keypad never produces a
+ * fraction: typing 2 0 0 0 0 gives KES 20,000, not KES 200.00. Nobody at this
+ * school deals in cents, and two extra keystrokes on every amount is the
+ * fastest way to make an app annoying.
+ */
+export function appendShillings(valueCents: Cents, digits: string, max = 1_000_000_000): Cents {
+  let next = valueCents
+  for (const digit of digits) {
+    if (!/\d/.test(digit)) continue
+    next = next * 10 + Number(digit) * 100
+  }
+  return next > max ? valueCents : next
+}
+
+/** Undo one keypress on the shillings. */
+export function dropLastShilling(valueCents: Cents): Cents {
+  return Math.floor(valueCents / 1000) * 100
+}
+
+/**
+ * Does a typed search term look like this amount?
+ *
+ * People search for money the way they say it: "20000", "20,000" or "20k" all
+ * mean the same payment. Matching on the digits alone means the commas a user
+ * does or does not type never decide whether they find it.
+ */
+export function matchesAmount(query: string, cents: Cents): boolean {
+  const raw = query.trim().toLowerCase().replace(/[\s,]/g, '')
+  if (!raw) return false
+
+  const shillings = Math.round(cents / 100)
+
+  // "20k" / "1.5k"
+  const shorthand = raw.match(/^(\d+(?:\.\d+)?)k$/)
+  if (shorthand) return Math.round(Number(shorthand[1]) * 1000) === shillings
+
+  if (!/^\d+(?:\.\d+)?$/.test(raw)) return false
+
+  const asNumber = Number(raw)
+  if (Number.isFinite(asNumber) && Math.round(asNumber) === shillings) return true
+
+  // Otherwise fall back to "does the figure contain these digits", so a partial
+  // "200" still surfaces 2,000 and 20,000 rather than nothing at all.
+  return String(shillings).includes(raw)
+}
+
 export function sumCents(values: Iterable<Cents>): Cents {
   let total = 0
   for (const v of values) total += v

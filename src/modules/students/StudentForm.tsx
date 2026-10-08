@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { ChevronDown, Plus, X } from 'lucide-react'
+import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/Button'
+import { Pill } from '@/components/ui/primitives'
 import { ChoiceChips, Field, Select, TextArea, TextInput } from '@/components/ui/fields'
 import { Sheet } from '@/components/ui/Sheet'
 import { useToast } from '@/components/ui/Toast'
@@ -44,6 +46,47 @@ const fromStudent = (student: Student): StudentDraft => ({
   allergies: student.allergies,
   medicalNotes: student.medicalNotes,
 })
+
+/**
+ * A section that stays out of the way until it is needed.
+ *
+ * Most children have no allergies and no separate emergency contact, so these
+ * were two blocks of empty fields standing between the user and the Save
+ * button. Collapsed, the form is a name, a class and a date — and anything
+ * already filled in shows on the closed header, so nothing hides.
+ */
+function Collapsible({
+  title, hint, badge, tone = 'plain', children,
+}: {
+  title: string
+  hint: string
+  badge?: string
+  tone?: 'plain' | 'alert'
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(Boolean(badge))
+  return (
+    <div className={cn('overflow-hidden rounded-3xl shadow-soft', open ? 'bg-white' : 'bg-white')}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-3 p-4 text-left"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-base font-extrabold text-sand-900">{title}</span>
+          <span className="block truncate text-sm text-sand-500">{hint}</span>
+        </span>
+        {badge && <Pill tone={tone === 'alert' ? 'bad' : 'iris'}>{badge}</Pill>}
+        <ChevronDown
+          className={cn('h-5 w-5 shrink-0 text-sand-400 transition-transform duration-200', open && 'rotate-180')}
+          aria-hidden="true"
+        />
+      </button>
+      {open && <div className="border-t hairline p-4">{children}</div>}
+    </div>
+  )
+}
 
 export function StudentForm({
   open, onClose, student, onCreated,
@@ -174,8 +217,11 @@ export function StudentForm({
           />
         </Field>
 
-        <div className="rounded-3xl bg-white p-4 shadow-soft">
-          <p className="mb-3 font-display text-base font-extrabold text-sand-900">In an emergency</p>
+        <Collapsible
+          title="In an emergency"
+          hint="Who to call"
+          badge={draft.emergencyContactName ? draft.emergencyContactName : undefined}
+        >
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Who do we call?" htmlFor="ec-name">
               <TextInput
@@ -196,11 +242,18 @@ export function StudentForm({
               />
             </Field>
           </div>
-        </div>
+        </Collapsible>
 
-        <div className="rounded-3xl bg-white p-4 shadow-soft">
-          <p className="mb-1 font-display text-base font-extrabold text-sand-900">Allergies & medical</p>
-          <p className="mb-3 text-sm text-sand-500">The kitchen and the teachers both see these.</p>
+        <Collapsible
+          title="Allergies & medical"
+          hint="The kitchen and the teachers both see these"
+          badge={
+            draft.allergies.length > 0
+              ? `${draft.allergies.length} ${draft.allergies.length === 1 ? 'thing' : 'things'}`
+              : undefined
+          }
+          tone={draft.allergies.length > 0 ? 'alert' : 'plain'}
+        >
 
           {draft.allergies.length > 0 && (
             <div className="mb-3 flex flex-wrap gap-2">
@@ -259,7 +312,7 @@ export function StudentForm({
               placeholder="e.g. Carries an inhaler in her bag."
             />
           </Field>
-        </div>
+        </Collapsible>
 
         {error && (
           <p role="alert" className="rounded-2xl bg-bad-soft px-4 py-3 text-sm font-bold text-bad-ink">

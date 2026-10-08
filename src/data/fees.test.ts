@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
-  chargeBalance, feeBalance, itemsForStudent, proratedAmount, prorationFactor,
+  allocatePayment, chargeBalance, feeBalance, itemsForStudent, proratedAmount, prorationFactor,
 } from './selectors'
+import { appendShillings, dropLastShilling, formatKes, matchesAmount, sumCents } from '@/lib/money'
 import type { FeeCharge, FeeItem, FeePayment, Term } from './types'
 
 /**
@@ -160,5 +161,91 @@ describe('the whole bill', () => {
 
   it('has nothing to say about a child with no fees set', () => {
     expect(feeBalance('kid', TERM_3.id, [], [], ITEMS, TERMS, '2026-09-20').status).toBe('no-invoice')
+  })
+})
+
+describe('the keypad types shillings, never cents', () => {
+  it('turns 2 0 0 0 0 into twenty thousand shillings', () => {
+    let v = 0
+    for (const d of '20000') v = appendShillings(v, d)
+    expect(v).toBe(2_000_000)
+    expect(formatKes(v)).toBe('KES 20,000')
+  })
+
+  it('treats a multi-zero key the same as pressing zero that many times', () => {
+    expect(appendShillings(appendShillings(0, '2'), '000')).toBe(appendShillings(0, '2000'))
+  })
+
+  it('takes one shilling digit off on backspace', () => {
+    expect(dropLastShilling(2_000_000)).toBe(200_000)
+    expect(dropLastShilling(0)).toBe(0)
+  })
+
+  it('refuses a figure no kindergarten would ever enter', () => {
+    expect(appendShillings(900_000_000, '9')).toBe(900_000_000)
+  })
+})
+
+describe('spreading a payment across what is owed', () => {
+  const items = [
+    item({ key: 'stationery', sortOrder: 40 }),
+    item({ key: 'tuition', sortOrder: 10 }),
+  ]
+  const stationery = charge({ id: 's', itemKey: 'stationery', amountCents: 150_000, dueDate: '2026-09-10' })
+  const tuition = charge({ id: 't', itemKey: 'tuition', amountCents: 3_700_000, dueDate: '2026-09-20' })
+  const lines = [stationery, tuition].map((c) => chargeBalance(c, items, [], '2026-09-01'))
+
+  it('clears the oldest debt first and spills into the next', () => {
+    const { allocations, unassignedCents } = allocatePayment(500_000, lines)
+    expect(allocations).toEqual([
+      { chargeId: 's', amountCents: 150_000, label: 'stationery' },
+      { chargeId: 't', amountCents: 350_000, label: 'tuition' },
+    ])
+    expect(unassignedCents).toBe(0)
+  })
+
+  it('stops at the first line when the money runs out', () => {
+    const { allocations } = allocatePayment(100_000, lines)
+    expect(allocations).toHaveLength(1)
+    expect(allocations[0].amountCents).toBe(100_000)
+  })
+
+  it('hands back anything left over rather than attaching it somewhere', () => {
+    const { allocations, unassignedCents } = allocatePayment(4_000_000, lines)
+    expect(sumCents(allocations.map((a) => a.amountCents))).toBe(3_850_000)
+    expect(unassignedCents).toBe(150_000)
+  })
+
+  it('ignores lines that are already settled or waived', () => {
+    const settled = chargeBalance(
+      charge({ id: 's', itemKey: 'stationery', amountCents: 150_000 }),
+      items,
+      [payment({ id: 'p', amountCents: 150_000, chargeId: 's' })],
+      '2026-09-01',
+    )
+    const { allocations } = allocatePayment(100_000, [settled, lines[1]])
+    expect(allocations.map((a) => a.chargeId)).toEqual(['t'])
+  })
+})
+
+describe('searching by amount, the way people say it', () => {
+  it('finds twenty thousand however it is typed', () => {
+    for (const q of ['20000', '20,000', '20 000', '20k', '20K']) {
+      expect(matchesAmount(q, 2_000_000)).toBe(true)
+    }
+  })
+
+  it('does not confuse it with a different figure', () => {
+    expect(matchesAmount('20000', 200_000)).toBe(false)
+    expect(matchesAmount('21k', 2_000_000)).toBe(false)
+  })
+
+  it('still surfaces something on a partial figure', () => {
+    expect(matchesAmount('200', 2_000_000)).toBe(true)
+  })
+
+  it('ignores words and empty searches', () => {
+    expect(matchesAmount('naivas', 2_000_000)).toBe(false)
+    expect(matchesAmount('  ', 2_000_000)).toBe(false)
   })
 })

@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react'
+import { useEffect } from 'react'
 import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from '@/auth/AuthProvider'
@@ -7,19 +7,65 @@ import { AppShell } from '@/components/layout/AppShell'
 import { ToastProvider } from '@/components/ui/Toast'
 import { DashboardPage } from '@/modules/dashboard/DashboardPage'
 import { LogoMark } from '@/brand/Logo'
-import { CardSkeleton } from '@/components/ui/primitives'
+import { LazyRoute, lazyPage } from '@/components/layout/LazyRoute'
 import type { Capability } from '@/auth/permissions'
 
-const ExpensesPage = lazy(() => import('@/modules/expenses/ExpensesPage'))
-const AddExpensePage = lazy(() => import('@/modules/expenses/AddExpensePage'))
-const StudentsPage = lazy(() => import('@/modules/students/StudentsPage'))
-const StudentProfilePage = lazy(() => import('@/modules/students/StudentProfilePage'))
-const ParentsPage = lazy(() => import('@/modules/parents/ParentsPage'))
-const ParentProfilePage = lazy(() => import('@/modules/parents/ParentProfilePage'))
-const FeesPage = lazy(() => import('@/modules/fees/FeesPage'))
-const StaffPage = lazy(() => import('@/modules/staff/StaffPage'))
-const SettingsPage = lazy(() => import('@/modules/settings/SettingsPage'))
-const TermReportPage = lazy(() => import('@/modules/reports/TermReportPage'))
+/**
+ * Every page, as a loader that can be both rendered lazily and fetched ahead of
+ * time. Splitting them keeps the first screen small; prefetching them the
+ * moment the app is idle means that, by the time anyone taps a section, the
+ * code is already in the browser and it opens instantly instead of sitting on
+ * a skeleton while a phone on mobile data fetches it.
+ */
+const PAGES = {
+  expenses: () => import('@/modules/expenses/ExpensesPage'),
+  addExpense: () => import('@/modules/expenses/AddExpensePage'),
+  students: () => import('@/modules/students/StudentsPage'),
+  studentProfile: () => import('@/modules/students/StudentProfilePage'),
+  parents: () => import('@/modules/parents/ParentsPage'),
+  parentProfile: () => import('@/modules/parents/ParentProfilePage'),
+  fees: () => import('@/modules/fees/FeesPage'),
+  staff: () => import('@/modules/staff/StaffPage'),
+  settings: () => import('@/modules/settings/SettingsPage'),
+  termReport: () => import('@/modules/reports/TermReportPage'),
+}
+
+const ExpensesPage = lazyPage(PAGES.expenses)
+const AddExpensePage = lazyPage(PAGES.addExpense)
+const StudentsPage = lazyPage(PAGES.students)
+const StudentProfilePage = lazyPage(PAGES.studentProfile)
+const ParentsPage = lazyPage(PAGES.parents)
+const ParentProfilePage = lazyPage(PAGES.parentProfile)
+const FeesPage = lazyPage(PAGES.fees)
+const StaffPage = lazyPage(PAGES.staff)
+const SettingsPage = lazyPage(PAGES.settings)
+const TermReportPage = lazyPage(PAGES.termReport)
+
+/** Pull every page into the browser once the app has settled. */
+function usePrefetchPages(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled) return
+    let cancelled = false
+    const warm = () => {
+      for (const load of Object.values(PAGES)) {
+        if (cancelled) return
+        // A failure here is not worth surfacing: the page will simply be
+        // fetched again, with its own retry, when the user actually opens it.
+        void load().catch(() => {})
+      }
+    }
+    // requestIdleCallback is missing on older Safari, which is plenty of phones.
+    const hasIdle = 'requestIdleCallback' in window
+    const handle = hasIdle
+      ? window.requestIdleCallback(warm, { timeout: 3000 })
+      : window.setTimeout(warm, 1200)
+    return () => {
+      cancelled = true
+      if (hasIdle) window.cancelIdleCallback(handle)
+      else window.clearTimeout(handle)
+    }
+  }, [enabled])
+}
 
 /**
  * Clean URLs (/expenses) need a server that rewrites every path to index.html.
@@ -55,6 +101,9 @@ export default function App() {
 
 function Gate() {
   const { ready, profile } = useAuth()
+  // Only once someone is actually in — no point spending a signed-out
+  // visitor's data on pages they cannot open.
+  usePrefetchPages(ready && profile !== null)
 
   if (!ready) return <Splash />
   if (!profile) return <LoginPage />
@@ -83,11 +132,7 @@ function Gate() {
 function Page({ cap, children }: { cap: Capability; children: React.ReactNode }) {
   const { can } = useAuth()
   if (!can(cap)) return <NoAccess />
-  return (
-    <Suspense fallback={<div className="space-y-4"><CardSkeleton rows={2} /><CardSkeleton rows={4} /></div>}>
-      {children}
-    </Suspense>
-  )
+  return <LazyRoute>{children}</LazyRoute>
 }
 
 function NoAccess() {

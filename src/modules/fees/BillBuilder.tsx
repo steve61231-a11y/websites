@@ -137,7 +137,9 @@ export function BillBuilder({
     if (drafts.length === 0) return
     try {
       await createCharges.mutateAsync(drafts)
-      notify(`${drafts.length} ${drafts.length === 1 ? 'line' : 'lines'} added to ${student.firstName}'s bill.`)
+      notify(
+        `${student.firstName} now owes ${formatKes(total)}. Use “Record a payment” when they pay.`,
+      )
       setRows(null)
       onClose()
     } catch (err) {
@@ -149,8 +151,12 @@ export function BillBuilder({
     <Sheet
       open={open}
       onClose={onClose}
-      title={`Set ${student.firstName}'s fees`}
-      description={term ? `For ${term.name}` : 'No term set up yet'}
+      title={`What will ${student.firstName} be charged?`}
+      description={
+        term
+          ? `Building their bill for ${term.name}. This is what they owe — recording what they have paid comes after.`
+          : 'No term set up yet'
+      }
       footer={
         <Button
           block
@@ -159,7 +165,7 @@ export function BillBuilder({
           loading={createCharges.isPending}
           onClick={() => void save()}
         >
-          {total > 0 ? `Add ${formatKes(total)} to the bill` : 'Add to the bill'}
+          {total > 0 ? `Charge ${formatKes(total)}` : 'Add to the bill'}
         </Button>
       }
     >
@@ -203,6 +209,10 @@ export function BillBuilder({
           </div>
         )}
 
+        <p className="text-sm font-extrabold text-sand-700">
+          Tick everything that goes on the bill
+        </p>
+
         <div className="space-y-2">
           {effective.map((row) => {
             const cents = parseKesToCents(row.amountText) ?? 0
@@ -241,8 +251,8 @@ export function BillBuilder({
                 {row.include && row.item.instalmentAmountCents !== null && (
                   <div className="mt-3 flex gap-2 pl-10">
                     {[
-                      { value: false, label: 'Whole year', cents: defaultAmountFor(row.item, student.classId) },
-                      { value: true, label: 'This term', cents: row.item.instalmentAmountCents },
+                      { value: false, label: 'Whole year', cents: scale(row.item, defaultAmountFor(row.item, student.classId)) },
+                      { value: true, label: 'This term', cents: scale(row.item, row.item.instalmentAmountCents) },
                     ].map((choice) => (
                       <button
                         key={String(choice.value)}
@@ -313,7 +323,9 @@ export function BillBuilder({
         <p className="flex items-start gap-2.5 rounded-2xl bg-sand-50 px-4 py-3 text-sm leading-relaxed text-sand-500">
           <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           Every amount here is just the usual price — change any of them if you agreed something
-          different with the parent. You can edit a line again later too.
+          different with the parent, and you can edit a line again later. Nothing on this screen
+          says anything about what has been <em>paid</em>: once the bill is set, use
+          “Record a payment”.
         </p>
       </div>
     </Sheet>

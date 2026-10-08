@@ -25,6 +25,7 @@ import { useToast } from '@/components/ui/Toast'
 import { StudentForm } from './StudentForm'
 import { RecordPaymentSheet } from '@/modules/fees/RecordPaymentSheet'
 import { BillBuilder } from '@/modules/fees/BillBuilder'
+import { EditChargeSheet, EditPaymentSheet } from '@/modules/fees/EditFeeSheets'
 import { useAuth } from '@/auth/AuthProvider'
 import { paymentMethodLabel } from '@/brand/categories'
 import type { Relationship } from '@/data/types'
@@ -61,6 +62,8 @@ export default function StudentProfilePage() {
   const [buildingBill, setBuildingBill] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [pendingLineDelete, setPendingLineDelete] = useState<string | null>(null)
+  const [editingLineId, setEditingLineId] = useState<string | null>(null)
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null)
 
   const student = (students.data ?? []).find((s) => s.id === id)
   const term = currentTerm(terms.data ?? [])
@@ -305,13 +308,22 @@ export default function StudentProfilePage() {
                           <span aria-hidden="true">{meta.icon}</span> {meta.label}
                         </Pill>
                         {can('fees.setInvoice') && (
-                          <button
-                            onClick={() => setPendingLineDelete(line.charge.id)}
-                            aria-label={`Remove ${line.item?.label ?? 'line'}`}
-                            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sand-300 transition-colors hover:bg-white hover:text-bad-base"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          <>
+                            <button
+                              onClick={() => setEditingLineId(line.charge.id)}
+                              aria-label={`Edit ${line.item?.label ?? 'line'}`}
+                              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sand-400 transition-colors hover:bg-white hover:text-iris-600"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => setPendingLineDelete(line.charge.id)}
+                              aria-label={`Remove ${line.item?.label ?? 'line'}`}
+                              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sand-300 transition-colors hover:bg-white hover:text-bad-base"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
                         )}
                       </div>
                       {line.charge.amountCents > 0 && (
@@ -358,7 +370,7 @@ export default function StudentProfilePage() {
                   {history.map((p) => {
                     const line = balance.lines.find((l) => l.charge.id === p.chargeId)
                     return (
-                      <li key={p.id} className="flex items-center gap-3 px-4 py-3">
+                      <li key={p.id} className="group flex items-center gap-3 px-4 py-3">
                         <span aria-hidden="true" className="text-lg">{line?.item?.emoji ?? '🧾'}</span>
                         <span className="min-w-0 flex-1">
                           <span className="block text-sm font-extrabold text-sand-800">
@@ -375,6 +387,15 @@ export default function StudentProfilePage() {
                         <span className="tnum shrink-0 font-display text-base font-extrabold text-good-ink">
                           +{formatKes(p.amountCents, { prefix: false })}
                         </span>
+                        {can('fees.recordPayment') && (
+                          <button
+                            onClick={() => setEditingPaymentId(p.id)}
+                            aria-label="Edit this payment"
+                            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sand-300 opacity-0 transition-opacity hover:bg-white hover:text-iris-600 focus-visible:opacity-100 group-hover:opacity-100"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                        )}
                       </li>
                     )
                   })}
@@ -452,6 +473,30 @@ export default function StudentProfilePage() {
       {buildingBill && (
         <BillBuilder open={buildingBill} onClose={() => setBuildingBill(false)} student={student} />
       )}
+
+      {editingLineId && balance && (() => {
+        const line = balance.lines.find((l) => l.charge.id === editingLineId)
+        return line ? (
+          <EditChargeSheet
+            open
+            charge={line.charge}
+            item={line.item}
+            onClose={() => setEditingLineId(null)}
+          />
+        ) : null
+      })()}
+
+      {editingPaymentId && balance && (() => {
+        const p = history.find((x) => x.id === editingPaymentId)
+        return p ? (
+          <EditPaymentSheet
+            open
+            payment={p}
+            lines={balance.lines}
+            onClose={() => setEditingPaymentId(null)}
+          />
+        ) : null
+      })()}
 
       <ConfirmDialog
         open={pendingLineDelete !== null}

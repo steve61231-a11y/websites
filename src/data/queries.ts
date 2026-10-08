@@ -191,6 +191,15 @@ type PaymentInput = Omit<FeePayment, 'id' | 'createdAt' | 'createdBy' | 'created
 export const useCreatePayment = (extras?: MutationExtras<FeePayment, PaymentInput>) =>
   useRepoMutation((input: PaymentInput) => repo.createPayment(input), [qk.payments, qk.charges], extras)
 
+export const useCreatePayments = (extras?: MutationExtras<FeePayment[], PaymentInput[]>) =>
+  useRepoMutation((inputs: PaymentInput[]) => repo.createPayments(inputs), [qk.payments, qk.charges], extras)
+
+export const useUpdatePayment = () =>
+  useRepoMutation(
+    ({ id, patch }: { id: Uuid; patch: Partial<PaymentInput> }) => repo.updatePayment(id, patch),
+    [qk.payments, qk.charges],
+  )
+
 export const useDeletePayment = () =>
   useRepoMutation((id: Uuid) => repo.deletePayment(id), [qk.payments])
 

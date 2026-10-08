@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Download, Plus, Receipt, Settings2 } from 'lucide-react'
+import { Download, Pencil, Plus, Receipt, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { formatKes, sumCents } from '@/lib/money'
+import { formatKes, matchesAmount, sumCents } from '@/lib/money'
 import { formatDate, todayIso } from '@/lib/dates'
 import { downloadCsv } from '@/lib/csv'
 import { useCountUp } from '@/lib/useCountUp'
@@ -123,7 +123,34 @@ export default function FeesPage() {
       })
   }, [roster, balances, statusFilter, search])
 
-  const recent = useMemo(() => (payments.data ?? []).slice(0, 6), [payments.data])
+  const [paymentSearch, setPaymentSearch] = useState('')
+
+  /**
+   * Every payment ever taken, searchable by whatever the person remembers —
+   * the child, the M-Pesa code, how much it was, or what it paid for.
+   */
+  const paymentRows = useMemo(() => {
+    const q = paymentSearch.trim().toLowerCase()
+    const items = feeItems.data ?? []
+    const chargeById = new Map((charges.data ?? []).map((c) => [c.id, c]))
+    return (payments.data ?? [])
+      .map((p) => {
+        const student = (students.data ?? []).find((s) => s.id === p.studentId)
+        const itemKey = p.chargeId ? chargeById.get(p.chargeId)?.itemKey : undefined
+        const item = items.find((i) => i.key === itemKey)
+        return { payment: p, student, item }
+      })
+      .filter(({ payment: p, student, item }) => {
+        if (!q) return true
+        return (
+          (student ? fullName(student).toLowerCase().includes(q) : false) ||
+          (p.reference ?? '').toLowerCase().includes(q) ||
+          paymentMethodLabel(p.method).toLowerCase().includes(q) ||
+          (item?.label ?? '').toLowerCase().includes(q) ||
+          matchesAmount(q, p.amountCents)
+        )
+      })
+  }, [payments.data, students.data, charges.data, feeItems.data, paymentSearch])
 
   function exportCsv() {
     downloadCsv(`iris-fields-fees-${term?.name.replace(/\s+/g, '-').toLowerCase() ?? 'term'}`, rows, [
@@ -396,21 +423,60 @@ export default function FeesPage() {
         )}
       </section>
 
-      {/* -------------------------------------------------- recent receipts */}
-      {recent.length > 0 && (
+      {/* ------------------------------------------------------- payments */}
+      {(payments.data ?? []).length > 0 && (
         <section>
-          <SectionTitle hint="Most recent first">Latest payments</SectionTitle>
-          <ul className="card divide-y divide-sand-100 overflow-hidden p-0">
-            {recent.map((p) => {
-              const student = roster.find((s) => s.id === p.studentId)
-              return (
+          <SectionTitle
+            hint={`${paymentRows.length} of ${(payments.data ?? []).length}`}
+            action={
+              <Button
+                size="sm"
+                variant="soft"
+                icon={<Download className="h-4 w-4" />}
+                onClick={() =>
+                  downloadCsv('iris-fields-payments', paymentRows, [
+                    { header: 'Date', value: (r) => r.payment.paidOn },
+                    { header: 'Student', value: (r) => (r.student ? fullName(r.student) : '') },
+                    { header: 'For', value: (r) => r.item?.label ?? 'Unallocated' },
+                    { header: 'Amount (KES)', value: (r) => (r.payment.amountCents / 100).toFixed(2) },
+                    { header: 'Method', value: (r) => paymentMethodLabel(r.payment.method) },
+                    { header: 'Reference', value: (r) => r.payment.reference ?? '' },
+                    { header: 'Recorded by', value: (r) => r.payment.createdByName ?? '' },
+                  ])
+                }
+              >
+                Export
+              </Button>
+            }
+          >
+            Every payment
+          </SectionTitle>
+
+          <SearchInput
+            value={paymentSearch}
+            onChange={setPaymentSearch}
+            placeholder="Search a child, an M-Pesa code, an amount…"
+            className="mb-3"
+          />
+
+          {paymentRows.length === 0 ? (
+            <div className="card p-8 text-center">
+              <p className="font-display text-lg font-extrabold text-sand-800">No payment matches that</p>
+              <p className="mt-1 text-sm text-sand-500">
+                Try the child's name, the amount, or the M-Pesa code.
+              </p>
+            </div>
+          ) : (
+            <ul className="card divide-y divide-sand-100 overflow-hidden p-0">
+              {paymentRows.slice(0, 40).map(({ payment: p, student, item }) => (
                 <li key={p.id} className="flex items-center gap-3.5 px-4 py-3.5">
-                  <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-good-soft">
-                    <Receipt className="h-5 w-5 text-good-ink" />
+                  <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-good-soft text-lg">
+                    {item?.emoji ?? <Receipt className="h-5 w-5 text-good-ink" />}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-extrabold text-sand-800">
                       {student ? fullName(student) : 'A family'}
+                      {item && <span className="ml-1.5 font-bold text-sand-400">{item.label}</span>}
                     </p>
                     <p className="truncate text-sm text-sand-500">
                       {formatDate(p.paidOn, 'medium')} · {paymentMethodLabel(p.method)}
@@ -420,10 +486,24 @@ export default function FeesPage() {
                   <p className="tnum shrink-0 font-display text-base font-extrabold text-good-ink">
                     +{formatKes(p.amountCents, { prefix: false })}
                   </p>
+                  {student && (
+                    <Link
+                      to={`/students/${student.id}`}
+                      aria-label={`Open ${fullName(student)}`}
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sand-300 transition-colors hover:bg-sand-100 hover:text-iris-600"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Link>
+                  )}
                 </li>
-              )
-            })}
-          </ul>
+              ))}
+            </ul>
+          )}
+          {paymentRows.length > 40 && (
+            <p className="mt-2 text-center text-xs font-semibold text-sand-400">
+              Showing the 40 most recent. Search to narrow it down.
+            </p>
+          )}
         </section>
       )}
 

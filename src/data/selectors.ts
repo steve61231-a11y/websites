@@ -401,3 +401,47 @@ export const fullName = (s: Pick<Student, 'firstName' | 'lastName'>) =>
 
 export const initialsOf = (name: string) =>
   name.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? '').join('') || '?'
+
+/* -------------------------------------------------------- paying the bill */
+
+export type Allocation = { chargeId: Uuid; amountCents: Cents; label: string }
+
+/**
+ * Spreading one payment across what a family owes.
+ *
+ * A parent pays whatever they have, whenever they have it — rarely the exact
+ * amount of one line. So the default is to apply the money to the oldest debt
+ * first and let it spill into the next line, which is what the office does on
+ * paper anyway. Anything left over after everything is settled comes back as
+ * `unassignedCents` rather than being silently attached to something.
+ */
+export function allocatePayment(
+  amountCents: Cents,
+  lines: readonly ChargeBalance[],
+): { allocations: Allocation[]; unassignedCents: Cents } {
+  const owing = lines
+    .filter((l) => l.balanceCents > 0 && !l.charge.isWaived)
+    .sort((a, b) => {
+      // Oldest debt first: by due date, then by the order items are listed.
+      const da = a.charge.dueDate ?? '9999-12-31'
+      const db = b.charge.dueDate ?? '9999-12-31'
+      if (da !== db) return da < db ? -1 : 1
+      return (a.item?.sortOrder ?? 999) - (b.item?.sortOrder ?? 999)
+    })
+
+  const allocations: Allocation[] = []
+  let left = amountCents
+
+  for (const line of owing) {
+    if (left <= 0) break
+    const take = Math.min(left, line.balanceCents)
+    allocations.push({
+      chargeId: line.charge.id,
+      amountCents: take,
+      label: line.item?.label ?? line.charge.itemKey,
+    })
+    left -= take
+  }
+
+  return { allocations, unassignedCents: Math.max(left, 0) }
+}

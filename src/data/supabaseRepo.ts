@@ -540,6 +540,42 @@ export const supabaseRepo: Repo = {
     return toPayment(row)
   },
 
+  async createPayments(inputs) {
+    if (inputs.length === 0) return []
+    const createdBy = await currentUserId()
+    const rows = unwrap(
+      await db().from('fee_payments').insert(
+        inputs.map((input) => ({
+          student_id: input.studentId,
+          term_id: input.termId,
+          charge_id: input.chargeId,
+          amount_cents: input.amountCents,
+          paid_on: input.paidOn,
+          method: input.method,
+          reference: input.reference ?? null,
+          notes: input.notes ?? null,
+          created_by: createdBy,
+        })),
+      ).select(PAYMENT_SELECT),
+    )
+    return rows.map(toPayment)
+  },
+
+  async updatePayment(id: Uuid, patch) {
+    const row = unwrap(
+      await db().from('fee_payments').update({
+        ...(patch.amountCents !== undefined && { amount_cents: patch.amountCents }),
+        ...(patch.paidOn !== undefined && { paid_on: patch.paidOn }),
+        ...(patch.method !== undefined && { method: patch.method }),
+        ...(patch.reference !== undefined && { reference: patch.reference }),
+        ...(patch.notes !== undefined && { notes: patch.notes }),
+        ...(patch.chargeId !== undefined && { charge_id: patch.chargeId }),
+        ...(patch.termId !== undefined && { term_id: patch.termId }),
+      }).eq('id', id).select(PAYMENT_SELECT).single(),
+    )
+    return toPayment(row)
+  },
+
   async deletePayment(id: Uuid) {
     const { error } = await db().from('fee_payments').delete().eq('id', id)
     if (error) throw new Error(error.message)
