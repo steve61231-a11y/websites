@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { Magnetic } from "@/components/motion/magnetic";
 import { FadeIn, TextReveal } from "@/components/motion/reveal";
@@ -47,6 +47,16 @@ const SURFACES: { key: Surface; name: string; line: string; body: string; setup:
   },
 ];
 
+const noop = () => () => {};
+let liveCache: boolean | undefined;
+function canRenderLive() {
+  if (liveCache === undefined) {
+    const gl = !!document.createElement("canvas").getContext("webgl2");
+    liveCache = gl && !new URLSearchParams(window.location.search).has("still");
+  }
+  return liveCache;
+}
+
 function useIsMobile() {
   const [mobile, setMobile] = useState(false);
   useEffect(() => {
@@ -63,13 +73,9 @@ export function StudioStory() {
   const mobile = useIsMobile();
   const [active, setActive] = useState(-1); // -1 = hero
   const [ready, setReady] = useState(false);
-  // ?still shows the rendered poster only (also the path for devices without WebGL).
-  // Server and client both render no canvas markup, so this can't mismatch.
-  const [live] = useState(() => {
-    if (typeof window === "undefined") return true;
-    const noGL = !document.createElement("canvas").getContext("webgl2");
-    return !noGL && !new URLSearchParams(window.location.search).has("still");
-  });
+  // ?still shows the rendered poster only (also the path for devices without
+  // WebGL). The server always assumes live, then the client corrects it.
+  const live = useSyncExternalStore(noop, canRenderLive, () => true);
   const blocks = useRef<(HTMLElement | null)[]>([]);
   const hero = useRef<HTMLDivElement>(null);
   const { scrollYProgress: heroProgress } = useScroll({ target: hero, offset: ["start start", "end start"] });
@@ -98,19 +104,21 @@ export function StudioStory() {
       {/* Pinned studio */}
       <div className="sticky top-0 h-[100svh] overflow-hidden">
         {/* Poster paints instantly and stays as the fallback */}
-        <motion.img
-          src="/stills/hero.jpg"
-          alt=""
+        <motion.picture
           aria-hidden
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 block md:translate-x-[18%]"
           animate={{ opacity: ready ? 0 : 1 }}
           transition={{ duration: 1.2 }}
-        />
+        >
+          <source media="(max-width: 767px)" srcSet="/stills/hero-portrait.jpg" />
+          <img src="/stills/hero.jpg" alt="" className="h-full w-full object-cover" />
+        </motion.picture>
         {live && <Studio
           surface={surface}
           offsetX={offsetX}
           reflections={!mobile}
-          cameraZ={mobile ? 8.6 : 7.6}
+          cameraZ={mobile ? 12 : 7.6}
+          liftY={mobile ? 1 : 0}
           onReady={() => setReady(true)}
           className="absolute inset-0 h-full w-full"
         />}
@@ -232,7 +240,7 @@ export function StudioStory() {
                   0{i + 1} · {s.setup}
                 </p>
               </FadeIn>
-              <TextReveal as="h3" text={s.name} className="display mt-4 text-[clamp(56px,10vw,132px)] text-white" />
+              <TextReveal as="h3" text={s.name} className="display mt-4 text-[clamp(34px,9.6vw,132px)] text-white" />
               <FadeIn delay={0.15}>
                 <p className="headline mt-5 text-[clamp(22px,2.6vw,32px)] text-white">{s.line}</p>
                 <p className="mt-4 max-w-[40ch] text-[17px] leading-relaxed text-ink-2">{s.body}</p>

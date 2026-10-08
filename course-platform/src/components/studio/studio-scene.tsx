@@ -250,6 +250,27 @@ function Lights({ surface, light }: { surface: Surface; light: boolean }) {
   );
 }
 
+/**
+ * Eases the camera to its framing. `lift` works like a shift lens: the image
+ * slides up without changing the viewing angle, so glass still reflects the
+ * studio rather than the floor.
+ */
+function CameraRig({ z, lift }: { z: number; lift: number }) {
+  const shift = useRef(lift);
+  useFrame(({ camera, size }, dt) => {
+    camera.position.z = damp(camera.position.z, z, dt, 3);
+    shift.current = damp(shift.current, lift, dt, 3);
+    const cam = camera as THREE.PerspectiveCamera;
+    const offset = shift.current * size.height * 0.22;
+    if (Math.abs(offset) < 0.5) {
+      if (cam.view?.enabled) cam.clearViewOffset();
+    } else {
+      cam.setViewOffset(size.width, size.height, 0, offset, size.width, size.height);
+    }
+  });
+  return null;
+}
+
 function Floor({ reflective, light }: { reflective: boolean; light: boolean }) {
   if (light) {
     return (
@@ -306,9 +327,12 @@ export type StudioProps = {
   preserve?: boolean;
   /** Slide the product sideways (scene units), e.g. to make room for text. */
   offsetX?: number;
+  /** Place the product higher in frame by aiming the camera lower (scene
+   *  units), e.g. to sit above text on phones. The product stays on the table. */
+  liftY?: number;
 };
 
-export default function StudioScene({ surface = "transparent", spin = true, reflections = true, onReady, className, cameraZ = 6.2, glow = "#c26a12", stage = "dark", angle = 0.35, preserve = false, offsetX = 0 }: StudioProps) {
+export default function StudioScene({ surface = "transparent", spin = true, reflections = true, onReady, className, cameraZ = 6.2, glow = "#c26a12", stage = "dark", angle = 0.35, preserve = false, offsetX = 0, liftY = 0 }: StudioProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
   const light = stage === "light";
@@ -336,10 +360,12 @@ export default function StudioScene({ surface = "transparent", spin = true, refl
         }}
       >
         <color attach="background" args={[light ? "#d4d4d4" : "#000000"]} />
-        <fog attach="fog" args={[light ? "#e9e9e9" : "#000000", 6, 9.5]} />
+        {/* Fog starts just behind the product, so the table edge fades at any camera distance */}
+        <fog attach="fog" args={[light ? "#e9e9e9" : "#000000", cameraZ - 0.2, cameraZ + 3.3]} />
         <Backdrop glow={glow} light={light} offsetX={offsetX} />
         <Lights surface={surface} light={light} />
         <Bottle surface={surface} spin={spin} angle={angle} offsetX={offsetX} />
+        <CameraRig z={cameraZ} lift={liftY} />
         <Rig surface={surface} />
         <Floor reflective={reflections} light={light} />
       </Canvas>

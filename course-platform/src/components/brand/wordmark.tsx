@@ -14,7 +14,7 @@ export function Wordmark({ className, animate = false, delay = 0 }: { className?
   const on = animate && !reduce;
   const [x, y, w, h] = WORDMARK_VIEWBOX.split(" ").map(Number);
   return (
-    <svg viewBox={WORDMARK_VIEWBOX} className={className} role="img" aria-label="THE PROD">
+    <svg viewBox={WORDMARK_VIEWBOX} className={className} style={{ aspectRatio: `${w} / ${h}` }} role="img" aria-label="THE PROD">
       <defs>
         <clipPath id={clip}>
           <rect x={x} y={y - h} width={w} height={h * 2} />
