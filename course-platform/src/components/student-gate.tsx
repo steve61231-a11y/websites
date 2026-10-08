@@ -15,24 +15,24 @@ export function StudentGate({ courseId, children }: { courseId?: string; childre
   const path = usePathname();
 
   useEffect(() => {
-    if (ready && !user) router.replace(`/login?next=${encodeURIComponent(path)}`);
+    if (ready && !user) router.replace(`/sign-in?next=${encodeURIComponent(path)}`);
   }, [ready, user, router, path]);
 
   if (!ready || !user) return <Skeleton />;
 
   if (courseId && !enrolled.includes(courseId)) {
     return (
-      <div className="wrap flex flex-col items-center py-32 text-center">
-        <div className="grid size-16 place-items-center rounded-full bg-fill text-muted">
-          <Lock size={26} />
+      <div className="wrap flex min-h-[80svh] flex-col items-center justify-center text-center">
+        <div className="grid size-16 place-items-center rounded-full bg-white/[0.06] text-muted ring-1 ring-inset ring-white/10">
+          <Lock size={24} />
         </div>
-        <h1 className="mt-6 text-[28px] font-semibold tracking-[-0.02em]">You don&apos;t have access to this course.</h1>
-        <p className="mt-2 max-w-sm text-[17px] text-muted">
-          You&apos;re signed in as {user.email}. If you bought it with another email, sign in with that one instead.
+        <h1 className="headline mt-6 text-[30px] text-white">This course isn&apos;t on your account yet.</h1>
+        <p className="mt-3 max-w-sm text-[16px] leading-relaxed text-muted">
+          You&apos;re signed in as {user.email}. If you paid with a different email, sign in with that one.
         </p>
-        <div className="mt-8 flex gap-3">
-          <Link href="/courses" className="btn btn-primary">See courses</Link>
-          <Link href="/profile" className="btn btn-quiet">Switch account</Link>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Link href="/enroll" className="btn btn-white">Get access</Link>
+          <Link href="/account" className="btn btn-glass">Switch account</Link>
         </div>
       </div>
     );
@@ -43,11 +43,14 @@ export function StudentGate({ courseId, children }: { courseId?: string; childre
 
 function Skeleton() {
   return (
-    <div className="wrap animate-pulse py-16" aria-busy>
-      <div className="h-10 w-64 rounded-xl bg-fill" />
-      <div className="mt-10 h-72 rounded-[28px] bg-fill" />
-      <div className="mt-6 h-20 rounded-2xl bg-fill" />
-      <div className="mt-3 h-20 rounded-2xl bg-fill" />
+    <div className="wrap animate-pulse pt-28" aria-busy>
+      <div className="h-[46svh] rounded-[32px] bg-white/[0.04]" />
+      <div className="mt-8 h-6 w-48 rounded-full bg-white/[0.05]" />
+      <div className="mt-6 space-y-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-24 rounded-3xl bg-white/[0.04]" />
+        ))}
+      </div>
     </div>
   );
 }

@@ -24,7 +24,7 @@ export type DemoState = ProgressState & {
   purchaseName: string | null;
 };
 
-const KEY = "lumen-demo-v1";
+const KEY = "the-prod-demo-v1";
 
 const empty: DemoState = {
   ready: false,

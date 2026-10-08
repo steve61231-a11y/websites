@@ -9,6 +9,7 @@ import { useEffect, useRef } from "react";
 const PALETTES = {
   calm: ["#0071e3", "#28a745", "#1d1d1f", "#d2d2d7", "#5e5ce6"],
   gold: ["#b08d57", "#d9bf8c", "#f5f5f7", "#8e6b3a", "#ffffff"],
+  amber: ["#f5a524", "#ffd08a", "#ffffff", "#b5620e", "#3a3a3c"],
 };
 
 export function Confetti({ palette = "calm", count = 90 }: { palette?: keyof typeof PALETTES; count?: number }) {

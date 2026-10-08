@@ -3,8 +3,8 @@ import type { Certificate } from "./demo-store";
 
 // A pre-issued record so the verification page works for anyone viewing the demo.
 export const sampleCertificate: Certificate = {
-  number: "CERT-2026-PHOTO-000142",
-  courseId: "photography",
+  number: "CERT-2026-PROD-000142",
+  courseId: "the-prod",
   name: "Wanjiku Kamau",
   issuedAt: "2026-09-18T10:00:00.000Z",
 };
