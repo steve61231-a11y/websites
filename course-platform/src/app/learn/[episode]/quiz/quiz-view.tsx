@@ -47,9 +47,9 @@ export function QuizView({ slug }: { slug: string }) {
         <div className="grid size-16 place-items-center rounded-full bg-white/[0.06] text-muted ring-1 ring-inset ring-white/10">
           <Lock size={24} />
         </div>
-        <h1 className="headline mt-6 text-[30px] text-white">Watch the lesson first.</h1>
-        <p className="mt-3 max-w-sm text-[16px] text-muted">The {ep.label} quiz opens once you&apos;ve finished the lesson.</p>
-        <Link href={`/learn/${ep.slug}`} className="btn btn-white mt-8">Go to {ep.label}</Link>
+        <h1 className="headline mt-6 text-[30px] text-white">Finish the videos first.</h1>
+        <p className="mt-3 max-w-sm text-[16px] text-muted">The {ep.label} quiz opens once you&apos;ve watched all {ep.lessons.length} of its videos.</p>
+        <Link href={`/learn/${ep.slug}`} className="btn btn-white mt-8">Continue {ep.label}</Link>
       </div>,
     );
   }
@@ -248,7 +248,7 @@ function Result({ slug, answers, onRetry }: { slug: string; answers: Record<stri
         </ul>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <button onClick={onRetry} className="btn btn-white btn-lg">Try again</button>
-          <Link href={`/learn/${ep.slug}`} className="btn btn-glass btn-lg">Rewatch {ep.label}</Link>
+          <Link href={`/learn/${ep.slug}/${ep.lessons[0].slug}`} className="btn btn-glass btn-lg">Rewatch {ep.label}</Link>
         </div>
       </div>
     );
@@ -274,10 +274,10 @@ function Result({ slug, answers, onRetry }: { slug: string; answers: Record<stri
         next && (
           <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9, duration: 1, ease: EASE }} className="mt-10">
             <p className="text-[15px] text-muted">{next.label} is unlocked.</p>
-            <Link href={`/learn/${next.slug}`} transitionTypes={["nav-forward"]} className="group mt-4 flex items-center gap-5 rounded-[24px] bg-white/[0.05] p-3 pr-6 ring-1 ring-inset ring-white/10 transition-colors hover:bg-white/[0.08]">
+            <Link href={`/learn/${next.slug}/${next.lessons[0].slug}`} transitionTypes={["nav-forward"]} className="group mt-4 flex items-center gap-5 rounded-[24px] bg-white/[0.05] p-3 pr-6 ring-1 ring-inset ring-white/10 transition-colors hover:bg-white/[0.08]">
               <EpisodeThumb episode={next} state="current" className="w-40 shrink-0 sm:w-52" />
               <span className="min-w-0 flex-1">
-                <span className="eyebrow">Up next · {next.label}</span>
+                <span className="eyebrow">Up next · {next.label} · {next.lessons.length} {next.lessons.length === 1 ? "video" : "videos"}</span>
                 <span className="mt-1.5 block text-[18px] font-semibold leading-snug text-white">{next.title}</span>
               </span>
               <span className="btn btn-white hidden sm:inline-flex">Continue</span>

@@ -11,14 +11,15 @@ import { Welcome } from "@/app/welcome/welcome";
 import { SignInFlow } from "@/app/sign-in/sign-in-flow";
 import LearnPage from "@/app/learn/page";
 import CompletePage from "@/app/learn/complete/page";
-import { LessonView } from "@/app/learn/[episode]/lesson-view";
+import { LessonView } from "@/app/learn/[episode]/[lesson]/lesson-view";
+import { ResumeDay } from "@/app/learn/[episode]/resume-day";
 import { QuizView } from "@/app/learn/[episode]/quiz/quiz-view";
 import { CertificateView } from "@/app/certificate/[number]/certificate-view";
 import VerifyPage from "@/app/verify/page";
 import AccountPage from "@/app/account/page";
 import { AppBar } from "@/components/learn/app-bar";
 import { StudentGate } from "@/components/student-gate";
-import { course, getEpisode } from "@/lib/catalog";
+import { course, getEpisode, getLesson } from "@/lib/catalog";
 
 // The same screens the Next.js app renders, mapped to an in-memory router.
 type Render = (params: Record<string, string>) => ReactNode;
@@ -37,10 +38,10 @@ const routes: [string, Render][] = [
       if (!ep) return null;
       return (
         <>
-          <AppBar center={<span className="hidden sm:inline"><span className="text-white">{ep.label}</span> · {ep.title}</span>} />
+          <AppBar />
           <main className="min-h-dvh bg-black">
             <StudentGate courseId={course.id}>
-              <LessonView key={ep.slug} slug={ep.slug} />
+              <ResumeDay slug={ep.slug} />
             </StudentGate>
           </main>
         </>
@@ -58,6 +59,24 @@ const routes: [string, Render][] = [
             <QuizView key={ep.slug} slug={ep.slug} />
           </StudentGate>
         </main>
+      );
+    },
+  ],
+  // After /quiz: both have three segments and the first match wins.
+  [
+    "/learn/:episode/:lesson",
+    ({ episode, lesson }) => {
+      const found = getLesson(episode, lesson);
+      if (!found) return null;
+      return (
+        <>
+          <AppBar center={<span className="hidden sm:inline"><span className="text-white">{found.ep.label}</span> · {found.lesson.title}</span>} />
+          <main className="min-h-dvh bg-black">
+            <StudentGate courseId={course.id}>
+              <LessonView key={found.lesson.id} episodeSlug={found.ep.slug} lessonSlug={found.lesson.slug} />
+            </StudentGate>
+          </main>
+        </>
       );
     },
   ],

@@ -1,10 +1,9 @@
+import { LESSONS } from "./lessons";
 import type { Brand, Course, Module } from "./types";
 
 // THE PROD course content, from Product Photography Kenya's course summary.
 // Video lengths are estimates until the final edits arrive. In Phase 2 this
 // comes from Supabase (courses → modules → lessons, quizzes → questions).
-
-const min = (m: number, s = 0) => m * 60 + s;
 
 export const brand: Brand = {
   name: "THE PROD",
@@ -22,48 +21,11 @@ const modules: Module[] = [
     slug: "welcome",
     position: 0,
     kind: "welcome",
-    label: "Welcome",
+    label: "Introduction",
     title: "Welcome to THE PROD",
     summary: "Meet Duncan, see the work, and learn the three keys to succeeding as a product photographer.",
     still: "/stills/welcome.jpg",
-    lessons: [
-      {
-        id: "welcome-l1",
-        title: "Welcome to THE PROD",
-        summary: "Meet your instructor, see the portfolio, and get set up with the community and support.",
-        durationSec: min(6),
-        notes: [
-          {
-            type: "lead",
-            text: "I'm Duncan Mutavi, co-founder of Product Photography Kenya. We create high-impact product visuals and teach photography and video content creation.",
-          },
-          {
-            type: "paragraph",
-            text: "For more than seven years we've helped brands like Kenya Meat Commission, World Vision, Brown Foods, Nyayo Tea Zone and Rockbern stand out online, and we recently led the Lamborghini Wines East Africa product launch. Our vision is online classes and physical creative centres across Africa, where people learn the craft of visual storytelling and position themselves in the digital economy.",
-          },
-          { type: "heading", text: "The three keys to success" },
-          {
-            type: "steps",
-            items: [
-              { title: "Research", body: "Understand the product, the brand and the buyer before you touch a light. Study how competitors present similar products." },
-              { title: "Plan", body: "Decide the style, the shot list, the angles and the lighting setup in advance. A shoot that is planned is a shoot that runs on time." },
-              { title: "Execute", body: "Shoot with intent, check every frame, and deliver files that are ready for the platform they're going to." },
-            ],
-          },
-          { type: "heading", text: "Join the community" },
-          {
-            type: "callout",
-            title: "WhatsApp us your number",
-            body: "Send your mobile number on WhatsApp to join the THE PROD photographers' group. It's where you share work, ask questions and get feedback.",
-          },
-          {
-            type: "callout",
-            title: "Getting support",
-            body: "Stuck on a lesson or a setup? Message the support line on WhatsApp and the team will help you through it.",
-          },
-        ],
-      },
-    ],
+    lessons: LESSONS["welcome"],
   },
   {
     id: "day-1",
@@ -72,68 +34,9 @@ const modules: Module[] = [
     kind: "day",
     label: "Day 1",
     title: "Introduction to E-commerce Photography",
-    summary: "What e-commerce photography is, why it sells, the four product surfaces, and the four styles of product photography.",
+    summary: "What e-commerce photography is, why it sells, and the four types of product you will shoot.",
     still: "/stills/day-1.jpg",
-    lessons: [
-      {
-        id: "day-1-l1",
-        title: "Introduction to E-commerce Photography",
-        summary: "Why product photos sell, how different surfaces behave under light, and which style fits which job.",
-        durationSec: min(24),
-        notes: [
-          {
-            type: "lead",
-            text: "E-commerce photography is taking high-quality product images for online stores. The goal is simple: attract buyers, show detail clearly, and boost sales on websites, social media and marketplaces like Amazon, Jumia and Etsy.",
-          },
-          { type: "heading", text: "Why it matters" },
-          {
-            type: "list",
-            items: [
-              "Builds the brand and customer trust through professional visuals.",
-              "Shows exactly what people are buying: shape, colour, texture and size.",
-              "Makes a product attractive and easy to understand without touching it.",
-              "Influences the buying decision, which increases sales and reduces returns.",
-            ],
-          },
-          { type: "heading", text: "The four product surfaces" },
-          {
-            type: "cards",
-            items: [
-              { title: "Matte", body: "Absorbs light, with little to no shine.", examples: ["Bags", "Ceramic mugs", "Wooden objects", "Clay pots"] },
-              { title: "Reflective", body: "Bounces light back and mirrors its surroundings, including the camera and you.", examples: ["Glassware", "Watches and jewellery", "Stainless steel"] },
-              { title: "Transparent", body: "Lets light pass straight through, so you see what's behind it.", examples: ["Drinking glasses", "Clear plastic bottles", "Glass perfume bottles"] },
-              { title: "Translucent", body: "Lets light through but scatters it, so it glows rather than shows through.", examples: ["Frosted glass", "Soap bars", "Wax candles"] },
-            ],
-          },
-          { type: "heading", text: "The four styles" },
-          {
-            type: "cards",
-            items: [
-              { title: "White background", body: "Clean and distraction-free. The standard for e-commerce listings and catalogues." },
-              { title: "Creative", body: "Props, colour and unusual setups that grab attention and express the brand's personality." },
-              { title: "Lifestyle", body: "The product in use or in a real setting, so buyers picture it in their own lives." },
-              { title: "Editorial", body: "Story-driven and art-directed like a magazine spread, built to evoke emotion for a campaign." },
-            ],
-          },
-          { type: "heading", text: "Product styling" },
-          {
-            type: "paragraph",
-            text: "Styling is arranging the product and its surroundings so it looks appealing, tells a story and connects with the audience. Keep it simple. Every element should earn its place.",
-          },
-          {
-            type: "steps",
-            items: [
-              { title: "Composition", body: "Where the product sits in the frame: rule of thirds, symmetry, leading lines." },
-              { title: "Props and accessories", body: "Supporting items that add to the story, like coffee beans beside a mug." },
-              { title: "Colour palette", body: "Colours that match the brand or the emotion you want, harmonious or contrasting." },
-              { title: "Textures and layers", body: "Fabrics, surfaces and materials that add depth around the product." },
-              { title: "Background", body: "Plain, textured, lifestyle or branded, chosen to suit the style." },
-              { title: "Lighting", body: "Highlights the key features and sets the mood: bright, moody, soft or low." },
-            ],
-          },
-        ],
-      },
-    ],
+    lessons: LESSONS["day-1"],
     quiz: {
       id: "q-day-1",
       title: "Introduction to E-commerce Photography",
@@ -212,62 +115,7 @@ const modules: Module[] = [
     title: "Gear Recommendations",
     summary: "What to buy on a budget and when you go pro: cameras, lenses, lights, modifiers and the small tools that save a shoot.",
     still: "/stills/day-2.jpg",
-    lessons: [
-      {
-        id: "day-2-l1",
-        title: "Gear Recommendations",
-        summary: "Budget and professional kits, lighting and softboxes, and the accessories every product photographer carries.",
-        durationSec: min(20),
-        notes: [
-          {
-            type: "lead",
-            text: "Good gear doesn't make good photos, but the wrong gear makes them harder. Buy for the work you'll actually shoot, then upgrade when the work demands it.",
-          },
-          { type: "heading", text: "What to look for in a camera" },
-          {
-            type: "cards",
-            items: [
-              { title: "Budget", body: "Start with a body you can afford and spend the difference on light. Light matters more than megapixels." },
-              { title: "Resolution", body: "Enough to crop and to meet client and marketplace sizes." },
-              { title: "Large sensor", body: "Cleaner images, better low-light performance and more dynamic range. Full frame is the professional standard." },
-              { title: "Colour science", body: "How the camera renders colour. Accurate colour and white balance in Kelvin save hours in editing." },
-              { title: "Hot shoe", body: "Lets you mount or trigger speedlights and flash triggers." },
-            ],
-          },
-          { type: "heading", text: "Lenses" },
-          {
-            type: "cards",
-            items: [
-              { title: "100mm macro", body: "Close-up detail, texture and small products like jewellery and labels." },
-              { title: "24–70mm", body: "The workhorse zoom for most product, flat lay and lifestyle setups." },
-            ],
-          },
-          { type: "heading", text: "Lighting and modifiers" },
-          {
-            type: "list",
-            items: [
-              "Softbox 60×90 cm: soft, even key light for most products.",
-              "Octabox 120 cm: large, wrapping light for bigger products and lifestyle.",
-              "Strip box 25×100 cm: long, narrow highlights along bottles and reflective edges.",
-              "Diffusers and reflectors to soften shadows and bounce light back in.",
-              "Grids to control spill and keep light off the background.",
-            ],
-          },
-          { type: "heading", text: "The small kit that saves the shoot" },
-          {
-            type: "list",
-            items: [
-              "Gloves, so you don't leave fingerprints on glossy and reflective products.",
-              "Foam cleaner and a microfiber cloth for dust and smudges.",
-              "Labels, a ruler and a tape measure for product sizing.",
-              "Wheat manila paper and white PVC paper as backdrops.",
-              "Rubber and masking tape, scissors, a pencil and clips.",
-              "Nail polish remover to lift sticker residue and marks.",
-            ],
-          },
-        ],
-      },
-    ],
+    lessons: LESSONS["day-2"],
     quiz: {
       id: "q-day-2",
       title: "Gear Recommendations",
@@ -332,36 +180,7 @@ const modules: Module[] = [
     title: "Understanding Tethering",
     summary: "Shoot straight to a computer so you and the client see every frame big, sharp and organised.",
     still: "/stills/day-3.jpg",
-    lessons: [
-      {
-        id: "day-3-l1",
-        title: "Understanding Tethering",
-        summary: "What tethering is, the software, connecting your camera, setting up a workflow and exporting.",
-        durationSec: min(16),
-        notes: [
-          {
-            type: "lead",
-            text: "Tethering means connecting your camera to a computer so every shot appears on the big screen as you take it. You check focus, dust and exposure at full size, and clients can approve shots on set.",
-          },
-          { type: "heading", text: "The workflow" },
-          {
-            type: "steps",
-            items: [
-              { title: "Choose your software", body: "Capture One is the industry standard. Lightroom Classic and your camera brand's own utility also tether." },
-              { title: "Connect the camera", body: "Use a good USB-C cable, secure it with a cable holder so it can't pull out, and turn the camera on." },
-              { title: "Set up the session", body: "Create a session folder and a naming pattern before the first shot, so every file is organised from the start." },
-              { title: "Shoot and review", body: "Check each frame at 100%. Apply a base adjustment or preset so the client sees the intended look." },
-              { title: "Export", body: "Export selects in the size and format the client or platform needs." },
-            ],
-          },
-          {
-            type: "callout",
-            title: "Why it's worth it",
-            body: "A speck of dust or a soft focus point is invisible on the camera's screen and obvious on a 27-inch monitor. Tethering catches it while the product is still on set.",
-          },
-        ],
-      },
-    ],
+    lessons: LESSONS["day-3"],
     quiz: {
       id: "q-day-3",
       title: "Understanding Tethering",
@@ -426,49 +245,7 @@ const modules: Module[] = [
     title: "Mastering the Camera & Composition",
     summary: "Shoot in manual with confidence: the exposure triangle, white balance, RAW, focus, framing and the angles that sell.",
     still: "/stills/day-4.jpg",
-    lessons: [
-      {
-        id: "day-4-l1",
-        title: "Mastering the Camera & Composition",
-        summary: "Camera basics, key settings, the exposure triangle, white balance, RAW vs JPG, focus, framing and angles.",
-        durationSec: min(25),
-        notes: [
-          {
-            type: "lead",
-            text: "In the studio you control the light, so shoot in manual. Three settings decide your exposure, and each one also changes how the image looks.",
-          },
-          { type: "heading", text: "The exposure triangle" },
-          {
-            type: "cards",
-            items: [
-              { title: "Aperture", body: "The lens opening. Smaller numbers like f/2.8 blur the background; f/8 to f/11 keep a product sharp from front to back." },
-              { title: "Shutter speed", body: "How long the sensor is exposed. With flash, 1/160 to 1/200 s is typical; it barely changes the flash exposure." },
-              { title: "ISO", body: "Sensor sensitivity. Keep it at 100 in the studio for the cleanest files." },
-            ],
-          },
-          { type: "heading", text: "Settings that matter" },
-          {
-            type: "list",
-            items: [
-              "White balance: set it in Kelvin. Daylight and flash are about 5500 K; tungsten is about 3200 K.",
-              "RAW over JPG: RAW keeps far more data for correcting exposure and white balance later.",
-              "Focus: use single-point autofocus on the most important detail, or manual focus with magnified live view.",
-              "Grid: turn on the grid overlay to keep lines straight and products centred.",
-            ],
-          },
-          { type: "heading", text: "Angles that sell" },
-          {
-            type: "cards",
-            items: [
-              { title: "Straight on", body: "Eye level, front-facing. The standard e-commerce hero shot." },
-              { title: "45 degrees", body: "Shows the front and a side, giving shape and depth." },
-              { title: "Top down", body: "Flat lays and products best seen from above, like accessories and food." },
-              { title: "Low angle", body: "Makes a product feel bold and premium." },
-            ],
-          },
-        ],
-      },
-    ],
+    lessons: LESSONS["day-4"],
     quiz: {
       id: "q-day-4",
       title: "Mastering the Camera & Composition",
@@ -546,53 +323,7 @@ const modules: Module[] = [
     title: "Lighting & Modifiers",
     summary: "The inverse square law, reading light, types of light, where to place it, and how to make it soft.",
     still: "/stills/day-5.jpg",
-    lessons: [
-      {
-        id: "day-5-l1",
-        title: "Lighting & Modifiers",
-        summary: "How light falls off, how to read it, the light sources you'll use, positions and diffusion.",
-        durationSec: min(22),
-        notes: [
-          {
-            type: "lead",
-            text: "Product photography is lighting. The camera records it; you design it. Learn to see light and you can shoot anything.",
-          },
-          {
-            type: "callout",
-            title: "The inverse square law",
-            body: "Light falls off with the square of distance. Move a light from 1 m to 2 m away and the product receives a quarter of the light, not half.",
-          },
-          { type: "heading", text: "How to read light" },
-          {
-            type: "list",
-            items: [
-              "Quality: hard light gives crisp shadows; soft light gives gentle transitions.",
-              "Direction: front light flattens, side light shows shape and texture, back light outlines.",
-              "Shadows: look at where they fall and how sharp their edges are. They tell you everything.",
-            ],
-          },
-          { type: "heading", text: "Types of light" },
-          {
-            type: "cards",
-            items: [
-              { title: "Strobes and speedlights", body: "Powerful bursts that freeze motion and overpower ambient light." },
-              { title: "Continuous LED", body: "Always on, so what you see is what you get. Great for learning and for video." },
-              { title: "Natural light", body: "Free and beautiful, but it changes through the day." },
-            ],
-          },
-          { type: "heading", text: "Positions and diffusion" },
-          {
-            type: "steps",
-            items: [
-              { title: "Key at 45°", body: "The main light, slightly to one side and above, for shape and dimension." },
-              { title: "Side or strip", body: "Defines edges and texture, essential for bottles and metal." },
-              { title: "Back or rim", body: "Separates the product from the background and makes glass glow." },
-              { title: "Diffuse it", body: "A larger source closer to the product is softer. Use softboxes, diffusion fabric or a scrim." },
-            ],
-          },
-        ],
-      },
-    ],
+    lessons: LESSONS["day-5"],
     quiz: {
       id: "q-day-5",
       title: "Lighting & Modifiers",
@@ -655,41 +386,13 @@ const modules: Module[] = [
     kind: "day",
     label: "Day 6",
     title: "Shooting for White Background",
-    summary: "Why white backgrounds sell, and the exact lighting setups for matte, reflective, transparent and translucent products.",
+    summary: "Why white backgrounds sell, and shooting with one light and with two.",
     still: "/stills/day-6.jpg",
-    lessons: [
-      {
-        id: "day-6-l1",
-        title: "Shooting for White Background",
-        summary: "One light for matte, two for reflective, three for transparent and translucent.",
-        durationSec: min(28),
-        notes: [
-          {
-            type: "lead",
-            text: "White background images are the backbone of e-commerce. Marketplaces expect them, catalogues need them consistent, and a clean white frame puts all the attention on the product.",
-          },
-          { type: "heading", text: "Four surfaces, four setups" },
-          {
-            type: "cards",
-            items: [
-              { title: "Matte · one light", body: "One speedlight in a softbox at 45° with a white card to fill the shadow side.", examples: ["Speedlight + softbox", "White bounce card"] },
-              { title: "Reflective · two lights", body: "Two speedlights in strip boxes either side, creating clean, controlled highlights. Black or white cards shape what the product reflects.", examples: ["2 × speedlight + strip box", "Black and white cards"] },
-              { title: "Transparent · three strobes", body: "A back light through the white background defines the glass, and two side strips add clean edge highlights.", examples: ["Background light", "2 × strip box"] },
-              { title: "Translucent · three strobes", body: "Light from behind makes the product glow; two side lights hold shape and detail on the front.", examples: ["Back light", "2 × side light"] },
-            ],
-          },
-          {
-            type: "callout",
-            title: "Get it right in camera",
-            body: "Expose so the background is just pure white without spilling light around the product's edges. The less you fix in Photoshop, the faster you deliver.",
-          },
-        ],
-      },
-    ],
+    lessons: LESSONS["day-6"],
     quiz: {
       id: "q-day-6",
       title: "Shooting for White Background",
-      passingScore: 0.75,
+      passingScore: 0.66,
       questions: [
         {
           id: "d6-1",
@@ -728,19 +431,6 @@ const modules: Module[] = [
           ],
           explanation: "With reflective products you light what they reflect. Strips and cards create clean, intentional highlights.",
         },
-        {
-          id: "d6-4",
-          type: "scenario",
-          scenario: "A clear glass bottle on white is disappearing into the background.",
-          prompt: "Which setup brings back its shape?",
-          options: [
-            { id: "a", text: "A single front light", correct: false },
-            { id: "b", text: "Three strobes: a back light through the background plus two side strips for edges", correct: true },
-            { id: "c", text: "No lights, just ambient", correct: false },
-            { id: "d", text: "A top light only", correct: false },
-          ],
-          explanation: "Transparent products are defined by their edges. Back light and side strips draw those edges cleanly.",
-        },
       ],
     },
   },
@@ -750,43 +440,13 @@ const modules: Module[] = [
     position: 7,
     kind: "day",
     label: "Day 7",
-    title: "Editing & Retouching",
-    summary: "File management, Photoshop essentials, exporting for every platform, Canva backgrounds and delivering to clients.",
+    title: "Editing & AI",
+    summary: "File structure, editing in Photoshop and Affinity, and using AI with your images.",
     still: "/stills/day-7.jpg",
-    lessons: [
-      {
-        id: "day-7-l1",
-        title: "Editing & Retouching",
-        summary: "From organised folders to retouched, exported files delivered to the client.",
-        durationSec: min(26),
-        notes: [
-          {
-            type: "lead",
-            text: "The shoot isn't finished until the files are delivered. A clean, repeatable editing workflow is what makes you fast and professional.",
-          },
-          { type: "heading", text: "The workflow" },
-          {
-            type: "steps",
-            items: [
-              { title: "Folders and file management", body: "Client › Shoot date › RAW, Edited, Final. Name files so anyone can find them." },
-              { title: "Photoshop overview", body: "Layers, masks, the healing and clone tools, and adjustment layers." },
-              { title: "Edit and retouch", body: "Crop and straighten, clean dust and scratches, correct colour and exposure, and make the background pure white." },
-              { title: "Export", body: "JPG for websites and marketplaces. PNG when you need a transparent background." },
-              { title: "Canva for backgrounds", body: "Drop cut-out products onto branded or seasonal backgrounds for social and ads." },
-              { title: "Share with the client", body: "Deliver through a shared folder with clear names and sizes that match the brief." },
-            ],
-          },
-          {
-            type: "callout",
-            title: "Before you hit send",
-            body: "Check file names, dimensions, format and colour against the client's brief or the platform's requirements.",
-          },
-        ],
-      },
-    ],
+    lessons: LESSONS["day-7"],
     quiz: {
       id: "q-day-7",
-      title: "Editing & Retouching",
+      title: "Editing & AI",
       passingScore: 0.75,
       questions: [
         {
@@ -816,14 +476,14 @@ const modules: Module[] = [
         {
           id: "d7-3",
           type: "multiple_choice",
-          prompt: "What does the course use Canva for?",
+          prompt: "Besides Photoshop, which editor does the course show the same workflow in?",
           options: [
-            { id: "a", text: "Tethering the camera", correct: false },
-            { id: "b", text: "Adding branded or seasonal backgrounds to cut-out products", correct: true },
-            { id: "c", text: "Shooting RAW", correct: false },
-            { id: "d", text: "Measuring light", correct: false },
+            { id: "a", text: "Capture One", correct: false },
+            { id: "b", text: "Affinity Photo", correct: true },
+            { id: "c", text: "Microsoft Paint", correct: false },
+            { id: "d", text: "WhatsApp", correct: false },
           ],
-          explanation: "Canva makes it quick to place cut-out products onto backgrounds for social media and ads.",
+          explanation: "Day 7 covers editing in both Photoshop and Affinity, so you can work in whichever you have.",
         },
         {
           id: "d7-4",
@@ -843,37 +503,11 @@ const modules: Module[] = [
     slug: "wrap-up",
     position: 8,
     kind: "wrap",
-    label: "Wrap-up",
-    title: "Wrap-up & Final Assessment",
+    label: "Conclusion",
+    title: "Conclusion & Final Assessment",
     summary: "Bring the seven days together, plan your next steps, and pass the final assessment to earn your certificate.",
     still: "/stills/wrap-up.jpg",
-    lessons: [
-      {
-        id: "wrap-up-l1",
-        title: "Where you go from here",
-        summary: "A recap of the seven days and how to turn the skill into paying work.",
-        durationSec: min(8),
-        notes: [
-          {
-            type: "lead",
-            text: "In seven days you've gone from what e-commerce photography is to lighting, shooting and delivering professional product images. Now make it work for you.",
-          },
-          {
-            type: "steps",
-            items: [
-              { title: "Build your portfolio", body: "Shoot ten products you own across all four surfaces, on white and creatively." },
-              { title: "Offer your first service", body: "Start with white background packshots for local businesses selling online." },
-              { title: "Keep learning", body: "Share your work in the community for feedback, and book a session when you're ready to go further." },
-            ],
-          },
-          {
-            type: "callout",
-            title: "Final assessment",
-            body: "Eight questions across the whole course. Score 75% or more to receive your THE PROD certificate.",
-          },
-        ],
-      },
-    ],
+    lessons: LESSONS["wrap-up"],
     quiz: {
       id: "q-final",
       title: "Final Assessment",
@@ -969,7 +603,7 @@ const modules: Module[] = [
         {
           id: "f-8",
           type: "multiple_choice",
-          prompt: "You need a cut-out product to place on a branded Canva background. How do you export it?",
+          prompt: "You need a cut-out product to place on a new branded background. How do you export it?",
           options: [
             { id: "a", text: "PNG with a transparent background", correct: true },
             { id: "b", text: "Low-quality JPG", correct: false },
@@ -1063,4 +697,15 @@ export function formatDuration(seconds: number) {
 export function formatClock(seconds: number) {
   const s = Math.max(0, Math.floor(seconds));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+}
+
+export function getLesson(episodeSlug: string, lessonSlug: string) {
+  const ep = getEpisode(episodeSlug);
+  const lesson = ep?.lessons.find((l) => l.slug === lessonSlug);
+  return ep && lesson ? { ep, lesson } : undefined;
+}
+
+/** "2.3" for days, the title alone for the introduction and conclusion. */
+export function lessonLabel(code: string, kind: "welcome" | "day" | "wrap") {
+  return kind === "wrap" ? "Conclusion" : code;
 }

@@ -203,7 +203,7 @@ export function Pricing() {
 
 const FAQS = [
   { q: "Do I need an expensive camera?", a: "No. Day 2 covers what to buy on a budget and when to upgrade. Light matters more than the camera, and the course shows you how to get the most from what you have." },
-  { q: "Is it really seven days?", a: "It's seven focused lessons, one per day, plus a welcome and a wrap-up. Go faster or slower; your progress is saved and you can pick up where you left off on any device." },
+  { q: "Is it really seven days?", a: "It's seven focused days of short videos, plus a welcome and a wrap-up. Go faster or slower; your progress is saved and you can pick up where you left off on any device." },
   { q: "How long do I have access?", a: "For life. Pay once and come back to any lesson whenever you need it." },
   { q: "Do I get a certificate?", a: "Yes. Pass the final assessment and your certificate is issued instantly, emailed to you, and verifiable by anyone with its ID." },
   { q: "How do I get help?", a: "Join the THE PROD WhatsApp community to share work and ask questions, and message the support line if you're stuck." },

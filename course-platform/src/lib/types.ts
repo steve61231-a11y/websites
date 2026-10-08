@@ -39,6 +39,8 @@ export type Note =
 
 export type Lesson = {
   id: string;
+  code: string; // the client's numbering, e.g. "2.3"
+  slug: string; // URL segment, e.g. "2-3"
   title: string;
   summary: string;
   durationSec: number;

@@ -29,7 +29,7 @@ function EpisodeCard({ m, index }: { m: Module; index: number }) {
         <h3 className="headline mt-2 text-[24px] text-white">{m.title}</h3>
         <p className="mt-2 line-clamp-2 text-[14px] leading-relaxed text-ink-2">{m.summary}</p>
         <p className="mt-4 text-[12px] font-medium text-muted">
-          {formatDuration(minutes)}
+          {m.lessons.length} {m.lessons.length === 1 ? "video" : "videos"} · {formatDuration(minutes)}
           {m.quiz ? ` · ${m.quiz.questions.length}-question ${m.kind === "wrap" ? "final" : "quiz"}` : ""}
         </p>
       </div>
@@ -70,7 +70,7 @@ export function SevenDays() {
       </div>
       <FadeIn delay={0.2}>
         <p className="max-w-[34ch] text-[17px] leading-relaxed text-ink-2">
-          A welcome, one focused lesson a day, and a wrap-up. Pass each day&apos;s quiz to unlock the next.
+          A welcome, a short run of focused videos each day, and a wrap-up. Pass each day&apos;s quiz to unlock the next.
         </p>
       </FadeIn>
     </div>

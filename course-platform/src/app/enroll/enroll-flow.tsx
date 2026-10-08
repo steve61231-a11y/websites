@@ -54,7 +54,7 @@ export function EnrollFlow() {
         <div className="max-w-sm">
           <p className="eyebrow">What you get</p>
           <ul className="mt-4 space-y-2.5 text-[15px] text-ink-2">
-            {[`${stats.lessons} lessons over 7 days`, `${stats.quizzes} quizzes and a final assessment`, "WhatsApp community and support", "Verifiable certificate", "Lifetime access"].map((t) => (
+            {[`${stats.lessons} videos over 7 days`, `${stats.quizzes} quizzes and a final assessment`, "WhatsApp community and support", "Verifiable certificate", "Lifetime access"].map((t) => (
               <li key={t} className="flex items-center gap-2.5">
                 <Check size={16} className="text-amber" /> {t}
               </li>
