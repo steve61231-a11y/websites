@@ -1,22 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Instrument_Serif } from "next/font/google";
+import { Inter, Montserrat } from "next/font/google";
+import { SmoothScroll } from "@/components/motion/smooth-scroll";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const serif = Instrument_Serif({
-  variable: "--font-serif-display",
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-});
+const montserrat = Montserrat({ variable: "--font-montserrat", subsets: ["latin"], weight: ["600", "700", "800"] });
 
 export const metadata: Metadata = {
-  title: { default: "Lumen — Learn something worth knowing", template: "%s · Lumen" },
-  description: "Practical courses from experienced professionals. Learn at your pace and earn a certificate.",
+  title: { default: "THE PROD · E-commerce Product Photography with AI", template: "%s · THE PROD" },
+  description:
+    "Become an e-commerce product photographer in the fastest timeframe possible. A 7-day course by Product Photography Kenya.",
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fbfbfd",
+  themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -24,8 +21,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} ${serif.variable}`}>
-      <body className="min-h-dvh">{children}</body>
+    <html lang="en" className={`${inter.variable} ${montserrat.variable}`}>
+      <body className="min-h-dvh">
+        <SmoothScroll />
+        {children}
+      </body>
     </html>
   );
 }

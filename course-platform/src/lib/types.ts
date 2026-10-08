@@ -27,20 +27,34 @@ export type Quiz = {
   questions: QuizQuestion[];
 };
 
+/** Rich lesson notes shown under the video. */
+export type Note =
+  | { type: "lead"; text: string }
+  | { type: "heading"; text: string }
+  | { type: "paragraph"; text: string }
+  | { type: "list"; items: string[] }
+  | { type: "cards"; items: { title: string; body: string; examples?: string[] }[] }
+  | { type: "steps"; items: { title: string; body: string }[] }
+  | { type: "callout"; title: string; body: string };
+
 export type Lesson = {
   id: string;
   title: string;
   summary: string;
   durationSec: number;
-  transcript: string[];
-  resources?: { title: string; kind: "PDF" | "Checklist" | "Preset" }[];
+  notes: Note[];
+  resources?: { title: string; kind: "PDF" | "Checklist" | "Preset" | "Link" }[];
 };
 
 export type Module = {
   id: string;
+  slug: string; // URL segment, e.g. "day-1"
   position: number;
+  kind: "welcome" | "day" | "wrap";
+  label: string; // "Welcome", "Day 1", "Wrap-up"
   title: string;
   summary: string;
+  still: string; // cover image until real thumbnails exist
   lessons: Lesson[];
   quiz?: Quiz;
 };
@@ -50,6 +64,7 @@ export type Instructor = {
   title: string;
   bio: string;
   initials: string;
+  clients: string[];
 };
 
 export type Course = {
@@ -69,8 +84,12 @@ export type Course = {
   modules: Module[];
 };
 
-export type ComingSoon = {
-  id: string;
-  hint: string;
-  hue: number;
+export type Brand = {
+  name: string;
+  subtitle: string;
+  organisation: string;
+  email: string;
+  whatsapp: string;
+  website: string;
+  bookingUrl: string;
 };

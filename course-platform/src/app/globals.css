@@ -1,47 +1,63 @@
 @import "tailwindcss";
 
+/* THE PROD: a black studio, lit by one warm key light.
+   Display type is Montserrat (the logo's face); reading type is Inter. */
 :root {
-  --bg: #fbfbfd;
-  --surface: #ffffff;
-  --ink: #1d1d1f;
-  --ink-2: #424245;
-  --muted: #6e6e73;
-  --faint: #86868b;
-  --line: #e5e5ea;
-  --fill: #f2f2f5;
-  --accent: #0071e3;
-  --accent-hover: #0077ed;
-  --success: #28a745;
-  --gold: #b08d57;
-  --night: #000000;
-  --night-2: #161617;
-  --night-ink: #f5f5f7;
+  --bg: #000000;
+  --bg-2: #0a0a0b;
+  --surface: #131315;
+  --surface-2: #1c1c1f;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-2: rgba(255, 255, 255, 0.16);
+  --ink: #f5f5f7;
+  --ink-2: #c9c9ce;
+  --muted: #8e8e93;
+  --faint: #5c5c61;
+  --amber: #f5a524;
+  --amber-2: #ffd08a;
+  --amber-deep: #b5620e;
+  --success: #34c759;
+  --danger: #ff5a4f;
+  --paper: #f5f5f7;
+  --paper-ink: #0b0b0c;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-muted: var(--muted);
   --color-faint: var(--faint);
-  --color-line: var(--line);
-  --color-fill: var(--fill);
-  --color-accent: var(--accent);
+  --color-amber: var(--amber);
+  --color-amber-2: var(--amber-2);
+  --color-amber-deep: var(--amber-deep);
   --color-success: var(--success);
-  --color-gold: var(--gold);
-  --color-night: var(--night);
-  --color-night-2: var(--night-2);
-  --color-night-ink: var(--night-ink);
-  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", var(--font-inter),
-    "Helvetica Neue", Arial, sans-serif;
-  --font-serif: var(--font-serif-display), "New York", Georgia, serif;
+  --color-danger: var(--danger);
+  --color-paper: var(--paper);
+  --color-paper-ink: var(--paper-ink);
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-montserrat), "Montserrat", "Helvetica Neue", Arial, sans-serif;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-apple: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 html {
   -webkit-text-size-adjust: 100%;
-  scroll-behavior: smooth;
+  background: var(--bg);
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
 }
 
 body {
@@ -54,61 +70,90 @@ body {
 }
 
 ::selection {
-  background: rgba(0, 113, 227, 0.18);
+  background: rgba(245, 165, 36, 0.35);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 3px;
 }
 
 @layer components {
   .wrap {
-    @apply mx-auto w-full max-w-[1040px] px-5 sm:px-8;
-  }
-
-  .eyebrow {
-    @apply text-[13px] font-semibold tracking-[0.02em] text-muted;
+    @apply mx-auto w-full max-w-[1200px] px-5 sm:px-8;
   }
 
   .display {
-    @apply font-semibold tracking-[-0.035em] leading-[1.03];
+    font-family: var(--font-display);
+    @apply font-extrabold uppercase leading-[0.92] tracking-[-0.035em];
+    text-wrap: balance;
+  }
+
+  .headline {
+    @apply font-semibold leading-[1.05] tracking-[-0.03em];
+    text-wrap: balance;
+  }
+
+  .eyebrow {
+    font-family: var(--font-display);
+    @apply text-[11px] font-bold uppercase tracking-[0.22em] text-amber;
   }
 
   .btn {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-[15px] font-medium
-      transition-[background-color,transform,opacity,box-shadow] duration-200 ease-(--ease-apple)
-      active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40
-      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent;
+    @apply relative inline-flex min-h-12 select-none items-center justify-center gap-2 rounded-full px-6 text-[15px] font-semibold
+      transition-[background-color,color,transform,box-shadow,opacity] duration-300 ease-(--ease-out-expo)
+      active:scale-[0.96] disabled:pointer-events-none disabled:opacity-35;
   }
-  .btn-primary {
-    @apply bg-accent text-white hover:bg-[var(--accent-hover)];
+  .btn-white {
+    @apply bg-white text-black hover:bg-[#e9e9ee] shadow-[0_8px_30px_-10px_rgba(255,255,255,0.35)];
   }
-  .btn-dark {
-    @apply bg-ink text-white hover:bg-black;
+  .btn-amber {
+    @apply bg-amber text-black hover:bg-amber-2 shadow-[0_10px_40px_-12px_rgba(245,165,36,0.7)];
   }
-  .btn-light {
-    @apply bg-white text-ink hover:bg-white/90;
+  .btn-glass {
+    @apply bg-white/[0.08] text-ink backdrop-blur-xl hover:bg-white/[0.14] ring-1 ring-inset ring-white/10;
   }
-  .btn-quiet {
-    @apply bg-fill text-ink hover:bg-[#e8e8ed];
+  .btn-ghost {
+    @apply text-ink-2 hover:text-white hover:bg-white/[0.06];
   }
   .btn-lg {
-    @apply min-h-[52px] px-7 text-[17px];
-  }
-
-  .link {
-    @apply text-accent hover:underline underline-offset-4;
-  }
-
-  .card {
-    @apply rounded-[28px] bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_32px_rgba(0,0,0,0.05)];
-  }
-
-  .input {
-    @apply min-h-[52px] w-full rounded-[14px] border border-line bg-white px-4 text-[17px] outline-none
-      transition-[border-color,box-shadow] duration-200 placeholder:text-faint
-      focus:border-accent focus:shadow-[0_0_0_4px_rgba(0,113,227,0.15)];
+    @apply min-h-14 px-8 text-[16px];
   }
 
   .glass {
-    @apply bg-[rgba(251,251,253,0.72)] backdrop-blur-xl backdrop-saturate-[1.8];
+    @apply bg-[rgba(18,18,20,0.62)] backdrop-blur-2xl backdrop-saturate-[1.6];
   }
+
+  .panel {
+    @apply rounded-[28px] bg-surface ring-1 ring-inset ring-white/[0.06];
+  }
+
+  .field {
+    @apply min-h-14 w-full rounded-2xl bg-white/[0.06] px-5 text-[17px] text-white ring-1 ring-inset ring-white/10 outline-none
+      transition-[box-shadow,background-color] duration-300 placeholder:text-faint
+      focus:bg-white/[0.09] focus:ring-2 focus:ring-amber/70;
+  }
+
+  .hairline {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent;
+  }
+}
+
+/* Film grain over dark surfaces, very subtle. */
+.grain::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 @keyframes eq {
@@ -124,17 +169,50 @@ body {
   75% { transform: translate(30vw, 74%); }
 }
 
+@keyframes focus-pull {
+  from { filter: blur(22px) brightness(0.7); transform: scale(1.06); }
+  to { filter: blur(0) brightness(1); transform: scale(1); }
+}
+
+/* Route transitions (React <ViewTransition>) */
+::view-transition-old(.page-fade) {
+  animation: 180ms ease-in both vt-fade-out;
+}
+::view-transition-new(.page-fade) {
+  animation: 420ms var(--ease-out-expo) 80ms both vt-fade-in;
+}
+::view-transition-group(.morph) {
+  animation-duration: 520ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: vt-soften;
+}
+@keyframes vt-fade-out {
+  to { opacity: 0; transform: scale(0.985); }
+}
+@keyframes vt-fade-in {
+  from { opacity: 0; transform: translateY(14px); }
+}
+@keyframes vt-soften {
+  40% { filter: blur(2px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
 
 @media print {
   body { background: white; }
   .no-print { display: none !important; }
-  .print-only { display: block !important; }
   @page { size: A4 landscape; margin: 0; }
 }
