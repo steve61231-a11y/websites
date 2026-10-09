@@ -50,7 +50,7 @@ for (const file of readdirSync(src)) {
     await sharp(path.join(src, file))
       .rotate()
       .resize(1280, 720, { fit: "cover", position: "attention" })
-      .jpeg({ quality: 82, mozjpeg: true })
+      .jpeg({ quality: 76, mozjpeg: true })
       .toFile(path.join(outDir, `${key}.jpg`));
     console.log(`${file} → ${outDir}/${key}.jpg`);
     count++;
