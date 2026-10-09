@@ -69,7 +69,7 @@ export function Viewfinder({ image = "/stills/viewfinder.jpg", className = "" }:
         <div className="relative h-full overflow-hidden rounded-[23px] bg-black">
           <motion.img
             src={image}
-            alt="A perfume bottle being photographed"
+            alt="A camera being photographed"
             className="absolute inset-0 h-full w-full object-cover"
             initial={false}
             animate={{ filter: LOOK[Math.min(shown, 4)] }}
@@ -164,10 +164,10 @@ export function Viewfinder({ image = "/stills/viewfinder.jpg", className = "" }:
             </p>
             <img src={image} alt="" className="aspect-square w-full rounded-[12px] object-cover" />
             <div className="px-0.5 pb-0.5 pt-2">
-              <p className="text-[12px] font-semibold leading-tight">Amber No. 7 · Eau de Parfum</p>
+              <p className="text-[12px] font-semibold leading-tight">Canon EOS 5D · 24–105 mm kit</p>
               <p className="mt-0.5 text-[11px] text-black/50">★★★★★ 128</p>
               <div className="mt-2 flex items-center justify-between gap-2">
-                <p className="text-[13px] font-bold">KES 4,500</p>
+                <p className="text-[13px] font-bold">KES 185,000</p>
                 <span className="rounded-full bg-black px-2.5 py-1 text-[10px] font-semibold text-white">Add to cart</span>
               </div>
             </div>

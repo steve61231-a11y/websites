@@ -65,7 +65,7 @@ export function EnrollFlow() {
 
   return (
     <AuthShell
-      image="/stills/day-1.jpg"
+      image="/thumbs/the-prod/day-1.jpg"
       caption={
         <div className="max-w-sm">
           <p className="eyebrow">What you get</p>

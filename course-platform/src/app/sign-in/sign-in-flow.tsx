@@ -75,7 +75,7 @@ export function SignInFlow() {
 
   return (
     <AuthShell
-      image="/stills/welcome.jpg"
+      image="/thumbs/the-prod/welcome.jpg"
       caption={
         <p className="headline max-w-[16ch] text-[40px] text-white">Pick up exactly where you left off.</p>
       }

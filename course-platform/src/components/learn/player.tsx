@@ -153,14 +153,14 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
           <motion.img
             src={lesson.thumb ?? episode.still}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-contain"
             animate={playing ? { scale: 1.12, x: "-2%" } : { scale: 1, x: "0%" }}
             transition={{ duration: playing ? 40 : 1.2, ease: playing ? "linear" : [0.16, 1, 0.3, 1] }}
           />
         )}
         <div className={`pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 transition-opacity duration-500 ${real && playing ? "opacity-0" : ""}`} />
         <AnimatePresence>
-          {!playing && time === 0 && (
+          {!playing && time === 0 && !lesson.thumb && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

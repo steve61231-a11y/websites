@@ -9,7 +9,7 @@
 //   intro.jpg / conclusion.jpg               → Introduction / Conclusion cover
 //   cover.jpg                                → the course card and page cover
 //
-// Images are cropped to 16:9, resized to 1280×720 and saved as JPEG in
+// Images keep their full frame (no cropping), are capped at 1920 px wide and saved as JPEG in
 // public/thumbs/<course>/. Then src/lib/content/<course>/thumbnails.ts is
 // regenerated from everything in that folder, so re-running only adds or
 // replaces the images you give it.
@@ -49,8 +49,8 @@ for (const file of readdirSync(src)) {
   for (const key of keys) {
     await sharp(path.join(src, file))
       .rotate()
-      .resize(1280, 720, { fit: "cover", position: "attention" })
-      .jpeg({ quality: 76, mozjpeg: true })
+      .resize({ width: 1920, withoutEnlargement: true }) // keep the full frame, never upscale
+      .jpeg({ quality: 88, mozjpeg: true })
       .toFile(path.join(outDir, `${key}.jpg`));
     console.log(`${file} → ${outDir}/${key}.jpg`);
     count++;

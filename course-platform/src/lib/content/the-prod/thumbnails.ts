@@ -49,4 +49,4 @@ export const dayCovers: Record<string, string> = {
 };
 
 /** Course card and page cover. */
-export const courseCover: string | null = null;
+export const courseCover: string | null = "/thumbs/the-prod/cover.jpg";
