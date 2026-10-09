@@ -53,8 +53,8 @@ export function CourseHome() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/20" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
-        <div className="wrap relative grid gap-10 pb-14 md:grid-cols-[1fr_auto] md:items-end">
-          <div>
+        <div className="wrap relative grid gap-10 pb-14 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+          <div className="min-w-0">
             <FadeIn inView={false} delay={0.05} y={10}>
               <p className="eyebrow">
                 {finished ? "Course complete" : `${greeting()}, ${first}`}
@@ -65,7 +65,7 @@ export function CourseHome() {
               inView={false}
               delay={0.1}
               text={finished ? "You did it." : step.kind === "quiz" ? (focus.kind === "wrap" ? "Final assessment" : `${focus.label} quiz`) : focus.label}
-              className="display mt-4 text-[clamp(56px,9vw,120px)] text-white"
+              className="display mt-4 text-[clamp(34px,10vw,120px)] text-white"
             />
             <FadeIn inView={false} delay={0.3} y={10}>
               <p className="headline mt-3 max-w-[22ch] text-[clamp(22px,2.6vw,32px)] text-white">

@@ -27,7 +27,7 @@ export type DemoState = ProgressState & {
   receipt: Receipt | null;
 };
 
-const KEY = "the-prod-demo-v1";
+const KEY = "the-prod-demo-v2"; // bump to start every visitor fresh
 
 const empty: DemoState = {
   ready: false,

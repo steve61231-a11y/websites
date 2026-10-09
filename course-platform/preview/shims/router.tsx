@@ -9,7 +9,7 @@ type Loc = { path: string; query: string };
 type Ctx = { loc: Loc; push: (href: string, types?: string[]) => void; replace: (href: string) => void; back: () => void };
 
 const RouterCtx = createContext<Ctx | null>(null);
-const KEY = "the-prod-preview-route";
+const KEY = "the-prod-preview-route-v2";
 
 function parse(href: string): { loc: Loc; anchor?: string } {
   const [beforeHash, anchor] = href.split("#");

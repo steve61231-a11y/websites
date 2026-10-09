@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/brand/wordmark";
 import { brand } from "@/lib/catalog";
+import { RestartDemo } from "./restart-demo";
 
 export function SiteFooter() {
   return (
@@ -30,6 +31,7 @@ export function SiteFooter() {
       </div>
       <div className="wrap mt-6 flex flex-col gap-2 text-[12px] text-faint sm:flex-row sm:justify-between">
         <p>© 2026 {brand.organisation}</p>
+        <RestartDemo />
         <p>Payments secured by Paystack</p>
       </div>
     </footer>
