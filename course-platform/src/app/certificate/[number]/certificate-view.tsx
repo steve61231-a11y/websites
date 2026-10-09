@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { Check, Download, Share, Shield } from "@/components/icons";
-import { Certificate } from "@/components/learn/certificate";
+import { CertificateImage, certificateFileName } from "@/components/learn/personal-certificate";
+import { formatCertificateDate, useCertificateImage } from "@/lib/certificate-render";
 import { lookupCertificate } from "@/lib/certificates";
 import { useDemo } from "@/lib/demo-store";
 import { formatDate } from "@/lib/format";
@@ -14,13 +15,18 @@ export function CertificateView({ number }: { number: string }) {
   const state = useDemo();
   const found = state.ready ? lookupCertificate(number, state.certificates) : undefined;
   const [copied, setCopied] = useState(false);
+  const image = useCertificateImage(
+    found?.course.certificate,
+    found ? { name: found.cert.name, date: formatCertificateDate(found.course.certificate, found.cert.issuedAt), number: found.cert.number } : null,
+  );
 
   useEffect(() => {
-    if (found && new URLSearchParams(window.location.search).get("print") === "1") {
-      const t = setTimeout(() => window.print(), 700);
+    // ?print=1 opens the print dialog (Save as PDF) once the certificate is drawn.
+    if (image && new URLSearchParams(window.location.search).get("print") === "1") {
+      const t = setTimeout(() => window.print(), 300);
       return () => clearTimeout(t);
     }
-  }, [found]);
+  }, [image]);
 
   if (!state.ready) return <div className="min-h-dvh bg-black" />;
 
@@ -58,7 +64,7 @@ export function CertificateView({ number }: { number: string }) {
       </header>
       <main className="wrap max-w-[1080px] pb-20 print:m-0 print:max-w-none print:p-0">
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} className="shadow-[0_50px_120px_-40px_rgba(245,165,36,0.3)] print:shadow-none">
-          <Certificate name={cert.name} date={formatDate(cert.issuedAt)} number={cert.number} />
+          <CertificateImage template={course.certificate} url={image?.url} name={cert.name} />
         </motion.div>
         <div className="no-print mt-10 grid gap-8 sm:grid-cols-[1fr_auto] sm:items-start">
           <dl className="grid grid-cols-2 gap-x-8 gap-y-5 text-[15px]">
@@ -68,7 +74,12 @@ export function CertificateView({ number }: { number: string }) {
             <div><dt className="text-[12px] text-muted">Certificate ID</dt><dd className="mt-1 select-all font-mono text-[14px] text-white">{cert.number}</dd></div>
           </dl>
           <div className="flex gap-3">
-            <button onClick={() => window.print()} className="btn btn-white"><Download size={18} /> Download PDF</button>
+            {image ? (
+              <a href={image.url} download={certificateFileName(cert.name)} className="btn btn-white"><Download size={18} /> Download</a>
+            ) : (
+              <span className="btn btn-white opacity-50"><Download size={18} /> Preparing…</span>
+            )}
+            <button onClick={() => window.print()} className="btn btn-glass">PDF</button>
             <button onClick={share} className="btn btn-glass">{copied ? <><Check size={18} /> Link copied</> : <><Share size={18} /> Share</>}</button>
           </div>
         </div>

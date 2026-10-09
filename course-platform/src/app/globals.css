@@ -265,63 +265,13 @@ html[data-theme-switching]::view-transition-new(*) {
   to { filter: blur(0) brightness(1); transform: scale(1); }
 }
 
-/* Route transitions (React <ViewTransition>, see components/motion/page.tsx).
-   Exits are short and quiet, entrances a touch longer, so the new page is
-   always what the eye follows. Transform and opacity only: no blur. */
-:root {
-  --vt-out: 160ms;
-  --vt-in: 380ms;
-  --vt-ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --vt-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+/* Page arrival (components/motion/page.tsx). Opacity only: cheap, and it
+   doesn't move fixed bars inside the page. */
+.page-enter {
+  animation: page-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
-::view-transition-old(.page-fade) {
-  animation: var(--vt-out) var(--vt-ease-in) both vt-fade-out;
-}
-::view-transition-new(.page-fade) {
-  animation: var(--vt-in) var(--vt-ease-out) 40ms both vt-rise-in;
-}
-::view-transition-old(.slide-forward) {
-  animation: var(--vt-out) var(--vt-ease-in) both vt-out-left;
-}
-::view-transition-new(.slide-forward) {
-  animation: var(--vt-in) var(--vt-ease-out) 40ms both vt-in-right;
-}
-::view-transition-old(.slide-back) {
-  animation: var(--vt-out) var(--vt-ease-in) both vt-out-right;
-}
-::view-transition-new(.slide-back) {
-  animation: var(--vt-in) var(--vt-ease-out) 40ms both vt-in-left;
-}
-::view-transition-group(.morph) {
-  animation-duration: 480ms;
-  animation-timing-function: cubic-bezier(0.2, 0.9, 0.25, 1);
-}
-::view-transition-old(.morph) {
-  animation: 160ms ease-out both vt-fade-out;
-}
-::view-transition-new(.morph) {
-  animation: 240ms ease-out both vt-fade;
-}
-@keyframes vt-fade-out {
-  to { opacity: 0; }
-}
-@keyframes vt-fade {
+@keyframes page-in {
   from { opacity: 0; }
-}
-@keyframes vt-rise-in {
-  from { opacity: 0; transform: translateY(10px); }
-}
-@keyframes vt-out-left {
-  to { opacity: 0; transform: translateX(-24px); }
-}
-@keyframes vt-in-right {
-  from { opacity: 0; transform: translateX(36px); }
-}
-@keyframes vt-out-right {
-  to { opacity: 0; transform: translateX(24px); }
-}
-@keyframes vt-in-left {
-  from { opacity: 0; transform: translateX(-36px); }
 }
 
 /* Images fade in as they arrive instead of popping (components/ui/img.tsx). */

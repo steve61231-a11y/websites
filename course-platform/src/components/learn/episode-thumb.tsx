@@ -1,36 +1,27 @@
-import { ViewTransition } from "react";
 import type { Module } from "@/lib/types";
 import { Check, Lock } from "@/components/icons";
 import { Img } from "@/components/ui/img";
 
 export type EpisodeState = "complete" | "current" | "locked";
 
-/**
- * An episode's cover. Carries a shared view-transition name, so tapping it
- * morphs the thumbnail into the player on the lesson page.
- */
+/** A day's (or a video's) cover, with its number, state and progress. */
 export function EpisodeThumb({
   episode,
   state,
   progress = 0,
   className = "",
-  morph = true,
   large = false,
   code,
-  name,
   image,
 }: {
   episode: Module;
   /** Show a lesson code like "2.3" instead of the day number. */
   code?: string;
-  /** Shared transition name; defaults to the episode's. */
-  name?: string;
   /** A specific picture (e.g. a video's thumbnail) instead of the day cover. */
   image?: string;
   state?: EpisodeState;
   progress?: number;
   className?: string;
-  morph?: boolean;
   large?: boolean;
 }) {
   const number = code ?? (episode.kind === "day" ? String(episode.position).padStart(2, "0") : episode.kind === "welcome" ? "00" : "08");
@@ -61,11 +52,5 @@ export function EpisodeThumb({
       )}
     </div>
   );
-  return morph ? (
-    <ViewTransition name={name ?? `ep-${episode.slug}`} share="morph" default="none">
-      {body}
-    </ViewTransition>
-  ) : (
-    body
-  );
+  return body;
 }

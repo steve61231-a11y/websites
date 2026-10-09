@@ -40,7 +40,7 @@ const routes: [string, Render][] = [
       if (!c) return null;
       return (
         <>
-          <SiteNav overDark />
+          <SiteNav />
           <main className="bg-black">
             <CourseHero course={c} />
             <Curriculum course={c} />

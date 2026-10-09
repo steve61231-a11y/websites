@@ -95,6 +95,8 @@ export type Course = {
   instructor: Instructor;
   outcomes: { title: string; body: string }[];
   faqs: { q: string; a: string }[];
+  /** The certificate design students receive. */
+  certificate: CertificateTemplate;
   modules: Module[];
 };
 
@@ -106,4 +108,34 @@ export type Brand = {
   whatsapp: string;
   website: string;
   bookingUrl: string;
+};
+
+/** One piece of text written onto the certificate template. Positions and sizes are fractions of the image width/height, so any resolution works. */
+export type CertificateField = {
+  x: number; // anchor point, 0–1 of width
+  y: number; // vertical middle of the text, 0–1 of height
+  size: number; // font size as a fraction of the image width
+  align: "left" | "center" | "right";
+  font: "display" | "sans" | "mono";
+  weight?: number;
+  color: string;
+  /** Letter spacing in em (e.g. -0.035). */
+  tracking?: number;
+  /** Longest the text may be, as a fraction of width; longer names are scaled down to fit. */
+  maxWidth?: number;
+  uppercase?: boolean;
+};
+
+/** A certificate design: an image (e.g. exported from Canva) plus where to write each student's details. */
+export type CertificateTemplate = {
+  image: string; // e.g. "/certificates/the-prod.jpg"
+  width: number; // pixel size of that image
+  height: number;
+  fields: {
+    name: CertificateField;
+    date: CertificateField;
+    number?: CertificateField;
+  };
+  /** How the date is written, e.g. "18 September 2026". */
+  dateFormat?: Intl.DateTimeFormatOptions;
 };

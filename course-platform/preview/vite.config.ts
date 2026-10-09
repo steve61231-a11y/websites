@@ -8,16 +8,16 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 // preview link. Next.js APIs are swapped for small client-side shims.
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
-// Embed images referenced as "/stills/name.jpg" or "/thumbs/<course>/name.jpg"
+// Embed images referenced as "/stills/name.jpg", "/thumbs/<course>/name.jpg" or "/certificates/name.jpg"
 // so the preview is one file.
 function inlineStills(): Plugin {
   return {
     name: "inline-stills",
     enforce: "pre",
     transform(code, id) {
-      if (!/\/src\/.*\.(t|j)sx?$/.test(id) || !/\/(stills|thumbs)\//.test(code)) return;
+      if (!/\/src\/.*\.(t|j)sx?$/.test(id) || !/\/(stills|thumbs|certificates)\//.test(code)) return;
       const names = new Set<string>();
-      const out = code.replace(/(=)?(["'])\/((?:stills|thumbs\/[\w-]+)\/[\w-]+)\.jpg\2/g, (_m, eq: string | undefined, _q, file: string) => {
+      const out = code.replace(/(=)?(["'])\/((?:stills|certificates|thumbs\/[\w-]+)\/[\w-]+)\.jpg\2/g, (_m, eq: string | undefined, _q, file: string) => {
         names.add(file);
         const id = `__img_${file.replace(/[^\w]/g, "_")}`;
         return eq ? `={${id}}` : id; // JSX attributes need braces

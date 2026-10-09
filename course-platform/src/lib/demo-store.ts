@@ -131,7 +131,7 @@ export const demo = {
       quizAttempts: { ...s.quizAttempts, [quizId]: [...(s.quizAttempts[quizId] ?? []), attempt] },
     }));
   },
-  issueCertificate(courseId: string, code: string): Certificate {
+  issueCertificate(courseId: string, code: string, name?: string): Certificate {
     load();
     const existing = state.certificates.find((c) => c.courseId === courseId);
     if (existing) return existing;
@@ -140,7 +140,7 @@ export const demo = {
     const cert: Certificate = {
       number: `CERT-${year}-${code}-${seq}`,
       courseId,
-      name: state.user?.name ?? "Student",
+      name: name?.trim() || state.user?.name || "Student",
       issuedAt: new Date().toISOString(),
     };
     set((s) => ({ certificates: [...s.certificates, cert] }));

@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { useEffect, useState, ViewTransition, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { CheckDraw } from "@/components/celebrate";
 import { Check, ChevronLeft, ChevronRight, Download, Lock } from "@/components/icons";
 import { EpisodeThumb } from "@/components/learn/episode-thumb";
@@ -99,20 +99,16 @@ export function LessonView({
       </div>
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="min-w-0">
-          <ViewTransition name={`ls-${lesson.id}`} share="morph" default="none">
-            <div>
-              <Player
-                key={lesson.id}
-                episode={ep}
-                lesson={lesson}
-                startAt={state.positions[lesson.id] ?? 0}
-                watermark={`Licensed to ${state.user?.name} · ${state.user?.email}`}
-                onProgress={(s) => demo.savePosition(lesson.id, s)}
-                onEnded={complete}
-                overlay={overlay}
-              />
-            </div>
-          </ViewTransition>
+          <Player
+            key={lesson.id}
+            episode={ep}
+            lesson={lesson}
+            startAt={state.positions[lesson.id] ?? 0}
+            watermark={`Licensed to ${state.user?.name} · ${state.user?.email}`}
+            onProgress={(s) => demo.savePosition(lesson.id, s)}
+            onEnded={complete}
+            overlay={overlay}
+          />
 
           <div className="px-5 sm:px-0">
             <motion.div key={lesson.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: EASE, delay: 0.1 }} className="mt-8 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
@@ -195,7 +191,7 @@ export function LessonView({
                       transitionTypes={[k > i ? "nav-forward" : "nav-back"]}
                       className={`flex items-center gap-3 rounded-2xl p-2 transition-[background-color,transform] duration-200 active:scale-[0.98] ${current ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"}`}
                     >
-                      <EpisodeThumb episode={ep} image={l.thumb} code={ep.kind === "wrap" ? "" : l.code} state={ldone ? "complete" : undefined} progress={(state.positions[l.id] ?? 0) / l.durationSec} morph={false} className="w-[92px] shrink-0 !rounded-[10px]" />
+                      <EpisodeThumb episode={ep} image={l.thumb} code={ep.kind === "wrap" ? "" : l.code} state={ldone ? "complete" : undefined} progress={(state.positions[l.id] ?? 0) / l.durationSec} className="w-[92px] shrink-0 !rounded-[10px]" />
                       <span className="min-w-0 flex-1">
                         <span className={`block text-[11px] font-bold uppercase tracking-[0.16em] ${current ? "text-amber" : "text-faint"}`}>
                           {current ? "Now playing" : `${lessonLabel(l.code, ep.kind)} · ${Math.round(l.durationSec / 60)} min`}

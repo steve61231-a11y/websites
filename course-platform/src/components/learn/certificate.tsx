@@ -4,7 +4,9 @@ import { brand, course } from "@/lib/catalog";
 // The certificate, sized in container units so it renders the same as a
 // thumbnail, full screen, or a printed A4 page.
 
-export function Certificate({ name, date, number }: { name: string; date: string; number: string }) {
+/** `blank` hides the per-student fields: used to export the default template image. */
+export function Certificate({ name, date, number, blank = false }: { name: string; date: string; number: string; blank?: boolean }) {
+  const hide = blank ? { visibility: "hidden" as const } : undefined;
   return (
     <div className="@container w-full">
       <div className="theme-dark relative aspect-[297/210] w-full overflow-hidden rounded-[1.4cqw] bg-[#070707] text-left text-white print:rounded-none">
@@ -24,7 +26,7 @@ export function Certificate({ name, date, number }: { name: string; date: string
 
           <div className="flex flex-1 flex-col items-center justify-center text-center">
             <p className="text-[1.6cqw] text-white/55">This certifies that</p>
-            <p className="mt-[1cqw] font-[family-name:var(--font-display)] text-[6.2cqw] font-bold leading-[1.02] tracking-[-0.035em]">{name}</p>
+            <p data-field="name" style={hide} className="mt-[1cqw] font-[family-name:var(--font-display)] text-[6.2cqw] font-bold leading-[1.02] tracking-[-0.035em]">{name}</p>
             <p className="mt-[1.8cqw] max-w-[58cqw] text-[1.7cqw] leading-relaxed text-white/70">
               has completed <span className="font-semibold text-white">{course.title}</span>, the seven-day course by {brand.organisation},
               and passed every assessment.
@@ -33,7 +35,7 @@ export function Certificate({ name, date, number }: { name: string; date: string
 
           <div className="grid grid-cols-3 items-end gap-[3cqw] text-[1.2cqw] text-white/55">
             <div>
-              <p className="text-[1.6cqw] font-semibold text-white">{date}</p>
+              <p data-field="date" style={hide} className="text-[1.6cqw] font-semibold text-white">{date}</p>
               <div className="mt-[0.6cqw] h-px bg-white/20" />
               <p className="mt-[0.6cqw]">Date</p>
             </div>
@@ -43,7 +45,7 @@ export function Certificate({ name, date, number }: { name: string; date: string
               <p className="mt-[0.6cqw]">Instructor</p>
             </div>
             <div className="text-right">
-              <p className="font-mono text-[1.35cqw] text-white">{number}</p>
+              <p data-field="number" style={hide} className="font-mono text-[1.35cqw] text-white">{number}</p>
               <div className="mt-[0.6cqw] h-px bg-white/20" />
               <p className="mt-[0.6cqw]">Verify at productphotography.co.ke/verify</p>
             </div>

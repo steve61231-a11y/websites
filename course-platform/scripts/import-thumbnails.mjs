@@ -4,8 +4,9 @@
 //
 // Name each image after what it's for (any image format; extra words are ignored):
 //   2.3.png  or  "2.3 - Camera Sensor.jpg"   → video 2.3's thumbnail
-//   day-2.jpg                                → Day 2's cover
-//   welcome.jpg / wrap-up.jpg                 → Introduction / Conclusion cover
+//   "2.4 and 2.5.jpg"                        → the same image for 2.4 and 2.5
+//   day-2.jpg / day_2.jpg                    → Day 2's cover
+//   intro.jpg / conclusion.jpg               → Introduction / Conclusion cover
 //   cover.jpg                                → the course card and page cover
 //
 // Images are cropped to 16:9, resized to 1280×720 and saved as JPEG in
@@ -24,33 +25,36 @@ if (!src) {
 const outDir = path.join("public", "thumbs", course);
 mkdirSync(outDir, { recursive: true });
 
-function keyFor(file) {
+/** Where an image goes. One image can serve several videos: "2.4 and 2.5.jpg". */
+function keysFor(file) {
   const name = path.parse(file).name.toLowerCase().trim();
-  let m = name.match(/^(\d+)\s*[.\-_ ]\s*(\d+)/);
-  if (m) return `${m[1]}-${m[2]}`;
-  m = name.match(/^day[\s_-]*(\d+)/);
-  if (m) return `day-${m[1]}`;
-  if (/^(intro|welcome)/.test(name)) return "welcome";
-  if (/^(conclusion|wrap)/.test(name)) return "wrap-up";
-  if (/^cover/.test(name)) return "cover";
-  return null;
+  const codes = [...name.matchAll(/(\d+)\s*\.\s*(\d+)/g)].map((m) => `${m[1]}-${m[2]}`);
+  if (codes.length) return codes;
+  let m = name.match(/^day[\s_-]*(\d+)/);
+  if (m) return [`day-${m[1]}`];
+  if (/^(intro|welcome)/.test(name)) return ["welcome"];
+  if (/^(conclusion|wrap)/.test(name)) return ["wrap-up"];
+  if (/^cover/.test(name)) return ["cover"];
+  return [];
 }
 
 let count = 0;
 for (const file of readdirSync(src)) {
   if (!/\.(jpe?g|png|webp|avif|tiff?|heic)$/i.test(file)) continue;
-  const key = keyFor(file);
-  if (!key) {
-    console.warn(`skip ${file}: name it like "2.3.png", "day-2.jpg" or "cover.jpg"`);
+  const keys = keysFor(file);
+  if (!keys.length) {
+    console.warn(`skip ${file}: name it like "2.3.png", "2.4 and 2.5.jpg", "day-2.jpg" or "cover.jpg"`);
     continue;
   }
-  await sharp(path.join(src, file))
-    .rotate()
-    .resize(1280, 720, { fit: "cover", position: "attention" })
-    .jpeg({ quality: 82, mozjpeg: true })
-    .toFile(path.join(outDir, `${key}.jpg`));
-  console.log(`${file} → ${outDir}/${key}.jpg`);
-  count++;
+  for (const key of keys) {
+    await sharp(path.join(src, file))
+      .rotate()
+      .resize(1280, 720, { fit: "cover", position: "attention" })
+      .jpeg({ quality: 82, mozjpeg: true })
+      .toFile(path.join(outDir, `${key}.jpg`));
+    console.log(`${file} → ${outDir}/${key}.jpg`);
+    count++;
+  }
 }
 
 // Regenerate the map from every thumbnail on disk.

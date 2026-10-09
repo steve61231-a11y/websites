@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "motion/react";
-import { ViewTransition } from "react";
 import Link from "next/link";
 import { Arrow, Award, Doc, Play } from "@/components/icons";
 import { FadeIn, TextReveal } from "@/components/motion/reveal";
@@ -94,16 +93,11 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
         className="group grid overflow-hidden rounded-[32px] bg-surface ring-1 ring-inset ring-white/[0.06] transition-[box-shadow,transform] duration-500 ease-(--ease-out-expo) hover:ring-white/15 active:scale-[0.99] active:duration-150 md:grid-cols-[1.15fr_1fr]"
       >
         <div className="theme-dark relative aspect-[16/10] overflow-hidden bg-black md:aspect-auto md:min-h-[420px]">
-          {/* Morphs into the course page hero */}
-          <ViewTransition name={`cover-${course.slug}`} share="morph" default="none">
-            <div className="absolute inset-0 overflow-hidden">
-              <Img
-                src={course.cover}
-                alt=""
-                className="h-full w-full object-cover transition-transform duration-[1.6s] ease-(--ease-out-expo) group-hover:scale-[1.04]"
-              />
-            </div>
-          </ViewTransition>
+          <Img
+            src={course.cover}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.6s] ease-(--ease-out-expo) group-hover:scale-[1.04]"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <span className="absolute left-5 top-5 rounded-full bg-black/50 px-3 py-1.5 text-[12px] font-semibold text-white ring-1 ring-inset ring-white/15 backdrop-blur-md">
             {course.category}

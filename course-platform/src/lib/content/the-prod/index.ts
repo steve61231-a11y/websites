@@ -10,6 +10,7 @@ import * as welcome from "./welcome";
 import * as wrapUp from "./wrap-up";
 import { resources, videos } from "./media";
 import { courseCover, dayCovers, lessonThumbs } from "./thumbnails";
+import { certificateTemplate } from "./certificate";
 
 // THE PROD: E-commerce Product Photography with AI, by Product Photography Kenya.
 
@@ -179,5 +180,6 @@ export const theProd: Course = {
     { q: "How do I get help?", a: "Join the WhatsApp community to share work and ask questions, or message the support line if you're stuck." },
     { q: "How do I pay?", a: "Securely through Paystack with M-Pesa or card. Your access arrives by email as soon as the payment is confirmed." },
   ],
+  certificate: certificateTemplate,
   modules,
 };

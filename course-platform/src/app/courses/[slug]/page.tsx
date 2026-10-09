@@ -23,7 +23,7 @@ export async function generateMetadata(props: PageProps<"/courses/[slug]">): Pro
 export default function CoursePage(props: PageProps<"/courses/[slug]">) {
   return (
     <>
-      <SiteNav overDark />
+      <SiteNav />
       <PageTransition>
         <main className="bg-black">
           <Suspense fallback={<div className="min-h-[100svh] bg-black" />}>
