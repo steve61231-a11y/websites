@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Inter, Montserrat } from "next/font/google";
 import { SmoothScroll } from "@/components/motion/smooth-scroll";
 import { THEME_SCRIPT } from "@/components/theme-toggle";
@@ -30,7 +31,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className="min-h-dvh">
-        <SmoothScroll />
+        {/* Reads the URL, so it waits for it on pages rendered per request */}
+        <Suspense fallback={null}>
+          <SmoothScroll />
+        </Suspense>
         {children}
       </body>
     </html>

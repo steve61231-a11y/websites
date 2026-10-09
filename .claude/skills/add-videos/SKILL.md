@@ -41,7 +41,7 @@ The course uses each lesson's `seconds` (in `src/lib/content/the-prod/<day>.ts`,
 
 ## Matching videos to numbers
 
-The client's video files are named like `2.3 - Camera Sensor - FullFrame or Cropped`. The number before the dash is the key. Day 6's two "Revised" videos are 6.3 and 6.4; the conclusion video is `8.1`.
+The client's video files are named like `2.3 - Camera Sensor - FullFrame or Cropped`. The number before the dash is the key. The original "6.2 - Shooting Two Lights" is not used; the two "Revised" videos are now **6.2** (Shooting Two Lights: Setup) and **6.3** (Shooting Two Lights). The conclusion video is `8.1`.
 
 ## After adding
 

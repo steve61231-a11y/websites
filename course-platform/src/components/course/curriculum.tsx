@@ -5,13 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { FadeIn, TextReveal } from "@/components/motion/reveal";
 import { formatDuration } from "@/lib/catalog";
 import type { Course, Module } from "@/lib/types";
+import { Img } from "@/components/ui/img";
 
 function EpisodeCard({ m, index }: { m: Module; index: number }) {
   const minutes = m.lessons.reduce((s, l) => s + l.durationSec, 0);
   const number = m.kind === "day" ? String(m.position).padStart(2, "0") : m.kind === "welcome" ? "00" : "08";
   return (
     <article className="theme-dark group relative aspect-[4/5] w-[min(360px,78vw,calc((100svh-300px)*0.8))] shrink-0 snap-start overflow-hidden rounded-[28px] bg-surface ring-1 ring-inset ring-white/[0.06]">
-      <img
+      <Img
         src={m.still}
         alt=""
         loading={index > 2 ? "lazy" : "eager"}

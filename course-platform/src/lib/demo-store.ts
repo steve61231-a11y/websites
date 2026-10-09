@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import type { ProgressState, QuizAttempt } from "./progress";
+import type { Receipt } from "./receipt";
 
 // Phase 1 demo persistence. Everything here maps 1:1 to Supabase tables in
 // Phase 2: user → profiles, enrolled → enrollments, completedLessons →
@@ -22,6 +23,8 @@ export type DemoState = ProgressState & {
   certificates: Certificate[];
   purchaseEmail: string | null;
   purchaseName: string | null;
+  /** The last purchase's receipt (demo; in production it lives server-side). */
+  receipt: Receipt | null;
 };
 
 const KEY = "the-prod-demo-v1";
@@ -36,6 +39,7 @@ const empty: DemoState = {
   certificates: [],
   purchaseEmail: null,
   purchaseName: null,
+  receipt: null,
 };
 
 let state: DemoState = empty;
@@ -81,10 +85,11 @@ export function useDemo() {
 }
 
 export const demo = {
-  purchase(courseId: string, email: string, name: string) {
+  purchase(courseId: string, email: string, name: string, receipt: Receipt | null = null) {
     set((s) => ({
       purchaseEmail: email.toLowerCase(),
       purchaseName: name,
+      receipt,
       enrolled: s.enrolled.includes(courseId) ? s.enrolled : [...s.enrolled, courseId],
     }));
   },

@@ -3,11 +3,12 @@
 import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useRef } from "react";
+import { Fragment, useRef } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { CheckDraw, Confetti } from "@/components/celebrate";
 import { FadeIn, TextReveal } from "@/components/motion/reveal";
-import { brand, course, formatPrice } from "@/lib/catalog";
+import { brand } from "@/lib/catalog";
+import { receiptEmail, type Receipt } from "@/lib/receipt";
 import { useDemo } from "@/lib/demo-store";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -36,7 +37,7 @@ function AccessEmail({ first, email }: { first: string; email: string }) {
         }}
         initial={{ opacity: 0, y: 80, rotateX: 28 }}
         animate={{ opacity: 1, y: 0, rotateX: 0 }}
-        transition={{ duration: 1.3, ease: EASE, delay: 0.9 }}
+        transition={{ duration: 0.9, ease: EASE, delay: 0.45 }}
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         className="theme-dark overflow-hidden rounded-[22px] bg-white text-left text-[#111] shadow-[0_60px_120px_-30px_rgba(245,165,36,0.35),0_30px_60px_-30px_rgba(0,0,0,0.9)]"
       >
@@ -65,8 +66,6 @@ function AccessEmail({ first, email }: { first: string; email: string }) {
             Start learning
           </Link>
           <p className="mt-8 border-t border-black/[0.07] pt-5 text-[12px] leading-relaxed text-black/45">
-            Receipt · {formatPrice(course.price, course.currency)} · Ref PSK_8F2K19X
-            <br />
             {brand.organisation} · {brand.email}
           </p>
         </div>
@@ -75,9 +74,45 @@ function AccessEmail({ first, email }: { first: string; email: string }) {
   );
 }
 
+/** The receipt email: deliberately plain, like the one that will be sent. */
+function ReceiptEmail({ receipt }: { receipt: Receipt }) {
+  const mail = receiptEmail(receipt);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: EASE, delay: 0.7 }}
+      className="theme-dark overflow-hidden rounded-[22px] bg-white text-left text-[#111] shadow-[0_30px_60px_-30px_rgba(0,0,0,0.6)]"
+    >
+      <div className="flex items-center gap-3 border-b border-black/[0.07] px-5 py-3.5">
+        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#f2f2f4] text-[11px] font-bold text-black/70">PPK</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[14px] font-semibold">{brand.organisation}</p>
+          <p className="truncate text-[12px] text-black/50">{mail.subject}</p>
+        </div>
+        <span className="text-[12px] text-black/40">now</span>
+      </div>
+      <div className="px-6 py-5 text-[14px] leading-relaxed">
+        <p>Hi {mail.first},</p>
+        <p className="mt-2 text-black/70">
+          Thanks for your purchase. You paid <strong className="text-black">{mail.total}</strong> for {receipt.courseTitle}.
+        </p>
+        <dl className="mt-4 grid grid-cols-[96px_1fr] gap-y-1.5 text-[13px]">
+          {mail.rows.slice(2).map(([k, v]) => (
+            <Fragment key={k}>
+              <dt className="text-black/45">{k}</dt>
+              <dd className="tabular-nums">{v}</dd>
+            </Fragment>
+          ))}
+        </dl>
+      </div>
+    </motion.div>
+  );
+}
+
 export function Welcome() {
   const params = useSearchParams();
-  const { purchaseName, purchaseEmail } = useDemo();
+  const { purchaseName, purchaseEmail, receipt } = useDemo();
   const email = params.get("email") ?? purchaseEmail ?? "you@example.com";
   const first = (purchaseName ?? "there").split(" ")[0];
 
@@ -90,19 +125,22 @@ export function Welcome() {
           <Wordmark className="h-7 w-auto" />
         </Link>
       </header>
-      <main className="wrap relative grid items-center gap-14 pb-20 pt-6 lg:grid-cols-[1fr_440px] lg:pt-16">
+      <main className="wrap relative grid grid-cols-1 items-center gap-14 pb-20 pt-6 lg:grid-cols-[minmax(0,1fr)_440px] lg:pt-16">
         <div>
           <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 260, damping: 18 }}>
             <CheckDraw size={64} color="var(--amber)" />
           </motion.div>
           <TextReveal as="h1" inView={false} delay={0.15} text={`You're in, ${first}.`} className="display mt-8 text-[clamp(48px,8vw,104px)] text-white" />
-          <FadeIn inView={false} delay={0.6}>
+          <FadeIn inView={false} delay={0.35}>
             <p className="mt-6 max-w-[34ch] text-[19px] leading-relaxed text-ink-2">
-              We&apos;ve sent your access link to <span className="text-white">{email}</span>. Here&apos;s the email. Open it, or start right here.
+              We&apos;ve sent your access link and receipt to <span className="text-white">{email}</span>. Here they are. Open the access email, or start right here.
             </p>
           </FadeIn>
         </div>
-        <AccessEmail first={first} email={email} />
+        <div className="min-w-0 space-y-5">
+          <AccessEmail first={first} email={email} />
+          {receipt && <ReceiptEmail receipt={receipt} />}
+        </div>
       </main>
     </div>
   );

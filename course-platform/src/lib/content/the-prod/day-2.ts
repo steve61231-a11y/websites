@@ -131,7 +131,7 @@ export const lessons: Lesson[] = [
       },
     ],
   ),
-  lesson("2.5", "Lenses, Part 1", 105, "The three lenses Duncan recommends: 50 mm, 100 mm macro and 24-70.", [
+  lesson("2.5", "Lenses", 105, "The three lenses Duncan recommends: 50 mm, 100 mm macro and 24-70.", [
     {
       type: "lead",
       text: "Picking the right lenses matters. Duncan recommends three: a 50 mm, a 100 mm macro and a 24-70.",
@@ -161,7 +161,7 @@ export const lessons: Lesson[] = [
   ]),
   lesson(
     "2.6",
-    "Lenses, Part 2",
+    "Lighting Gear",
     308,
     "Choosing lights: continuous LED, speed lights and strobes, and why you need a Bowens mount.",
     [

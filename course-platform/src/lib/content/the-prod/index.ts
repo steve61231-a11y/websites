@@ -9,15 +9,21 @@ import * as day7 from "./day-7";
 import * as welcome from "./welcome";
 import * as wrapUp from "./wrap-up";
 import { resources, videos } from "./media";
+import { courseCover, dayCovers, lessonThumbs } from "./thumbnails";
 
 // THE PROD: E-commerce Product Photography with AI, by Product Photography Kenya.
 
 // Each day's videos, notes and quiz live in their own file in this folder.
 // Transcripts are in /content/transcripts/the-prod/<code>.md.
 
-/** Attach each video's link and downloads from media.ts. */
+/** Attach each video's link, downloads (media.ts) and thumbnail (thumbnails.ts). */
 const withMedia = (lessons: Lesson[]) =>
-  lessons.map((l) => ({ ...l, ...(videos[l.code] ? { video: videos[l.code] } : {}), ...(resources[l.code] ? { resources: resources[l.code] } : {}) }));
+  lessons.map((l) => ({
+    ...l,
+    ...(videos[l.code] ? { video: videos[l.code] } : {}),
+    ...(resources[l.code] ? { resources: resources[l.code] } : {}),
+    ...(lessonThumbs[l.code] ? { thumb: lessonThumbs[l.code] } : {}),
+  }));
 
 const modules: Module[] = [
   {
@@ -28,7 +34,7 @@ const modules: Module[] = [
     label: "Introduction",
     title: "Welcome to THE PROD",
     summary: "Meet Duncan, and see what the training covers and how to get the most from it.",
-    still: "/stills/welcome.jpg",
+    still: dayCovers["welcome"] ?? "/stills/welcome.jpg",
     lessons: withMedia(welcome.lessons),
   },
   {
@@ -39,7 +45,7 @@ const modules: Module[] = [
     label: "Day 1",
     title: "Introduction to E-commerce Photography",
     summary: "What e-commerce photography is, and the four types of product surface you will shoot.",
-    still: "/stills/day-1.jpg",
+    still: dayCovers["day-1"] ?? "/stills/day-1.jpg",
     lessons: withMedia(day1.lessons),
     quiz: day1.quiz,
   },
@@ -51,7 +57,7 @@ const modules: Module[] = [
     label: "Day 2",
     title: "Gear Recommendations",
     summary: "Buying for your purpose and budget: cameras, sensors, lenses, lights, modifiers and the small tools that save a shoot.",
-    still: "/stills/day-2.jpg",
+    still: dayCovers["day-2"] ?? "/stills/day-2.jpg",
     lessons: withMedia(day2.lessons),
     quiz: day2.quiz,
   },
@@ -63,7 +69,7 @@ const modules: Module[] = [
     label: "Day 3",
     title: "Understanding Tethering",
     summary: "Shoot straight to a computer so you see every frame big and sharp, and set up a tethered session step by step.",
-    still: "/stills/day-3.jpg",
+    still: dayCovers["day-3"] ?? "/stills/day-3.jpg",
     lessons: withMedia(day3.lessons),
     quiz: day3.quiz,
   },
@@ -75,7 +81,7 @@ const modules: Module[] = [
     label: "Day 4",
     title: "Mastering the Camera & Composition",
     summary: "Shoot in manual with confidence: camera settings and the exposure triangle of aperture, ISO and shutter speed.",
-    still: "/stills/day-4.jpg",
+    still: dayCovers["day-4"] ?? "/stills/day-4.jpg",
     lessons: withMedia(day4.lessons),
     quiz: day4.quiz,
   },
@@ -87,7 +93,7 @@ const modules: Module[] = [
     label: "Day 5",
     title: "Lighting & Modifiers",
     summary: "Continuous lights, speedlights and strobes, the modifiers that shape them, and how to read light.",
-    still: "/stills/day-5.jpg",
+    still: dayCovers["day-5"] ?? "/stills/day-5.jpg",
     lessons: withMedia(day5.lessons),
     quiz: day5.quiz,
   },
@@ -99,7 +105,7 @@ const modules: Module[] = [
     label: "Day 6",
     title: "Shooting for White Background",
     summary: "Full product-on-white shoots, first with one light and then with two.",
-    still: "/stills/day-6.jpg",
+    still: dayCovers["day-6"] ?? "/stills/day-6.jpg",
     lessons: withMedia(day6.lessons),
     quiz: day6.quiz,
   },
@@ -111,7 +117,7 @@ const modules: Module[] = [
     label: "Day 7",
     title: "Editing & AI",
     summary: "File structure, editing in Photoshop and Affinity, and using AI to turn your photos into marketing content.",
-    still: "/stills/day-7.jpg",
+    still: dayCovers["day-7"] ?? "/stills/day-7.jpg",
     lessons: withMedia(day7.lessons),
     quiz: day7.quiz,
   },
@@ -123,7 +129,7 @@ const modules: Module[] = [
     label: "Conclusion",
     title: "Conclusion & Final Assessment",
     summary: "Bring the seven days together and pass the final assessment to earn your certificate.",
-    still: "/stills/wrap-up.jpg",
+    still: dayCovers["wrap-up"] ?? "/stills/wrap-up.jpg",
     lessons: withMedia(wrapUp.lessons),
     quiz: wrapUp.quiz,
   },
@@ -135,7 +141,7 @@ export const theProd: Course = {
   code: "PROD",
   status: "published",
   category: "Photography",
-  cover: "/stills/hero.jpg",
+  cover: courseCover ?? "/stills/hero.jpg",
   title: "E-commerce Product Photography with AI",
   shortTitle: "THE PROD",
   tagline: "Become an e-commerce product photographer in the fastest timeframe possible.",

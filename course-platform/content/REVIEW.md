@@ -4,7 +4,6 @@ The lesson notes and quizzes were written from the video transcripts. Auto-trans
 
 ## Most important
 
-- **2.6 is titled "Lenses" but is entirely about lights** (LED continuous light, speedlights, strobes, Bowens mount). It probably needs a new title, such as "Lights".
 - **5.5, light distance:** he first says moving the light closer makes shadows less harsh, then that closer light makes highlights harsher and farther light makes them softer. The notes follow the second statement, and no quiz question tests it. Consider clarifying or re-recording.
 - **4.4, shutter speed:** "the higher the number, the longer the exposure" contradicts the rest of the video. The notes follow the consistent version: 1/30 is slower and can blur; 1/240 is faster, freezes motion and is darker.
 - **Downloads:** the gear-list PDF promised in 2.7 and 2.8 needs uploading. Add it with the `add-videos` skill.
@@ -45,15 +44,15 @@ The lesson notes and quizzes were written from the video transcripts. Auto-trans
 - 5.1: he says speedlights are "68 W", which doesn't make sense. The notes only say they have far less power than a strobe.
 - 5.2: grid sizes are given as "30 cm, 15 and 10 cm", probably degrees. The notes give the numbers without a unit.
 - 5.2: the reflector dish sizes ("18 and 24…") are garbled, and he recommends both the small and the bigger size. The notes make no recommendation.
-- 5.2 and 6.2: the board material is transcribed as "cleric"/"passpects", probably acrylic/Perspex. The notes say "the board that doesn't scratch".
+- 5.2: the board material is transcribed as "cleric"/"passpects", probably acrylic/Perspex. The notes say "the board that doesn't scratch".
 - 5.2: "60x90 octagon" is written as a 60x90 softbox.
 - 5.5: he first says moving the light closer makes shadows less harsh, then that closer light makes highlights harsher. The notes follow the second statement, which is the opposite of the usual rule, so it's kept out of the quizzes. **Worth re-recording or clarifying.**
 - 5.1 and 6.1: 5.1 says speedlights will be shown, but 6.1 says he doesn't recommend them and uses strobes.
 
 ## Day 6
-- 6.2 and 6.3: "key light happier" is garbled, and it isn't clear which light is the key and which is the back light.
-- 6.3: the diffusion paper is "mounted on a stand". Where it sits in the setup isn't stated.
-- 6.4: some numbers are interpreted: f/14 to f/16 for the gold board, the reset to ISO 125 and f/13, and back-light power "full, then down to 1/2". The "220K" ISO is left out.
+- 6.2: the roles of the two lights (which is the key and which is the back light) aren't stated.
+- 6.2: the diffusion paper is "mounted on a stand". Where it sits in the setup isn't stated.
+- 6.3: some numbers are interpreted: f/14 to f/16 for the gold board, the reset to ISO 125 and f/13, and back-light power "full, then down to 1/2". The "220K" ISO is left out.
 
 ## Day 7
 - 7.4: the creator of the six-step prompt framework (Role, Task, Content, Reasoning, Output, Stop) sounds like "Daniela" and is left unnamed.

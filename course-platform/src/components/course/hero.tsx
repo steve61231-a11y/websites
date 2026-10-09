@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore, ViewTransition } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { Magnetic } from "@/components/motion/magnetic";
 import { FadeIn, TextReveal } from "@/components/motion/reveal";
@@ -66,27 +66,32 @@ export function CourseHero({ course }: { course: Course }) {
 
   return (
     <section className="theme-dark relative min-h-[100svh] overflow-hidden bg-black" aria-label={course.title}>
-      <motion.picture aria-hidden className="absolute inset-0 block md:translate-x-[18%]" animate={{ opacity: ready ? 0 : 1 }} transition={{ duration: 1.2 }}>
-        <source media="(max-width: 767px)" srcSet="/stills/hero-portrait.jpg" />
-        <img src="/stills/hero.jpg" alt="" className="h-full w-full object-cover" />
-      </motion.picture>
-      {live && (
-        <Studio
-          surface={surface.key}
-          offsetX={mobile ? 0 : 1.7}
-          reflections={!mobile}
-          cameraZ={mobile ? 12 : 7.6}
-          liftY={mobile ? 1 : 0}
-          onReady={() => setReady(true)}
-          className="absolute inset-0 h-full w-full"
-        />
-      )}
+      {/* The catalog card's cover morphs into this layer */}
+      <ViewTransition name={`cover-${course.slug}`} share="morph" default="none">
+        <div className="absolute inset-0">
+          <motion.picture aria-hidden className="absolute inset-0 block md:translate-x-[18%]" animate={{ opacity: ready ? 0 : 1 }} transition={{ duration: 1.2 }}>
+            <source media="(max-width: 767px)" srcSet="/stills/hero-portrait.jpg" />
+            <img src="/stills/hero.jpg" alt="" className="h-full w-full object-cover" />
+          </motion.picture>
+          {live && (
+            <Studio
+              surface={surface.key}
+              offsetX={mobile ? 0 : 1.7}
+              reflections={!mobile}
+              cameraZ={mobile ? 12 : 7.6}
+              liftY={mobile ? 1 : 0}
+              onReady={() => setReady(true)}
+              className="absolute inset-0 h-full w-full"
+            />
+          )}
+        </div>
+      </ViewTransition>
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/10 to-black/40 md:bg-gradient-to-r md:from-black/85 md:via-black/30 md:to-transparent" />
       <div className="grain pointer-events-none absolute inset-0" />
 
       <div className="wrap relative flex min-h-[100svh] flex-col justify-end pb-[max(40px,env(safe-area-inset-bottom))] pt-28 md:justify-center md:pb-16">
         <div className="max-w-[640px]">
-          <FadeIn inView={false} delay={0.1} y={12}>
+          <FadeIn inView={false} delay={0.05} y={10}>
             <Link href="/#courses" className="text-[13px] font-medium text-muted transition-colors hover:text-white">
               ← All courses
             </Link>
@@ -96,9 +101,9 @@ export function CourseHero({ course }: { course: Course }) {
             <span className="sr-only">
               {course.shortTitle}: {course.title}
             </span>
-            <Wordmark animate delay={0.25} className="w-[min(80vw,520px)]" />
+            <Wordmark animate delay={0.1} className="w-[min(80vw,520px)]" />
           </h1>
-          <FadeIn inView={false} delay={1} y={12}>
+          <FadeIn inView={false} delay={0.4} y={10}>
             <p className="mt-5 font-[family-name:var(--font-display)] text-[12px] font-semibold uppercase tracking-[0.28em] text-ink-2 sm:text-[13px]">
               {course.title}
             </p>
@@ -106,12 +111,12 @@ export function CourseHero({ course }: { course: Course }) {
           <TextReveal
             as="p"
             inView={false}
-            delay={1.15}
-            stagger={0.025}
+            delay={0.45}
+            stagger={0.02}
             text={course.tagline}
             className="headline mt-6 max-w-[24ch] text-[clamp(22px,3vw,34px)] text-white"
           />
-          <FadeIn inView={false} delay={1.7} y={16}>
+          <FadeIn inView={false} delay={0.65} y={12}>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Magnetic>
                 <Link href={owned ? "/learn" : "/enroll"} className="btn btn-white btn-lg">
@@ -127,7 +132,7 @@ export function CourseHero({ course }: { course: Course }) {
         </div>
 
         {/* Surface switcher: the live studio's caption, and a way to drive it */}
-        <FadeIn inView={false} delay={2} y={10} className="mt-10 md:absolute md:bottom-12 md:right-8 md:mt-0 md:w-[300px]">
+        <FadeIn inView={false} delay={0.8} y={10} className="mt-10 md:absolute md:bottom-12 md:right-8 md:mt-0 md:w-[300px]">
           <div className="min-h-[52px]">
             <AnimatePresence mode="wait">
               <motion.p

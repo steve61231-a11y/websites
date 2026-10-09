@@ -1,19 +1,19 @@
-import { ViewTransition } from "react";
 import { CourseList, HomeHero, HowItWorks } from "@/components/home/catalog";
 import { SiteFooter } from "@/components/site/footer";
 import { SiteNav } from "@/components/site/nav";
+import { PageTransition } from "@/components/motion/page";
 
 export default function Home() {
   return (
     <>
       <SiteNav />
-      <ViewTransition enter="page-fade" exit="page-fade" default="none">
+      <PageTransition>
         <main className="bg-black">
           <HomeHero />
           <CourseList />
           <HowItWorks />
         </main>
-      </ViewTransition>
+      </PageTransition>
       <SiteFooter />
     </>
   );

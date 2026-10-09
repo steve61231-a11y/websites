@@ -44,8 +44,8 @@ export function Completion() {
         <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.8 }} className="eyebrow">
           THE PROD · Complete
         </motion.p>
-        <TextReveal as="h1" inView={false} delay={0.35} text={`You did it, ${first}.`} className="display mt-5 text-[clamp(52px,11vw,140px)] text-white" />
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2, duration: 0.8 }} className="mt-5 text-[clamp(18px,2.2vw,24px)] text-ink-2">
+        <TextReveal as="h1" inView={false} delay={0.2} text={`You did it, ${first}.`} className="display mt-5 text-[clamp(52px,11vw,140px)] text-white" />
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.6 }} className="mt-5 text-[clamp(18px,2.2vw,24px)] text-ink-2">
           Seven days. Every assessment passed. Your certificate is ready.
         </motion.p>
 
@@ -53,7 +53,7 @@ export function Completion() {
           <motion.div
             initial={{ opacity: 0, y: 140, rotateX: 40 }}
             animate={{ opacity: 1, y: 0, rotateX: 0 }}
-            transition={{ duration: 1.5, ease: EASE, delay: 1.4 }}
+            transition={{ duration: 1.1, ease: EASE, delay: 0.8 }}
             style={{ transformPerspective: 1400 }}
             className="mt-14 w-full max-w-4xl shadow-[0_60px_140px_-30px_rgba(245,165,36,0.35)]"
           >
@@ -62,7 +62,7 @@ export function Completion() {
         )}
 
         {cert && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.4 }} className="mt-10 flex flex-col items-center gap-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className="mt-10 flex flex-col items-center gap-4">
             <div className="flex flex-wrap justify-center gap-3">
               <Link href={`/certificate/${cert.number}?print=1`} className="btn btn-white btn-lg">
                 <Download size={18} /> Download PDF

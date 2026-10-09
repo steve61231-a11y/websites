@@ -82,7 +82,7 @@ export function SignInFlow() {
     >
       <AnimatePresence mode="wait">
         {stage === "email" ? (
-          <motion.div key="email" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.45, ease: EASE }}>
+          <motion.div key="email" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20, transition: { duration: 0.16, ease: [0.4, 0, 1, 1] } }} transition={{ duration: 0.38, ease: EASE }}>
             <h1 className="headline text-[40px] text-white">Sign in</h1>
             <p className="mt-2 text-[16px] text-muted">Use the email you paid with.</p>
 
@@ -117,7 +117,7 @@ export function SignInFlow() {
             </p>
           </motion.div>
         ) : (
-          <motion.div key="code" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.45, ease: EASE }}>
+          <motion.div key="code" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20, transition: { duration: 0.16, ease: [0.4, 0, 1, 1] } }} transition={{ duration: 0.38, ease: EASE }}>
             <button
               onClick={() => {
                 setStage("email");

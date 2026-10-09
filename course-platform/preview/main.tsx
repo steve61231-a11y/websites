@@ -5,6 +5,7 @@ import { RouterProvider } from "./shims/router";
 import Link from "./shims/link";
 
 import { SmoothScroll } from "@/components/motion/smooth-scroll";
+import { PageTransition } from "@/components/motion/page";
 import Home from "@/app/page";
 import { EnrollFlow } from "@/app/enroll/enroll-flow";
 import { Welcome } from "@/app/welcome/welcome";
@@ -118,7 +119,7 @@ function match(path: string) {
     const segs = pattern.split("/").filter(Boolean);
     if (segs.length !== parts.length) continue;
     const params: Record<string, string> = {};
-    if (segs.every((s, i) => (s.startsWith(":") ? ((params[s.slice(1)] = parts[i]), true) : s === parts[i]))) return { render, params };
+    if (segs.every((s, i) => (s.startsWith(":") ? ((params[s.slice(1)] = parts[i]), true) : s === parts[i]))) return { pattern, render, params };
   }
   return null;
 }
@@ -142,23 +143,27 @@ class Boundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   }
 }
 
+// These render a page.tsx that already wraps itself in <PageTransition>.
+const SELF_WRAPPED = new Set(["/", "/learn", "/learn/complete", "/verify", "/account"]);
+
 function Route({ path }: { path: string }) {
   const m = match(path);
   const node = m ? m.render(m.params) : null;
-  return node ?? <NotFound />;
+  if (!node) return <NotFound />;
+  return SELF_WRAPPED.has(m!.pattern) ? node : <PageTransition>{node}</PageTransition>;
 }
 
 createRoot(document.getElementById("root")!).render(
-  <>
-    <SmoothScroll />
-    <RouterProvider>
-      {(loc) => (
+  <RouterProvider>
+    {(loc) => (
+      <>
+        <SmoothScroll />
         <Boundary key={loc.path}>
           <Suspense fallback={<div className="min-h-dvh bg-black" />}>
             <Route path={loc.path} />
           </Suspense>
         </Boundary>
-      )}
-    </RouterProvider>
-  </>,
+      </>
+    )}
+  </RouterProvider>,
 );

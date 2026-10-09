@@ -1,6 +1,6 @@
 # THE PROD
 
-The online school for **Product Photography Kenya**. Its first course is **THE PROD: E-commerce Product Photography with AI**: seven days, 33 videos, a quiz each day and a final assessment. This is the clickable prototype. It runs on the real course content, with sample progress, payments and a stand-in video player, so the client can judge the experience before the backend is connected.
+The online school for **Product Photography Kenya**. Its first course is **THE PROD: E-commerce Product Photography with AI**: seven days, 32 videos, a quiz each day and a final assessment. This is the clickable prototype. It runs on the real course content, with sample progress, payments and a stand-in video player, so the client can judge the experience before the backend is connected.
 
 ```bash
 npm install
@@ -12,7 +12,7 @@ npm run preview:artifact   # one-file shareable preview in preview/dist/
 
 1. **Home** (`/`): what the school is and the course catalog. There's one course for now, plus a "more on the way" card.
 2. **Course page** (`/courses/the-prod`): a live 3D studio that cycles through the four product surfaces, then the curriculum, outcomes, instructor, pricing and FAQ.
-3. **Get access** (`/enroll`): name and email, then M-Pesa or card. **Welcome** (`/welcome`) shows the access email.
+3. **Get access** (`/enroll`): name and email, then M-Pesa or card. A receipt printer confirms the payment and prints the receipt. **Welcome** (`/welcome`) shows the access email and the plain receipt email (`src/lib/receipt.ts` builds both the on-screen receipt and the email).
 4. **Sign in** (`/sign-in`): email and a 6-digit code, or Google. In the demo any code works.
 5. **Course home** (`/learn`): what's next and overall progress. Each day opens to show its videos and quiz.
 6. **Lesson** (`/learn/day-2/2-3`): the player, the notes, and the full transcript. Finishing a video moves you on to the next one, then to the day's quiz.
@@ -37,7 +37,7 @@ src/components/course/          course page sections and the 3D studio hero
 src/components/learn/           player, notes, covers, certificate
 src/components/theme-toggle.tsx light/dark switch
 src/app/                        routes
-scripts/                        transcript import, preview packaging
+scripts/                        transcript import, thumbnail import, frame grabs, preview packaging
 supabase/migrations/            Phase 2 schema with row-level security
 preview/                        single-file build for sharing a link
 ```
@@ -49,7 +49,7 @@ Skills in `/.claude/skills` walk Claude through each routine job:
 | Skill | For |
 |---|---|
 | `add-videos` | paste video links and PDFs per lesson |
-| `update-images` | covers, day images, instructor photo |
+| `update-images` | video thumbnails from screenshots, day covers, instructor photo |
 | `update-transcripts` | import a new transcript export, or fix words |
 | `edit-lessons-and-quizzes` | notes, video titles, quiz questions |
 | `edit-course-details` | price, day names, WhatsApp, FAQs, home page text |

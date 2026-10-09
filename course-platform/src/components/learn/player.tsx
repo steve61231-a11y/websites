@@ -126,7 +126,7 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
           <video
             ref={video}
             src={lesson.video}
-            poster={episode.still}
+            poster={lesson.thumb ?? episode.still}
             playsInline
             preload="metadata"
             controlsList="nodownload noplaybackrate"
@@ -151,7 +151,7 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
           />
         ) : (
           <motion.img
-            src={episode.still}
+            src={lesson.thumb ?? episode.still}
             alt=""
             className="absolute inset-0 h-full w-full object-cover"
             animate={playing ? { scale: 1.12, x: "-2%" } : { scale: 1, x: "0%" }}

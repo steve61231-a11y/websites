@@ -9,7 +9,8 @@
     "lint": "eslint",
     "preview:build": "vite build --config preview/vite.config.ts",
     "preview:artifact": "vite build --config preview/vite.config.ts && node scripts/preview-artifact.mjs",
-    "transcripts:import": "python3 scripts/import-transcripts.py"
+    "transcripts:import": "python3 scripts/import-transcripts.py",
+    "thumbnails:import": "node scripts/import-thumbnails.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

@@ -9,6 +9,7 @@ import { FadeIn, TextReveal } from "@/components/motion/reveal";
 import { brand, course, formatDuration, lessonLabel } from "@/lib/catalog";
 import { useDemo } from "@/lib/demo-store";
 import { courseComplete, courseProgress, lessonsDone, moduleStatus, nextStep, quizPassed } from "@/lib/progress";
+import { CountUp } from "@/components/motion/count-up";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -48,13 +49,13 @@ export function CourseHome() {
           className="absolute inset-0 h-full w-full object-cover md:left-[32%] md:w-[68%]"
           initial={{ scale: 1.12, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 2.2, ease: EASE }}
+          transition={{ duration: 1.4, ease: EASE }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/20" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
         <div className="wrap relative grid gap-10 pb-14 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <FadeIn inView={false} delay={0.2} y={12}>
+            <FadeIn inView={false} delay={0.05} y={10}>
               <p className="eyebrow">
                 {finished ? "Course complete" : `${greeting()}, ${first}`}
               </p>
@@ -62,11 +63,11 @@ export function CourseHome() {
             <TextReveal
               as="h1"
               inView={false}
-              delay={0.3}
+              delay={0.1}
               text={finished ? "You did it." : step.kind === "quiz" ? (focus.kind === "wrap" ? "Final assessment" : `${focus.label} quiz`) : focus.label}
               className="display mt-4 text-[clamp(56px,9vw,120px)] text-white"
             />
-            <FadeIn inView={false} delay={0.6} y={12}>
+            <FadeIn inView={false} delay={0.3} y={10}>
               <p className="headline mt-3 max-w-[22ch] text-[clamp(22px,2.6vw,32px)] text-white">
                 {finished ? "Your certificate is ready." : focus.title}
               </p>
@@ -87,9 +88,9 @@ export function CourseHome() {
           </div>
 
           {/* Progress */}
-          <FadeIn inView={false} delay={0.8} y={12} className="md:text-right">
+          <FadeIn inView={false} delay={0.35} y={10} className="md:text-right">
             <p className="font-[family-name:var(--font-display)] text-[72px] font-extrabold leading-none tracking-[-0.05em] text-white">
-              {pct}
+              <CountUp value={pct} />
               <span className="text-[28px] text-muted">%</span>
             </p>
             <div className="mt-4 flex gap-1 md:justify-end" aria-label={`${videosDone} of ${allLessons.length} videos watched`}>
@@ -101,7 +102,7 @@ export function CourseHome() {
                     className={`h-1.5 w-7 rounded-full ${s === "complete" ? "bg-amber" : s === "current" ? "bg-white" : "bg-white/15"}`}
                     initial={{ scaleX: 0 }}
                     animate={{ scaleX: 1, opacity: s === "current" ? [1, 0.45, 1] : 1 }}
-                    transition={{ delay: 0.9 + i * 0.05, duration: 0.6, opacity: { duration: 2, repeat: Infinity } }}
+                    transition={{ delay: 0.4 + i * 0.04, duration: 0.5, opacity: { duration: 2, repeat: Infinity } }}
                     style={{ originX: 0 }}
                   />
                 );
@@ -194,7 +195,7 @@ function DayGroup({ index }: { index: number }) {
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-controls={panelId}
-        className={`group flex w-full items-center gap-4 rounded-[22px] p-2.5 text-left transition-colors duration-300 sm:gap-6 ${open ? "" : "hover:bg-white/[0.04]"} ${locked ? "opacity-60" : ""}`}
+        className={`group flex w-full items-center gap-4 rounded-[22px] p-2.5 text-left transition-[background-color,transform] duration-300 ease-(--ease-out-expo) active:scale-[0.99] sm:gap-6 ${open ? "" : "hover:bg-white/[0.04]"} ${locked ? "opacity-60" : ""}`}
       >
         <EpisodeThumb episode={m} state={status} progress={seconds ? watched / seconds : 0} className="w-[112px] shrink-0 sm:w-[184px]" />
         <div className="min-w-0 flex-1">
@@ -278,7 +279,7 @@ function DayGroup({ index }: { index: number }) {
                       <Link
                         href={`/learn/${m.slug}/${l.slug}`}
                         transitionTypes={["nav-forward"]}
-                        className={`flex items-center gap-3.5 rounded-2xl px-2.5 py-2.5 transition-colors ${isNext ? "bg-white/[0.06]" : "hover:bg-white/[0.05]"}`}
+                        className={`flex items-center gap-3.5 rounded-2xl px-2.5 py-2.5 transition-[background-color,transform] duration-200 active:scale-[0.985] ${isNext ? "bg-white/[0.06]" : "hover:bg-white/[0.05]"}`}
                       >
                         {row}
                       </Link>

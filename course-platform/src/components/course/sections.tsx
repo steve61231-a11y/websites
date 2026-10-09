@@ -8,6 +8,7 @@ import { Magnetic } from "@/components/motion/magnetic";
 import { FadeIn, TextReveal } from "@/components/motion/reveal";
 import { brand, courseStats, formatPrice } from "@/lib/catalog";
 import type { Course } from "@/lib/types";
+import { Img } from "@/components/ui/img";
 
 /* ---------- Outcomes ---------- */
 
@@ -66,7 +67,7 @@ export function Instructor({ course }: { course: Course }) {
       <div className="wrap grid items-center gap-14 md:grid-cols-[0.9fr_1.1fr]">
         <FadeIn>
           <div className="theme-dark relative aspect-[4/5] overflow-hidden rounded-[32px] ring-1 ring-inset ring-white/[0.06]">
-            <img src={instructor.photo ?? "/stills/day-5.jpg"} alt={instructor.photo ? instructor.name : ""} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+            <Img src={instructor.photo ?? "/stills/day-5.jpg"} alt={instructor.photo ? instructor.name : ""} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-8">
               <p className="font-[family-name:var(--font-display)] text-[64px] font-extrabold leading-none tracking-[-0.05em] text-white">7+</p>

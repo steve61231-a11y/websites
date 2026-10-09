@@ -47,6 +47,8 @@ export type Lesson = {
   notes: Note[];
   /** Video file or stream URL (MP4, or any URL the browser can play). Unset = stand-in player. */
   video?: string;
+  /** Thumbnail (a frame from the video). Unset = the day's cover. */
+  thumb?: string;
   /** Downloads shown under the notes, e.g. a gear list PDF. */
   resources?: Resource[];
 };

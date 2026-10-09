@@ -121,7 +121,7 @@ export function QuizView({ slug }: { slug: string }) {
         QUESTION {i + 1} / {total}
       </p>
       <AnimatePresence mode="wait">
-        <motion.div key={q.id} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.45, ease: EASE }}>
+        <motion.div key={q.id} initial={{ opacity: 0, x: 32 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20, transition: { duration: 0.16, ease: [0.4, 0, 1, 1] } }} transition={{ duration: 0.38, ease: EASE }}>
           {q.scenario && (
             <div className="mt-5 rounded-[22px] bg-white/[0.04] p-5 ring-1 ring-inset ring-white/10">
               <p className="eyebrow !text-muted">On set</p>
@@ -144,7 +144,7 @@ export function QuizView({ slug }: { slug: string }) {
                   transition={{ duration: 0.45 }}
                   className={`flex min-h-[64px] items-center gap-4 rounded-[20px] px-5 py-4 text-left text-[17px] ring-1 ring-inset transition-[background-color,box-shadow,opacity] duration-300 ${
                     right
-                      ? "bg-amber/[0.14] text-white ring-amber"
+                      ? "bg-success/[0.14] text-white ring-success"
                       : wrong
                         ? "bg-danger/[0.12] text-white ring-danger/70"
                         : isPicked
@@ -155,7 +155,7 @@ export function QuizView({ slug }: { slug: string }) {
                   {q.type !== "true_false" && (
                     <span
                       className={`grid size-8 shrink-0 place-items-center rounded-full font-[family-name:var(--font-display)] text-[13px] font-bold ${
-                        right ? "bg-amber text-on-amber" : wrong ? "bg-danger text-[#fff]" : isPicked ? "bg-black text-white" : "bg-white/[0.08] text-muted"
+                        right ? "bg-success text-[#fff]" : wrong ? "bg-danger text-[#fff]" : isPicked ? "bg-black text-white" : "bg-white/[0.08] text-muted"
                       }`}
                     >
                       {right ? <Check size={15} strokeWidth={3} /> : wrong ? <Close size={13} strokeWidth={3} /> : String.fromCharCode(65 + k)}
@@ -179,10 +179,10 @@ export function QuizView({ slug }: { slug: string }) {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", stiffness: 320, damping: 34 }}
-              className={`border-t px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-6 backdrop-blur-2xl ${picked === correctId ? "border-amber/30 bg-(--sheet-good)" : "border-danger/30 bg-(--sheet-bad)"}`}
+              className={`border-t px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-6 backdrop-blur-2xl ${picked === correctId ? "border-success/30 bg-(--sheet-good)" : "border-danger/30 bg-(--sheet-bad)"}`}
             >
               <div className="mx-auto max-w-[760px]">
-                <p className={`text-[20px] font-semibold ${picked === correctId ? "text-amber" : "text-danger"}`}>{picked === correctId ? "Correct." : "Not quite."}</p>
+                <p className={`text-[20px] font-semibold ${picked === correctId ? "text-success" : "text-danger"}`}>{picked === correctId ? "Correct." : "Not quite."}</p>
                 <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">{q.explanation}</p>
                 <button onClick={next} className="btn btn-white btn-lg mt-5 w-full">
                   {i + 1 < total ? "Continue" : "See results"}
@@ -200,11 +200,20 @@ export function QuizView({ slug }: { slug: string }) {
       </div>
     </div>,
     <div className="flex gap-1.5" aria-hidden>
-      {quiz.questions.map((qq, k) => (
-        <div key={qq.id} className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
-          <motion.div className="h-full bg-amber" initial={false} animate={{ width: k < i || (k === i && checked) ? "100%" : "0%" }} transition={{ duration: 0.5, ease: EASE }} />
-        </div>
-      ))}
+      {quiz.questions.map((qq, k) => {
+        const answered = k < i || (k === i && checked);
+        const ok = qq.options.find((o) => o.id === answers[qq.id])?.correct;
+        return (
+          <div key={qq.id} className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+            <motion.div
+              className={`h-full ${ok ? "bg-success" : "bg-danger"}`}
+              initial={false}
+              animate={{ width: answered ? "100%" : "0%" }}
+              transition={{ type: "spring", stiffness: 260, damping: 30 }}
+            />
+          </div>
+        );
+      })}
     </div>,
   );
 }
@@ -239,7 +248,7 @@ function Result({ slug, answers, onRetry }: { slug: string; answers: Record<stri
           {missed.map((q, k) => (
             <motion.li key={q.id} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + k * 0.08 }} className="panel p-6">
               <p className="text-[17px] font-semibold text-white">{q.prompt}</p>
-              <p className="mt-3 flex gap-2 text-[15px] text-amber">
+              <p className="mt-3 flex gap-2 text-[15px] text-success">
                 <Check size={18} className="mt-0.5 shrink-0" /> {q.options.find((o) => o.correct)!.text}
               </p>
               <p className="mt-2 text-[14px] leading-relaxed text-muted">{q.explanation}</p>
@@ -264,15 +273,15 @@ function Result({ slug, answers, onRetry }: { slug: string; answers: Record<stri
         {shown}
         <span className="text-white/25">/{last.total}</span>
       </p>
-      <TextReveal as="h1" inView={false} delay={0.4} text={finished ? "That's the whole course." : `${ep.label}, done.`} className="headline mt-6 text-[clamp(30px,4.4vw,48px)] text-white" />
+      <TextReveal as="h1" inView={false} delay={0.25} text={finished ? "That's the whole course." : `${ep.label}, done.`} className="headline mt-6 text-[clamp(30px,4.4vw,48px)] text-white" />
 
       {finished ? (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9, duration: 0.8, ease: EASE }} className="mt-10">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.6, ease: EASE }} className="mt-10">
           <Link href="/learn/complete" className="btn btn-amber btn-lg">Claim your certificate</Link>
         </motion.div>
       ) : (
         next && (
-          <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9, duration: 1, ease: EASE }} className="mt-10">
+          <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.7, ease: EASE }} className="mt-10">
             <p className="text-[15px] text-muted">{next.label} is unlocked.</p>
             <Link href={`/learn/${next.slug}/${next.lessons[0].slug}`} transitionTypes={["nav-forward"]} className="group mt-4 flex items-center gap-5 rounded-[24px] bg-white/[0.05] p-3 pr-6 ring-1 ring-inset ring-white/10 transition-colors hover:bg-white/[0.08]">
               <EpisodeThumb episode={next} state="current" className="w-40 shrink-0 sm:w-52" />

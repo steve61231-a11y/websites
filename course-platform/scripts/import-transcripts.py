@@ -32,6 +32,10 @@ HEADING = re.compile(
 TIMESTAMP = re.compile(r"^\d+:\d{2}(?::\d{2})?$")
 CONCLUSION_CODE = "8.1"
 
+# Videos dropped or renumbered after the export was made: the original 6.2
+# was replaced by the revised 6.3 and 6.4, which became 6.2 and 6.3.
+RENUMBER: dict[str, str | None] = {"6.2": None, "6.3": "6.2", "6.4": "6.3"}
+
 
 def read_lines(path: Path) -> list[str]:
     if path.suffix.lower() == ".docx":
@@ -52,6 +56,10 @@ def main(src: str, out: str) -> None:
         m = HEADING.match(line)
         if m and len(line) < 80 and not TIMESTAMP.match(line):
             code = CONCLUSION_CODE if m.group(1) == "Training Conclusion" else m.group(1)
+            code = RENUMBER.get(code, code)
+            if code is None:
+                cur = None  # skip this video's lines
+                continue
             cur = {"code": code, "title": (m.group(2) or "Training Conclusion").strip(), "last": 0, "text": []}
             videos.append(cur)
             continue

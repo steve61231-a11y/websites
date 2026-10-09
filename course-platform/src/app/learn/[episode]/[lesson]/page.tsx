@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense, ViewTransition } from "react";
+import { Suspense } from "react";
 import { AppBar } from "@/components/learn/app-bar";
 import { StudentGate } from "@/components/student-gate";
 import { course, getLesson } from "@/lib/catalog";
 import { getTranscript } from "@/lib/transcripts";
 import { LessonView } from "./lesson-view";
+import { PageTransition } from "@/components/motion/page";
 
 type Params = PageProps<"/learn/[episode]/[lesson]">["params"];
 
@@ -27,13 +28,13 @@ export default function LessonPage(props: PageProps<"/learn/[episode]/[lesson]">
       <Suspense fallback={<AppBar />}>
         <Bar params={props.params} />
       </Suspense>
-      <ViewTransition enter="page-fade" exit="page-fade" default="none">
+      <PageTransition>
         <main className="min-h-dvh bg-black">
           <Suspense fallback={null}>
             <Lesson params={props.params} />
           </Suspense>
         </main>
-      </ViewTransition>
+      </PageTransition>
     </>
   );
 }

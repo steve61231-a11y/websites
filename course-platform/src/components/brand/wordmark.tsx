@@ -25,13 +25,13 @@ export function Wordmark({ className, animate = false, delay = 0 }: { className?
           d={WORDMARK_PROD}
           initial={on ? { y: h * 1.1 } : false}
           animate={{ y: 0 }}
-          transition={{ duration: 1.3, ease: [0.16, 1, 0.3, 1], delay }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay }}
         />
         <motion.path
           d={WORDMARK_THE}
           initial={on ? { y: -40, opacity: 0 } : false}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: delay + 0.55 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: delay + 0.3 }}
         />
       </g>
     </svg>

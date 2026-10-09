@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { ViewTransition } from "react";
 import Link from "next/link";
 import { Arrow, Award, Doc, Play } from "@/components/icons";
 import { FadeIn, TextReveal } from "@/components/motion/reveal";
@@ -8,6 +9,7 @@ import { brand, courses, courseStats, formatDuration, formatPrice } from "@/lib/
 import { useDemo } from "@/lib/demo-store";
 import { courseProgress } from "@/lib/progress";
 import type { Course } from "@/lib/types";
+import { Img } from "@/components/ui/img";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
@@ -27,10 +29,10 @@ export function HomeHero() {
           <p className="eyebrow">{brand.organisation} · Online school</p>
         </FadeIn>
         <h1 className="display mt-6 text-[clamp(46px,7.4vw,108px)]">
-          <TextReveal as="span" inView={false} delay={0.1} text="Learn the craft." className="block text-white" />
-          <TextReveal as="span" inView={false} delay={0.35} text="Pick a course." className="block text-white/30" />
+          <TextReveal as="span" inView={false} delay={0.05} text="Learn the craft." className="block text-white" />
+          <TextReveal as="span" inView={false} delay={0.18} text="Pick a course." className="block text-white/30" />
         </h1>
-        <FadeIn inView={false} delay={0.6} y={12}>
+        <FadeIn inView={false} delay={0.3} y={10}>
           <p className="mt-8 max-w-[44ch] text-[clamp(17px,1.6vw,20px)] leading-relaxed text-ink-2">
             Short, practical video courses taught by working creatives. Learn at your own pace, pass the quizzes and earn a certificate
             anyone can verify.
@@ -89,14 +91,19 @@ function CourseCard({ course, index }: { course: Course; index: number }) {
       <Link
         href={href}
         transitionTypes={["nav-forward"]}
-        className="group grid overflow-hidden rounded-[32px] bg-surface ring-1 ring-inset ring-white/[0.06] transition-shadow duration-500 hover:ring-white/15 md:grid-cols-[1.15fr_1fr]"
+        className="group grid overflow-hidden rounded-[32px] bg-surface ring-1 ring-inset ring-white/[0.06] transition-[box-shadow,transform] duration-500 ease-(--ease-out-expo) hover:ring-white/15 active:scale-[0.99] active:duration-150 md:grid-cols-[1.15fr_1fr]"
       >
         <div className="theme-dark relative aspect-[16/10] overflow-hidden bg-black md:aspect-auto md:min-h-[420px]">
-          <img
-            src={course.cover}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.6s] ease-(--ease-out-expo) group-hover:scale-[1.04]"
-          />
+          {/* Morphs into the course page hero */}
+          <ViewTransition name={`cover-${course.slug}`} share="morph" default="none">
+            <div className="absolute inset-0 overflow-hidden">
+              <Img
+                src={course.cover}
+                alt=""
+                className="h-full w-full object-cover transition-transform duration-[1.6s] ease-(--ease-out-expo) group-hover:scale-[1.04]"
+              />
+            </div>
+          </ViewTransition>
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           <span className="absolute left-5 top-5 rounded-full bg-black/50 px-3 py-1.5 text-[12px] font-semibold text-white ring-1 ring-inset ring-white/15 backdrop-blur-md">
             {course.category}

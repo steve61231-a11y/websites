@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense, ViewTransition } from "react";
+import { Suspense } from "react";
 import { CourseHero } from "@/components/course/hero";
 import { Curriculum } from "@/components/course/curriculum";
 import { Faq, Instructor, Outcomes, Pricing } from "@/components/course/sections";
 import { SiteFooter } from "@/components/site/footer";
 import { SiteNav } from "@/components/site/nav";
 import { courses, getCourse } from "@/lib/catalog";
+import { PageTransition } from "@/components/motion/page";
 
 type Params = PageProps<"/courses/[slug]">["params"];
 
@@ -23,13 +24,13 @@ export default function CoursePage(props: PageProps<"/courses/[slug]">) {
   return (
     <>
       <SiteNav overDark />
-      <ViewTransition enter="page-fade" exit="page-fade" default="none">
+      <PageTransition>
         <main className="bg-black">
           <Suspense fallback={<div className="min-h-[100svh] bg-black" />}>
             <CourseBody params={props.params} />
           </Suspense>
         </main>
-      </ViewTransition>
+      </PageTransition>
       <SiteFooter />
     </>
   );

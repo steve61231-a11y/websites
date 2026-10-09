@@ -1,6 +1,7 @@
 import { ViewTransition } from "react";
 import type { Module } from "@/lib/types";
 import { Check, Lock } from "@/components/icons";
+import { Img } from "@/components/ui/img";
 
 export type EpisodeState = "complete" | "current" | "locked";
 
@@ -17,12 +18,15 @@ export function EpisodeThumb({
   large = false,
   code,
   name,
+  image,
 }: {
   episode: Module;
   /** Show a lesson code like "2.3" instead of the day number. */
   code?: string;
   /** Shared transition name; defaults to the episode's. */
   name?: string;
+  /** A specific picture (e.g. a video's thumbnail) instead of the day cover. */
+  image?: string;
   state?: EpisodeState;
   progress?: number;
   className?: string;
@@ -32,7 +36,7 @@ export function EpisodeThumb({
   const number = code ?? (episode.kind === "day" ? String(episode.position).padStart(2, "0") : episode.kind === "welcome" ? "00" : "08");
   const body = (
     <div className={`theme-dark @container relative aspect-video overflow-hidden rounded-[14px] bg-surface ${className}`}>
-      <img src={episode.still} alt="" loading="lazy" className={`absolute inset-0 h-full w-full object-cover ${state === "locked" ? "opacity-40 grayscale" : ""}`} />
+      <Img src={image ?? episode.still} alt="" loading="lazy" className={`absolute inset-0 h-full w-full object-cover ${state === "locked" ? "opacity-40 grayscale" : ""}`} />
       <div className="absolute inset-0 bg-gradient-to-tr from-black/70 via-black/10 to-transparent" />
       <span
         aria-hidden

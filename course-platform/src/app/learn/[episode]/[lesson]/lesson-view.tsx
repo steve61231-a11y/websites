@@ -185,13 +185,17 @@ export function LessonView({
               ))}
             </div>
             <ol className="max-h-[52vh] overflow-y-auto p-2">
-              {ep.lessons.map((l) => {
+              {ep.lessons.map((l, k) => {
                 const current = l.id === lesson.id;
                 const ldone = !!state.completedLessons[l.id];
                 return (
                   <li key={l.id}>
-                    <Link href={`/learn/${ep.slug}/${l.slug}`} className={`flex items-center gap-3 rounded-2xl p-2 transition-colors ${current ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"}`}>
-                      <EpisodeThumb episode={ep} code={ep.kind === "wrap" ? "" : l.code} state={ldone ? "complete" : undefined} progress={(state.positions[l.id] ?? 0) / l.durationSec} morph={false} className="w-[92px] shrink-0 !rounded-[10px]" />
+                    <Link
+                      href={`/learn/${ep.slug}/${l.slug}`}
+                      transitionTypes={[k > i ? "nav-forward" : "nav-back"]}
+                      className={`flex items-center gap-3 rounded-2xl p-2 transition-[background-color,transform] duration-200 active:scale-[0.98] ${current ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"}`}
+                    >
+                      <EpisodeThumb episode={ep} image={l.thumb} code={ep.kind === "wrap" ? "" : l.code} state={ldone ? "complete" : undefined} progress={(state.positions[l.id] ?? 0) / l.durationSec} morph={false} className="w-[92px] shrink-0 !rounded-[10px]" />
                       <span className="min-w-0 flex-1">
                         <span className={`block text-[11px] font-bold uppercase tracking-[0.16em] ${current ? "text-amber" : "text-faint"}`}>
                           {current ? "Now playing" : `${lessonLabel(l.code, ep.kind)} · ${Math.round(l.durationSec / 60)} min`}

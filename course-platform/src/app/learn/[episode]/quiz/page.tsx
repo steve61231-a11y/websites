@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense, ViewTransition } from "react";
+import { Suspense } from "react";
 import { StudentGate } from "@/components/student-gate";
 import { course, getEpisode } from "@/lib/catalog";
 import { QuizView } from "./quiz-view";
+import { PageTransition } from "@/components/motion/page";
 
 type Params = PageProps<"/learn/[episode]/quiz">["params"];
 
@@ -15,13 +16,13 @@ export const metadata: Metadata = { title: "Quiz" };
 
 export default function QuizPage(props: PageProps<"/learn/[episode]/quiz">) {
   return (
-    <ViewTransition enter="page-fade" exit="page-fade" default="none">
+    <PageTransition>
       <main className="min-h-dvh bg-black">
         <Suspense fallback={null}>
           <Quiz params={props.params} />
         </Suspense>
       </main>
-    </ViewTransition>
+    </PageTransition>
   );
 }
 

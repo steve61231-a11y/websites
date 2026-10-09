@@ -61,77 +61,7 @@ export const lessons: Lesson[] = [
     },
   ]),
 
-  lesson("6.2", "Shooting with Two Lights", 728, "A backlight plus a key light, with the exposure worked out step by step on a translucent product.", [
-    {
-      type: "lead",
-      text: "Two lights, a backlight and a key light, are enough for most products on white. Duncan says about 85 to 90% of products can be shot in this style. Once the set is built, you mainly adjust the aperture and the strobe power.",
-    },
-    { type: "heading", text: "The setup" },
-    {
-      type: "list",
-      items: [
-        "A display board (60x90).",
-        "A 600 W strobe with a 60x90 softbox, and a 70 cm beauty dish. One light is the backlight behind the product and the other is the key light.",
-        "A trigger on each light. Test fire each one separately to confirm it works.",
-        "Camera tethered to the laptop and a screen, with the Capture One session set up in advance.",
-        "Gloves and a microfiber cloth: wipe the product so there are no fingerprints.",
-      ],
-    },
-    {
-      type: "paragraph",
-      text: "The example is a translucent product. If it has stickers on the back, remove them so the light can pass through.",
-    },
-    { type: "heading", text: "Place the product and find the exposure" },
-    {
-      type: "steps",
-      items: [
-        {
-          title: "Compose and mark the spot",
-          body: "In live view (with the ISO raised so you can see), centre the product. Mark that centre point on the table with stickers. If you are shooting 100 products, each one goes in the same spot.",
-        },
-        {
-          title: "Start at f/5.6, not f/2.8",
-          body: "At f/2.8 the lens is wide open and lets in too much light. Start at the sweet spot of f/5.6. With only the backlight on, the product's back lighting already looks good.",
-        },
-        {
-          title: "Add the key light",
-          body: "Both lights at 1/4 power. The frame is now overexposed and details are lost.",
-        },
-        {
-          title: "Close the aperture",
-          body: "f/7.1 is better but not sharp. At f/9 the product looks perfect. ISO and shutter speed stayed the same because the camera is on a tripod.",
-        },
-        {
-          title: "Set ISO back to 100 and shoot",
-          body: "You raised the ISO only for live view. Return it to 100 before the shot, then check focus.",
-        },
-        {
-          title: "Rate it and clear out the rest",
-          body: "Give the keeper three stars and a red colour label, and delete the frames you do not need.",
-        },
-      ],
-    },
-    { type: "heading", text: "Repeating it" },
-    {
-      type: "paragraph",
-      text: "Swap in the next product, check composition and focus in live view, and shoot with the same setup. A matte product can look a bit dull. Put a bounce card, or just a piece of paper, in front and compare: the fill brightens the dark areas.",
-    },
-    {
-      type: "callout",
-      title: "Why this setup",
-      body: "It is one of the simplest you can build and lets you shoot many products quickly. If you do not have 600 W strobes, mains-powered monolights work too; 300 W will still do.",
-    },
-    {
-      type: "list",
-      items: [
-        "Prepare the set in advance, then clean each product and shoot one by one.",
-        "Start with the biggest product on the table to get the composition right, so the other products can be laid in easily.",
-        "Practice. Most of the work was the aperture, with ISO and shutter speed barely touched. The other control is the power on your strobes.",
-      ],
-    },
-  ]),
-
-  lesson("6.3", "Two Lights: Setup", 112, "The revised two-light kit, and why this one session lets you shoot almost anything on white.", [
+  lesson("6.2", "Shooting Two Lights: Setup", 112, "The two-light kit, and why this one setup lets you shoot almost anything on white.", [
     {
       type: "lead",
       text: "This is Duncan's preferred setup, and the key is how fast you can shoot products for e-commerce and get them out. Master it and he says you can shoot literally anything on white.",
@@ -160,7 +90,7 @@ export const lessons: Lesson[] = [
     },
   ]),
 
-  lesson("6.4", "Two Lights: The Full Shoot", 847, "Shooting a batch of mixed products on white, from tallest to smallest, in under 20 minutes.", [
+  lesson("6.3", "Shooting Two Lights", 847, "Shooting a batch of mixed products on white, from tallest to smallest, in under 20 minutes.", [
     {
       type: "lead",
       text: "Work in a set order: sort the products, set up for the tallest, centre each one, check the exposure, then mark the keeper and delete the rest. Duncan shot almost nine products in under 20 minutes this way.",
