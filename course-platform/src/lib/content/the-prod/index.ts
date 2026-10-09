@@ -9,7 +9,7 @@ import * as day7 from "./day-7";
 import * as welcome from "./welcome";
 import * as wrapUp from "./wrap-up";
 import { resources, videos } from "./media";
-import { courseCover, dayCovers, lessonThumbs } from "./thumbnails";
+import { courseCover, dayCovers, instructorPhoto, lessonThumbs } from "./thumbnails";
 import { certificateTemplate } from "./certificate";
 
 // THE PROD: E-commerce Product Photography with AI, by Product Photography Kenya.
@@ -153,6 +153,7 @@ export const theProd: Course = {
   currency: "KES",
   instructor: {
     name: "Duncan Mutavi",
+    ...(instructorPhoto ? { photo: instructorPhoto } : {}),
     title: "Co-founder, Product Photography Kenya",
     initials: "DM",
     bio: "For more than seven years Duncan has helped brands stand out online with product visuals that connect and convert, and trained creatives in photography and video content creation.",
