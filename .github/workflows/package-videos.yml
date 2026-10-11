@@ -1,0 +1,305 @@
+# Package lesson videos for protected streaming.
+#
+# Takes new or replaced videos from the course's Google Drive folder, encodes
+# each one in 3 qualities x 2 fingerprint variants, encrypts every 6-second
+# segment with its own key, uploads the segments to Cloudflare R2 and records
+# them in course-platform/src/lib/content/<course>/streams.json (committed to
+# this branch, which redeploys the website).
+#
+# Runs every day, and on demand: Actions > Package videos > Run workflow.
+#
+# One-time setup (Settings > Secrets and variables > Actions > New repository secret):
+#   VIDEO_SECRET          same value as the website's VIDEO_SECRET (32+ characters)
+#   R2_ACCOUNT_ID         Cloudflare dashboard > R2 > Account ID
+#   R2_ACCESS_KEY_ID      R2 > Manage API tokens > create one with Admin Read & Write
+#   R2_SECRET_ACCESS_KEY  (shown once when the token is created)
+#   R2_BUCKET             the bucket name, e.g. course-videos
+# and paste the Drive folder link (shared as "Anyone with the link") into
+# course-platform/content/videos/<course>.json as "driveFolder".
+
+name: Package videos
+
+on:
+  workflow_dispatch:
+    inputs:
+      course:
+        description: Course
+        type: string
+        default: the-prod
+      folder:
+        description: Google Drive folder link (empty = the one in content/videos/<course>.json)
+        type: string
+        required: false
+      only:
+        description: Only these lesson codes, comma separated, e.g. 2.3,4.1 (empty = every new or replaced video)
+        type: string
+        required: false
+      force:
+        description: Package again even if the video hasn't changed
+        type: boolean
+        default: false
+  schedule:
+    - cron: "17 3 * * *" # daily, 03:17 UTC
+
+permissions:
+  contents: write
+
+concurrency:
+  group: package-videos-${{ inputs.course || 'the-prod' }}
+  cancel-in-progress: false
+
+env:
+  COURSE: ${{ inputs.course || 'the-prod' }}
+  AWS_DEFAULT_REGION: auto
+  # R2 doesn't take the newer default AWS CLI checksums.
+  AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+  AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+
+defaults:
+  run:
+    shell: bash
+    working-directory: course-platform
+
+jobs:
+  plan:
+    name: Find new videos
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      count: ${{ steps.plan.outputs.count || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            course-platform/scripts/video
+            course-platform/src/lib
+            course-platform/content/videos
+
+      - name: Check the secrets are set
+        id: setup
+        env:
+          VIDEO_SECRET: ${{ secrets.VIDEO_SECRET }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          missing=()
+          for name in VIDEO_SECRET R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET; do
+            [ -n "${!name}" ] || missing+=("$name")
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            msg="Video packaging isn't set up yet. Add these repository secrets (Settings > Secrets and variables > Actions > New repository secret): ${missing[*]}."
+            if [ "$GITHUB_EVENT_NAME" = schedule ]; then
+              echo "::notice::$msg Skipping today's run."
+              echo "ready=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::error::$msg"
+            exit 1
+          fi
+          if [ ${#VIDEO_SECRET} -lt 32 ]; then
+            echo "::error::VIDEO_SECRET is too short: use at least 32 characters, the same value as the website's VIDEO_SECRET."
+            exit 1
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        if: steps.setup.outputs.ready == 'true'
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        if: steps.setup.outputs.ready == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: Install gdown
+        if: steps.setup.outputs.ready == 'true'
+        run: python -m pip install --disable-pip-version-check -q "gdown==6.4.2"
+
+      - name: Let the website read the bucket (CORS)
+        if: steps.setup.outputs.ready == 'true'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          # Players on any site may GET/HEAD the (encrypted) segments. Setting it again is harmless.
+          cors='{"CORSRules":[{"AllowedOrigins":["*"],"AllowedMethods":["GET","HEAD"],"AllowedHeaders":["*"],"ExposeHeaders":["Content-Length","Content-Range","ETag"],"MaxAgeSeconds":86400}]}'
+          if out=$(aws s3api put-bucket-cors --bucket "$R2_BUCKET" --cors-configuration "$cors" \
+                --endpoint-url "https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com" 2>&1); then
+            echo "Bucket $R2_BUCKET: GET and HEAD allowed from any website."
+          else
+            echo "$out"
+            case "$out" in
+              *InvalidAccessKeyId*|*SignatureDoesNotMatch*|*NoSuchBucket*|*"Could not connect"*|*InvalidBucketName*)
+                echo "::error::Can't reach the R2 bucket \"$R2_BUCKET\". Check the R2_ACCOUNT_ID, R2_BUCKET, R2_ACCESS_KEY_ID and R2_SECRET_ACCESS_KEY secrets."
+                exit 1 ;;
+              *)
+                echo "::warning::Couldn't set the bucket's CORS rule (the R2 API token needs Admin Read & Write for that). Videos only play once the bucket allows it: Cloudflare dashboard > R2 > $R2_BUCKET > Settings > CORS policy: allow GET and HEAD from any origin." ;;
+            esac
+          fi
+
+      - name: Find new videos in Drive
+        id: plan
+        if: steps.setup.outputs.ready == 'true'
+        env:
+          FOLDER: ${{ inputs.folder }}
+          ONLY: ${{ inputs.only }}
+          FORCE: ${{ inputs.force }}
+        run: |
+          args=(--course "$COURSE" --folder "$FOLDER" --only "$ONLY" --force "$FORCE")
+          # The daily run waits quietly until a folder is set.
+          if [ "$GITHUB_EVENT_NAME" = schedule ]; then args+=(--allow-unset); fi
+          node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/video/plan.ts "${args[@]}"
+
+  package:
+    name: Package ${{ matrix.code }}
+    needs: plan
+    if: needs.plan.outputs.count != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            course-platform/scripts/video
+            course-platform/src/lib/video
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ffmpeg and gdown
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends ffmpeg > /dev/null
+          python -m pip install --disable-pip-version-check -q "gdown==6.4.2"
+          ffmpeg -hide_banner -version | head -n 1
+
+      - name: Download ${{ matrix.name }}
+        env:
+          DRIVE_ID: ${{ matrix.driveId }}
+          NAME: ${{ matrix.name }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/in"
+          src="$RUNNER_TEMP/in/source"
+          for attempt in 1 2 3 4 5; do
+            if gdown --continue --retries 3 --timeout 120 -O "$src" "$DRIVE_ID" && [ -s "$src" ]; then
+              echo "Downloaded $NAME ($(du -h "$src" | cut -f1))."
+              exit 0
+            fi
+            echo "Download attempt $attempt failed; trying again in $((attempt * 30)) s."
+            sleep $((attempt * 30))
+          done
+          echo "::error::Couldn't download \"$NAME\" from Google Drive. Check it is still in the shared folder. If Drive says it was downloaded too many times, wait a day and run the workflow again."
+          exit 1
+
+      - name: Encode, fingerprint and encrypt
+        env:
+          VIDEO_SECRET: ${{ secrets.VIDEO_SECRET }}
+          CODE: ${{ matrix.code }}
+          DRIVE_ID: ${{ matrix.driveId }}
+          NAME: ${{ matrix.name }}
+        run: |
+          node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/video/package.ts \
+            --input "$RUNNER_TEMP/in/source" --course "$COURSE" --code "$CODE" \
+            --out "$RUNNER_TEMP/out" --drive-id "$DRIVE_ID" --source-name "$NAME"
+          rm -f "$RUNNER_TEMP/in/source"
+
+      - name: Upload to R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          # Segment names change with every new upload, so they can be cached forever.
+          aws s3 cp "$RUNNER_TEMP/out/$COURSE/" "s3://$R2_BUCKET/$COURSE/" --recursive --only-show-errors \
+            --endpoint-url "https://$R2_ACCOUNT_ID.r2.cloudflarestorage.com" \
+            --content-type video/mp2t --cache-control "public, max-age=31536000, immutable"
+          echo "Uploaded $(find "$RUNNER_TEMP/out/$COURSE" -type f | wc -l) encrypted segments to $R2_BUCKET."
+
+      - name: Keep meta.json for the publish step
+        uses: actions/upload-artifact@v4
+        with:
+          name: meta-${{ matrix.code }}
+          path: ${{ runner.temp }}/out/meta.json
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish to the website
+    needs: [plan, package]
+    # Also when some videos failed: publish the ones that worked.
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.count != '0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            course-platform/scripts/video
+            course-platform/src/lib
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: meta-*
+          path: ${{ runner.temp }}/metas
+
+      - name: Update streams.json and push
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          metas="$RUNNER_TEMP/metas"
+          if [ -z "$(find "$metas" -name meta.json 2>/dev/null)" ]; then
+            echo "::warning::No video was packaged, so streams.json is unchanged."
+            exit 0
+          fi
+          file="src/lib/content/$COURSE/streams.json"
+          codes=$(for f in "$metas"/meta-*/meta.json; do d=${f%/meta.json}; echo "${d##*/meta-}"; done | sort -V | paste -sd, - | sed 's/,/, /g')
+          message="Videos: packaged $codes ($COURSE)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          update() {
+            node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/video/merge.ts --course "$COURSE" "$metas"
+            git add "$file"
+            git diff --cached --quiet || git commit -q -m "$message"
+          }
+          base=$(git rev-parse HEAD)
+          update
+          if [ "$(git rev-parse HEAD)" = "$base" ]; then
+            echo "streams.json already up to date."
+            exit 0
+          fi
+          for attempt in 1 2 3 4 5; do
+            if git push -q origin "HEAD:$BRANCH"; then
+              echo "Pushed: $message"
+              exit 0
+            fi
+            echo "Push rejected (attempt $attempt): someone else pushed. Pulling and trying again."
+            sleep $((attempt * 5))
+            if ! git pull -q --rebase origin "$BRANCH"; then
+              # streams.json changed on both sides: start again from the latest.
+              git rebase --abort || true
+              git reset -q --hard FETCH_HEAD
+              update
+            fi
+          done
+          echo "::error::Couldn't push streams.json to $BRANCH. If the branch is protected, allow GitHub Actions to push to it, then run the workflow again (the uploaded videos are kept)."
+          exit 1

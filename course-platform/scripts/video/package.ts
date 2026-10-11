@@ -73,7 +73,7 @@ export type PackageOptions = {
   log?: (line: string) => void;
 };
 
-type Source = { width: number; height: number; duration: number; fps: [number, number] | null; hasAudio: boolean };
+type Source = { width: number; height: number; duration: number; fps: [number, number] | null; hasAudio: boolean; hdr: boolean };
 
 const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
 
@@ -104,6 +104,8 @@ async function probeSource(input: string): Promise<Source> {
     duration,
     fps: num > 0 && den > 0 ? [num, den] : null,
     hasAudio: info.streams.some((s) => s.codec_type === "audio"),
+    // iPhones film HDR (HLG) by default; it looks washed out unless converted.
+    hdr: ["smpte2084", "arib-std-b67"].includes(String(v.color_transfer)),
   };
 }
 
@@ -122,14 +124,18 @@ function rungArgs(input: string, src: Source, r: Rung, dir: string, amp: number)
   const threads = Math.max(1, availableParallelism());
   // 50/60 fps: halve it. Lessons don't need it and it doubles size and encode time.
   const fps = src.fps && src.fps[0] / src.fps[1] > 31 ? `fps=${src.fps[0]}/${src.fps[1] * 2},` : "";
+  // HDR to normal (SDR) video, after scaling so it works on fewer pixels.
+  const toSdr = src.hdr ? "zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv," : "";
   // The pattern is computed on a 64x64 grid (cheap), scaled up, and added with
   // blend grainmerge (A + B - 128) for a or grainextract (A - B + 128) for b.
   // Gray scaled with tv range on both sides keeps 128 = no change.
+  // (Measured: this is the fastest way. A full-size pattern with blend
+  // expressions is ~17x slower, a static pattern image with eq ~25% slower.)
   const graph = [
-    `[0:v]${fps}format=yuv420p,split=2[t][s]`,
+    `[0:v]${fps}split=2[t][s]`,
     `[t]scale=64:64:flags=neighbor,format=gray,geq=lum='${geqExpression(amp)}',` +
       `scale=${r.width}:${r.height}:flags=bilinear:in_range=tv:out_range=tv:threads=${threads},format=yuv420p,split=2[pa][pb]`,
-    `[s]scale=${r.width}:${r.height}:flags=bicubic:threads=${threads},setsar=1,split=2[ra][rb]`,
+    `[s]scale=${r.width}:${r.height}:flags=bicubic:threads=${threads},${toSdr}format=yuv420p,setsar=1,split=2[ra][rb]`,
     `[ra][pa]blend=all_mode=grainmerge[va]`,
     `[rb][pb]blend=all_mode=grainextract[vb]`,
   ].join(";");
@@ -152,6 +158,7 @@ function rungArgs(input: string, src: Source, r: Rung, dir: string, amp: number)
       "-force_key_frames", `expr:gte(t,n_forced*${SEGMENT_SECONDS})`,
       "-sc_threshold", "0",
     );
+    if (src.hdr) args.push("-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709");
     if (src.hasAudio) args.push("-c:a", "aac", "-b:a", `${r.audio}k`, "-ac", "2", "-ar", "48000");
     args.push(
       "-max_muxing_queue_size", "4096",
@@ -174,7 +181,7 @@ function ffmpeg(args: string[], label: string, duration: number, log: (l: string
     child.stderr.on("data", (d) => (err = (err + d).slice(-4000)));
     child.stdout.on("data", (d: Buffer) => {
       const m = String(d).match(/out_time_us=(\d+)[\s\S]*speed=\s*([\d.]+)x/);
-      if (m) log(`  ${label}: ${fmtSeconds(Number(m[1]) / 1e6)} of ${fmtSeconds(duration)} (${m[2]}x)`);
+      if (m && Number(m[1]) > 1e6) log(`  ${label}: ${fmtSeconds(Number(m[1]) / 1e6)} of ${fmtSeconds(duration)} (${m[2]}x)`);
     });
     child.on("error", reject);
     child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg (${label}) failed:\n${err.trim()}`))));
@@ -223,8 +230,8 @@ export async function packageVideo(o: PackageOptions) {
   const version = (await sha256File(o.input)).slice(0, 8);
   const rungs = ladderFor(src.width, src.height);
   log(
-    `${o.code}: ${Math.round(src.width)}x${src.height}, ${fmtSeconds(src.duration)}, version ${version}, ` +
-      `renditions ${rungs.map((r) => `${r.width}x${r.height}`).join(" ")}${src.hasAudio ? "" : " (no audio)"}`,
+    `${o.code}: ${Math.round(src.width)}x${src.height}${src.hdr ? " HDR (converting to SDR)" : ""}, ${fmtSeconds(src.duration)}, ` +
+      `version ${version}, renditions ${rungs.map((r) => `${r.width}x${r.height}`).join(" ")}${src.hasAudio ? "" : " (no audio)"}`,
   );
 
   const tmp = await mkdtemp(join(tmpdir(), `video-${o.code}-`));

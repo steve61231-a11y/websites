@@ -3,8 +3,8 @@
 
 import { spawn, type SpawnOptions } from "node:child_process";
 import { createDecipheriv, createHash } from "node:crypto";
-import { createReadStream } from "node:fs";
-import { resolve } from "node:path";
+import { appendFileSync, createReadStream } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { segmentIv, segmentKey, type SegmentRef } from "../../src/lib/video/derive.ts";
 
@@ -16,7 +16,29 @@ export function fail(message: string): never {
 }
 
 export function warn(message: string) {
-  console.warn((process.env.GITHUB_ACTIONS ? "::warning::" : "Warning: ") + message);
+  console.error((process.env.GITHUB_ACTIONS ? "::warning::" : "Warning: ") + message);
+}
+
+/** The course-platform folder (scripts/video/../..), wherever Node was started. */
+export const APP_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
+
+/** Where a course's packaged-stream list lives. */
+export function streamsFile(course: string) {
+  return join(APP_DIR, "src", "lib", "content", course, "streams.json");
+}
+
+export function notice(message: string) {
+  console.error((process.env.GITHUB_ACTIONS ? "::notice::" : "") + message);
+}
+
+/** Set a step output in GitHub Actions (no-op elsewhere). */
+export function setOutput(name: string, value: string) {
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `${name}=${value}\n`);
+}
+
+/** Add Markdown to the run's summary page in GitHub Actions (no-op elsewhere). */
+export function summary(markdown: string) {
+  if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, markdown.trimEnd() + "\n");
 }
 
 /** True when this file is the script Node was started with. */

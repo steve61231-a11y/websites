@@ -5,12 +5,18 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { formatClock } from "@/lib/catalog";
 import type { Lesson, Module } from "@/lib/types";
 import { Back10, Expand, Pause, Play } from "@/components/icons";
+import { useSecureStream } from "./use-secure-stream";
 
-// Plays the lesson's video when it has one (`lesson.video`), with our own
-// controls, watermark and progress saving. Lessons without a video yet get a
-// stand-in that simulates playback over the cover still, so the course can be
-// walked through end to end. In Phase 4 the URL becomes a short-lived signed
-// link from the video host (Bunny Stream or Mux).
+// Plays the lesson's video with our own controls, moving watermark and
+// progress saving. Three kinds of lesson:
+// - `lesson.stream`: a protected video (encrypted HLS from our own key server,
+//   see src/lib/video). use-secure-stream.ts gets a short-lived session for the
+//   signed-in student and feeds it to hls.js; the keys only unlock a window
+//   around where they're watching, and each copy carries an invisible
+//   fingerprint of who it was issued to.
+// - `lesson.video`: a plain file URL, played as is (e.g. a free preview).
+// - neither: a stand-in that simulates playback over the cover still, so the
+//   course can be walked through end to end before the videos are in.
 
 type Props = {
   episode: Module;
@@ -22,13 +28,18 @@ type Props = {
   overlay?: ReactNode;
 };
 
-const RATES = [1, 1.5, 2, 8];
+const RATES = [1, 1.25, 1.5, 2];
+const DEMO_RATES = [1, 1.5, 2, 8]; // 8x only for the stand-in, to skim the course
 
 export function Player({ episode, lesson, startAt, watermark, onProgress, onEnded, overlay }: Props) {
-  const real = !!lesson.video;
+  const real = !!(lesson.video || lesson.stream);
+  const rates = real ? RATES : DEMO_RATES;
   const video = useRef<HTMLVideoElement>(null);
   const [duration, setDuration] = useState(lesson.durationSec);
   const [time, setTime] = useState(startAt >= duration - 1 ? 0 : startAt);
+  const secure = useSecureStream(video, lesson.stream, time);
+  const loading = !!lesson.stream && secure.status === "loading";
+  const failed = !!lesson.stream && secure.status === "error";
   const [playing, setPlaying] = useState(false);
   const [rate, setRate] = useState(1);
   const [chrome, setChrome] = useState(true);
@@ -52,7 +63,10 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
   }, [real, playing, rate, duration]);
 
   useEffect(() => {
-    if (video.current) video.current.playbackRate = rate;
+    const v = video.current;
+    if (!v) return;
+    v.defaultPlaybackRate = rate; // kept when a stream reloads
+    v.playbackRate = rate;
   }, [rate]);
 
   useEffect(() => {
@@ -78,7 +92,8 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
     else poke();
     const v = video.current;
     if (v) {
-      if (v.paused) v.play().catch(() => {});
+      if (lesson.stream && playing) secure.pause(); // also holds a reload paused
+      else if (v.paused) v.play().catch(() => {});
       else v.pause();
       return; // state follows the element's play/pause events
     }
@@ -110,7 +125,8 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
     return () => window.removeEventListener("keydown", onKey);
   });
 
-  const showChrome = chrome || !playing;
+  const mark = secure.label ? `Licensed to ${secure.label}` : watermark;
+  const showChrome = chrome || (!playing && !loading);
   const pct = (time / duration) * 100;
 
   return (
@@ -125,7 +141,7 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
         {real ? (
           <video
             ref={video}
-            src={lesson.video}
+            src={lesson.stream ? undefined : lesson.video} // streams attach via useSecureStream
             poster={lesson.thumb ?? episode.still}
             playsInline
             preload="metadata"
@@ -135,9 +151,11 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
             onLoadedMetadata={(e) => {
               const v = e.currentTarget;
               if (Number.isFinite(v.duration) && v.duration > 0) setDuration(v.duration);
-              if (startAt > 0 && startAt < v.duration - 1) v.currentTime = startAt;
+              if (!lesson.stream && startAt > 0 && startAt < v.duration - 1) v.currentTime = startAt;
             }}
-            onTimeUpdate={(e) => setTime(e.currentTarget.currentTime)}
+            onTimeUpdate={(e) => {
+              if (!secure.busy()) setTime(e.currentTarget.currentTime);
+            }}
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
             onEnded={() => {
@@ -174,16 +192,51 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
         </AnimatePresence>
       </div>
 
-      {/* Watermark */}
+      {/* Watermark: two copies drifting on different paths over the whole
+          frame, so no single crop removes it. The server's label wins: it's
+          who the session (and the hidden fingerprint) was issued to. */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        <p className="absolute left-[6%] top-[10%] animate-[drift_48s_ease-in-out_infinite] whitespace-nowrap text-[10px] font-medium text-white/25 sm:text-[12px]">
-          {watermark}
-        </p>
+        <div className="absolute inset-0 animate-[drift_48s_ease-in-out_infinite]">
+          <p className="absolute left-[6%] top-[10%] whitespace-nowrap text-[10px] font-medium text-white/25 sm:text-[12px]">{mark}</p>
+        </div>
+        <motion.div
+          className="absolute inset-0"
+          initial={{ x: "48%", y: "80%" }}
+          animate={{ x: ["48%", "10%", "40%", "4%", "28%", "48%"], y: ["80%", "48%", "16%", "86%", "58%", "80%"] }}
+          transition={{ duration: 71, ease: "easeInOut", repeat: Infinity }}
+        >
+          <p className="absolute left-[2%] top-[2%] whitespace-nowrap text-[9px] font-medium text-white/[0.13] sm:text-[11px]">{mark}</p>
+        </motion.div>
       </div>
+
+      {/* Stream starting or reloading */}
+      <AnimatePresence>
+        {loading && !overlay && (
+          <motion.div
+            key="spinner"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { delay: 0.15 } }}
+            exit={{ opacity: 0 }}
+            role="status"
+            aria-label="Loading video"
+            className="pointer-events-none absolute left-1/2 top-1/2 size-11 -translate-x-1/2 -translate-y-1/2 animate-spin rounded-full border-2 border-white/15 border-t-white/75 sm:size-14"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Stream failed */}
+      {failed && !overlay && (
+        <div role="alert" className="pointer-events-none absolute inset-0 grid place-items-center bg-black/60 p-6 text-center">
+          <div>
+            <p className="mx-auto max-w-[34ch] text-[14px] leading-relaxed text-white/85 sm:text-[15px]">{secure.error}</p>
+            <button onClick={secure.retry} className="btn btn-white pointer-events-auto mt-4">Try again</button>
+          </div>
+        </div>
+      )}
 
       {/* Big play */}
       <AnimatePresence>
-        {!playing && !overlay && (
+        {!playing && !overlay && !loading && !failed && (
           <motion.button
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -235,7 +288,7 @@ export function Player({ episode, lesson, startAt, watermark, onProgress, onEnde
           </span>
           <span className="flex-1" />
           <button
-            onClick={() => setRate(RATES[(RATES.indexOf(rate) + 1) % RATES.length])}
+            onClick={() => setRate(rates[(rates.indexOf(rate) + 1) % rates.length])}
             className="min-w-12 rounded-full px-2.5 py-1.5 text-[12px] font-bold tabular-nums hover:bg-white/10"
             aria-label="Playback speed"
           >

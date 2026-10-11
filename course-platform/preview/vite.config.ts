@@ -37,8 +37,11 @@ export default defineConfig({
       { find: "next/navigation", replacement: here("./shims/navigation.ts") },
       { find: "next/font/google", replacement: here("./shims/font.ts") },
       { find: "next/dynamic", replacement: here("./shims/dynamic.tsx") },
+      // No key server in the preview: lessons always use the stand-in player.
+      { find: /^.*\/streams\.json$/, replacement: here("./shims/streams.json") },
+      { find: /^hls\.js$/, replacement: here("./shims/hls.ts") },
       { find: /^@\//, replacement: here("../src/") },
     ],
   },
-    build: { outDir: here("./dist"), emptyOutDir: true },
+  build: { outDir: here("./dist"), emptyOutDir: true },
 });

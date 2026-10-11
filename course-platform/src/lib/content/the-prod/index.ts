@@ -11,20 +11,35 @@ import * as wrapUp from "./wrap-up";
 import { resources, videos } from "./media";
 import { courseCover, dayCovers, lessonThumbs } from "./thumbnails";
 import { certificateTemplate } from "./certificate";
+import streams from "./streams.json";
 
 // THE PROD: E-commerce Product Photography with AI, by Product Photography Kenya.
 
 // Each day's videos, notes and quiz live in their own file in this folder.
 // Transcripts are in /content/transcripts/the-prod/<code>.md.
 
-/** Attach each video's link, downloads (media.ts) and thumbnail (thumbnails.ts). */
+/** The protected stream for a video, once the GitHub Action has encrypted it
+ *  and listed it in streams.json. Only the duration is needed here; the key
+ *  server reads the rest. */
+const packaged: Record<string, unknown> = streams;
+function streamFor(code: string): Lesson["stream"] {
+  const s = Object.hasOwn(packaged, code) ? (packaged[code] as { duration?: unknown } | null) : null;
+  if (!s || typeof s.duration !== "number" || !(s.duration > 0)) return undefined;
+  return { course: "the-prod", code, duration: s.duration }; // course id as the key server knows it
+}
+
+/** Attach each video (a protected stream wins over a link in media.ts),
+ *  downloads (media.ts) and thumbnail (thumbnails.ts). */
 const withMedia = (lessons: Lesson[]) =>
-  lessons.map((l) => ({
-    ...l,
-    ...(videos[l.code] ? { video: videos[l.code] } : {}),
-    ...(resources[l.code] ? { resources: resources[l.code] } : {}),
-    ...(lessonThumbs[l.code] ? { thumb: lessonThumbs[l.code] } : {}),
-  }));
+  lessons.map((l) => {
+    const stream = streamFor(l.code);
+    return {
+      ...l,
+      ...(stream ? { stream, durationSec: Math.round(stream.duration) } : videos[l.code] ? { video: videos[l.code] } : {}),
+      ...(resources[l.code] ? { resources: resources[l.code] } : {}),
+      ...(lessonThumbs[l.code] ? { thumb: lessonThumbs[l.code] } : {}),
+    };
+  });
 
 const modules: Module[] = [
   {

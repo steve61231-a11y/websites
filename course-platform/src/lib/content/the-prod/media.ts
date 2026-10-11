@@ -1,11 +1,16 @@
 import type { Resource } from "../../types";
 
 // Videos and downloads for THE PROD, keyed by video number ("2.3").
-// Paste a link next to a number and that lesson plays it; leave a number out
-// and the lesson keeps the stand-in player. See .claude/skills/add-videos.
+//
+// Course videos don't go here. Drop them in the Google Drive inbox: the
+// GitHub Action encrypts each one, uploads it and lists it in streams.json,
+// and the lesson then plays it as a protected stream (that always wins over
+// a link below). A link here is only for a plain, unprotected file anyone
+// with the URL can download, e.g. a free preview. A number in neither keeps
+// the stand-in player. See .claude/skills/add-videos.
 
 export const videos: Record<string, string> = {
-  // "0.1": "https://vz-xxxx.b-cdn.net/<video-id>/play_720p.mp4",
+  // "0.1": "https://media.example.com/previews/0.1.mp4",
 };
 
 export const resources: Record<string, Resource[]> = {
