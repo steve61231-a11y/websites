@@ -15,7 +15,7 @@ import { parseArgs } from "node:util";
 import { compareCodes, fail, isMain, streamsFile, summary, warn } from "./lib.ts";
 import type { Meta, StreamEntry } from "./package.ts";
 
-const KEY_ORDER = ["version", "duration", "segments", "renditions", "driveId", "sourceName", "packagedAt"];
+const KEY_ORDER = ["version", "duration", "segments", "renditions", "source", "packagedAt"];
 const RENDITION_ORDER = ["id", "width", "height", "bandwidth", "averageBandwidth", "codecs"];
 
 type Json = null | boolean | number | string | Json[] | { [k: string]: Json };

@@ -91,6 +91,12 @@ export async function ffprobe(file: string) {
   };
 }
 
+/** streams.json ends up in the website's code, so it only keeps a hash of
+ *  the Drive file id (enough to spot a replaced upload), never the id itself. */
+export function driveHash(driveId: string) {
+  return createHash("sha256").update(`drive|${driveId}`).digest("hex").slice(0, 16);
+}
+
 export function sha256File(file: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const h = createHash("sha256");

@@ -52,7 +52,7 @@ export const SURE_BIT = 2.5;
 
 function frameReader(stream: Readable, size: number) {
   const it = stream[Symbol.asyncIterator]() as AsyncIterator<Buffer>;
-  let buf = Buffer.alloc(0);
+  let buf: Buffer = Buffer.alloc(0);
   return async (): Promise<Buffer | null> => {
     while (buf.length < size) {
       const r = await it.next();

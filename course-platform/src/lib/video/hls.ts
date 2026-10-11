@@ -21,8 +21,7 @@ export type VideoStream = {
   duration: number; // seconds
   segments: number[]; // EXTINF durations, the same for every rendition and variant
   renditions: Rendition[];
-  driveId?: string;
-  sourceName?: string;
+  source?: string;
   packagedAt?: string;
 };
 

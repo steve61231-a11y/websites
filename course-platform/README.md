@@ -40,6 +40,9 @@ src/app/                        routes
 scripts/                        transcript import, thumbnail import, frame grabs, preview packaging
 supabase/migrations/            Phase 2 schema with row-level security
 docs/BACKEND-PLAN.md            backend, payments, video protection and security plan
+docs/VIDEO-SETUP.md             protected video: what it does, costs, setup clicks
+src/lib/video/ + src/app/api/video/  key server for protected streams
+scripts/video/                  video packaging, leak tracing, tests (run by .github/workflows/package-videos.yml)
 preview/                        single-file build for sharing a link
 ```
 
@@ -60,7 +63,7 @@ Skills in `/.claude/skills` walk Claude through each routine job:
 
 ## Still needed from the client
 
-- Video uploads to a DRM video host (see `docs/BACKEND-PLAN.md`) and the gear-list PDF
+- Videos: the one-time Cloudflare + GitHub setup and the Drive folder link (see `docs/VIDEO-SETUP.md`), and the gear-list PDF
 - The certificate template from Canva (see the `update-certificate` skill)
 - The points in `content/REVIEW.md`
 - Price (KES 15,000 is a placeholder), the WhatsApp number to confirm, the booking calendar link

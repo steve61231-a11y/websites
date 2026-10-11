@@ -20,7 +20,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import { parseArgs } from "node:util";
-import { APP_DIR, codeFromName, compareCodes, fail, isMain, notice, run, setOutput, streamsFile, summary, warn } from "./lib.ts";
+import { APP_DIR, codeFromName, compareCodes, fail, isMain, notice, run, setOutput, streamsFile, summary, warn, driveHash } from "./lib.ts";
 
 const VIDEO_EXTENSIONS = new Set([".mp4", ".mov", ".m4v", ".mkv", ".webm", ".avi", ".mts", ".m2ts", ".mpg", ".mpeg", ".wmv", ".3gp"]);
 
@@ -62,7 +62,7 @@ async function listDrive(url: string): Promise<DriveFile[]> {
 /** The pure decision, separate from Drive so it can be tested. */
 export function planJobs(o: {
   files: DriveFile[];
-  streams: Record<string, { driveId?: string }>;
+  streams: Record<string, { source?: string }>;
   only?: string[];
   force?: boolean;
 }) {
@@ -92,7 +92,7 @@ export function planJobs(o: {
     }
     const [f] = files;
     const current = Object.hasOwn(o.streams, code) ? o.streams[code] : undefined;
-    const reason = !current ? "new" : current.driveId !== f.id ? "replaced" : o.force ? "forced" : null;
+    const reason = !current ? "new" : current.source !== driveHash(f.id) ? "replaced" : o.force ? "forced" : null;
     if (reason) jobs.push({ code, driveId: f.id, name: basename(f.path), reason });
     else upToDate.push(code);
   }

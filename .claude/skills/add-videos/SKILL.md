@@ -5,44 +5,45 @@ description: Connect lesson videos (and downloadable files like the gear-list PD
 
 # Add lesson videos and downloads
 
-All paths are relative to `course-platform/`.
+All paths are relative to `course-platform/`. Owner-facing steps: `docs/VIDEO-SETUP.md`.
 
-Every lesson is identified by its video number, e.g. `2.3` (Day 2, video 3). Links go in **one file per course**: `src/lib/content/the-prod/media.ts`.
+## Protected videos (the normal way)
+
+Pipeline: Google Drive folder → GitHub Action `.github/workflows/package-videos.yml` (repo root) → encrypted HLS in Cloudflare R2 → `src/lib/content/the-prod/streams.json` → the player plays it via our key server (`src/app/api/video/**`).
+
+This sandbox can't reach Drive or R2, but GitHub Actions can. Don't try to download videos here.
+
+1. **Folder link.** Put the Drive folder URL in `content/videos/the-prod.json` (`{"driveFolder": "https://drive.google.com/drive/folders/…"}`), commit and push. The folder must be shared "Anyone with the link". Files must start with the lesson number (`2.3 …`).
+2. **Run the job.** GitHub MCP `actions_run_trigger` → workflow `package-videos.yml`, ref = the current branch, inputs: `course` (default `the-prod`), optional `only` (`2.3,2.4`), `force` (re-package even if unchanged). It also runs nightly.
+3. **Watch it.** `actions_list` / `get_job_logs`. The plan job lists what it will package; each video is its own job; the publish job commits `streams.json` to the branch.
+4. **Pull** the branch (`git pull origin <branch>`), then run `check-and-publish`. Lessons with an entry in `streams.json` play the real video automatically.
+
+Troubleshooting:
+- "Can't list the folder" / empty → folder not shared, wrong link, or more than 50 files in it.
+- "Too many users have viewed or downloaded" → Drive download quota; wait a few hours and re-run with `only`.
+- "Missing secret …" → the owner hasn't added the GitHub secrets (docs/VIDEO-SETUP.md step 2).
+- A file skipped as "doesn't start with a lesson number" → ask the owner to rename it.
+- Replaced a video → a new Drive file is detected automatically; same file edited in place → re-run with `only` + `force`.
+
+Tests (run after touching any of this): `node scripts/video/test-server.ts` (seconds) and `node scripts/video/selftest.ts` (~5 min, real ffmpeg encode + fingerprint recovery). Add `--disable-warning=MODULE_TYPELESS_PACKAGE_JSON` to quiet Node.
+
+Testing playback locally: package a clip with `node scripts/video/package.ts --input clip.mp4 --course the-prod --code 0.1 --out /tmp/out` (env `VIDEO_SECRET`), serve `/tmp/out` with CORS, put its `meta.json` entry (minus course/code) into `streams.json` temporarily, run the app with `VIDEO_SECRET`, `VIDEO_CDN_URL`, `VIDEO_DEV_OPEN=1`. Playwright's Chromium can't decode H.264, so check network/keys there and real playback in a real browser. Restore `streams.json` afterwards.
+
+## Leak tracing
+
+The owner sends a leaked file. Get the original source video, then:
+`node scripts/video/trace-leak.ts --leak leak.mp4 --source original.mp4 [--offset seconds]`. It prints the most likely watermark ids; map the id to a student via `profiles.watermark_id` (Phase 2).
+
+## Plain links (fallback, unprotected)
+
+`src/lib/content/the-prod/media.ts` → `videos["2.3"] = "https://…mp4"`. A `streams.json` entry wins over this.
+
+## Downloads (PDFs, checklists)
+
+Put the file in `public/downloads/the-prod/`, then in `media.ts`:
 
 ```ts
-export const videos: Record<string, string> = {
-  "0.1": "https://vz-abc123.b-cdn.net/2f6c…/play_720p.mp4",
-  "2.3": "https://…/2-3.mp4",
-};
-
 export const resources: Record<string, Resource[]> = {
   "2.8": [{ title: "Gear list", kind: "PDF", href: "/downloads/the-prod/gear-list.pdf" }],
 };
 ```
-
-- A lesson with a link plays that video in the course player (our controls, watermark, resume and auto-complete at the end all work). A lesson without one keeps the stand-in player, so the course still works while videos trickle in.
-- `kind` is one of `PDF`, `Checklist`, `Preset`, `Link`. Downloads show under the lesson notes.
-
-## Where to host videos
-
-Never commit video files to git (they are hundreds of MB). Use a video host and paste its URL:
-
-1. **Bunny Stream** (recommended, cheap, fast in Africa): create a library, upload, enable *MP4 fallback* in the library settings, then copy the `play_720p.mp4` URL for each video.
-2. **Mux** or **Cloudflare Stream** also work; use their MP4/static rendition URL.
-3. Any public MP4 URL works for testing (e.g. Google Drive does NOT stream reliably; avoid it).
-
-Phase 4 swaps public URLs for short-lived signed URLs from the server, so the link format may change then; the `videos` map stays the place to set them.
-
-Small files (PDFs, checklists) can go in `public/downloads/<course>/` and be linked as `/downloads/<course>/<file>`.
-
-## Video lengths
-
-The course uses each lesson's `seconds` (in `src/lib/content/the-prod/<day>.ts`, the third argument of `lesson(...)`) for the "8 videos · 22 min" totals. The player reads the real length from the file, but update `seconds` if a re-edit changes a video's length noticeably.
-
-## Matching videos to numbers
-
-The client's video files are named like `2.3 - Camera Sensor - FullFrame or Cropped`. The number before the dash is the key. The original "6.2 - Shooting Two Lights" is not used; the two "Revised" videos are now **6.2** (Shooting Two Lights: Setup) and **6.3** (Shooting Two Lights). The conclusion video is `8.1`.
-
-## After adding
-
-Run the `check-and-publish` skill: it verifies the build and refreshes the preview link. Note the shareable single-file preview cannot embed real videos; it only plays them if the URLs are public.

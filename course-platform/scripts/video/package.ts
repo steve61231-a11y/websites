@@ -21,7 +21,7 @@ import { basename, join } from "node:path";
 import { parseArgs } from "node:util";
 import { SEGMENT_SECONDS, segmentIv, segmentKey, segmentPath, type SegmentRef, type Variant } from "../../src/lib/video/derive.ts";
 import { geqExpression } from "./fingerprint.ts";
-import { fail, ffprobe, fmtSeconds, isMain, pool, runBytes, sha256File } from "./lib.ts";
+import { fail, ffprobe, fmtSeconds, isMain, pool, runBytes, sha256File, driveHash } from "./lib.ts";
 
 /** Fingerprint strength in luma levels (video range is 16-235). Picked by
  *  selftest.ts: the smallest that still reads back with a clear margin from a
@@ -54,8 +54,7 @@ export type StreamEntry = {
   duration: number;
   segments: number[];
   renditions: Rendition[];
-  driveId?: string;
-  sourceName: string;
+  source?: string; // driveHash of the Drive file it came from
   packagedAt: string;
 };
 
@@ -310,8 +309,7 @@ export async function packageVideo(o: PackageOptions) {
       duration: Number(total.toFixed(3)),
       segments,
       renditions,
-      ...(o.driveId ? { driveId: o.driveId } : {}),
-      sourceName: o.sourceName || basename(o.input),
+      ...(o.driveId ? { source: driveHash(o.driveId) } : {}),
       packagedAt: new Date().toISOString().replace(/\.\d+Z$/, "Z"),
     };
     await mkdir(o.out, { recursive: true });

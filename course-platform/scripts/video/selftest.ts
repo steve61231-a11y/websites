@@ -27,7 +27,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import { FINGERPRINT_LENGTH, SEGMENT_SECONDS, segmentPath, variantFor, type SegmentRef, type Variant } from "../../src/lib/video/derive.ts";
-import { decryptSegment, ffprobe, fmtSeconds, pool, run } from "./lib.ts";
+import { decryptSegment, ffprobe, fmtSeconds, pool, run, driveHash } from "./lib.ts";
 import { AMP, packageVideo, type Meta } from "./package.ts";
 import { SURE_BIT, isStrongMatch, traceLeak, verdict, type TraceResult } from "./trace-leak.ts";
 
@@ -112,7 +112,7 @@ async function checkPackage(out: string, meta: Meta, seconds: number, tmp: strin
       `${r.id} bandwidth peak ${(r.bandwidth / 1e6).toFixed(2)} Mb/s, average ${(r.averageBandwidth / 1e6).toFixed(2)} Mb/s`,
     );
   }
-  check(meta.driveId === "selftest-drive-id" && meta.sourceName === "9.1 - Self Test.mp4", "driveId and sourceName recorded");
+  check(meta.source === driveHash("selftest-drive-id") && !("driveId" in meta) && !("sourceName" in meta), "only a hash of the Drive id recorded");
 
   // Only encrypted segments and meta.json in the output.
   const dir = join(out, meta.course, meta.code, meta.version);
