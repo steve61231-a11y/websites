@@ -25,16 +25,17 @@ export function HomeHero() {
       />
       <div className="wrap relative">
         <FadeIn inView={false} y={10}>
-          <p className="eyebrow">{brand.organisation} · Online school</p>
+          <p className="eyebrow">E-commerce product photography with AI</p>
         </FadeIn>
-        <h1 className="display mt-6 text-[clamp(46px,7.4vw,108px)]">
-          <TextReveal as="span" inView={false} delay={0.05} text="Learn the craft." className="block text-white" />
-          <TextReveal as="span" inView={false} delay={0.18} text="Pick a course." className="block text-white/30" />
+        <h1 className="display mt-6 max-w-[20ch] text-[clamp(36px,4.9vw,70px)]">
+          <TextReveal as="span" inView={false} delay={0.05} text="Become an e-commerce product photographer" className="block text-white" />
+          <TextReveal as="span" inView={false} delay={0.18} text="in the fastest time possible." className="block text-white/30" />
         </h1>
         <FadeIn inView={false} delay={0.3} y={10}>
-          <p className="mt-8 max-w-[44ch] text-[clamp(17px,1.6vw,20px)] leading-relaxed text-ink-2">
-            Short, practical video courses taught by working creatives. Learn at your own pace, pass the quizzes and earn a certificate
-            anyone can verify.
+          <p className="mt-8 max-w-[52ch] text-[clamp(17px,1.6vw,20px)] leading-relaxed text-ink-2">
+            Learn practical product photography, lighting, AI-powered workflows, image editing, creative direction and e-commerce content
+            strategy. Build the skills to create professional product visuals faster, and help businesses present and sell their products
+            online.
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-3">
             {mine ? (
@@ -42,11 +43,9 @@ export function HomeHero() {
                 <Play size={16} /> Continue learning · {pct}%
               </Link>
             ) : (
-              <a href="#courses" className="btn btn-white btn-lg">Browse courses</a>
+              <Link href={`/courses/${courses[0].slug}`} className="btn btn-white btn-lg">Access the course</Link>
             )}
-            {!state.user && (
-              <Link href="/sign-in" className="btn btn-glass btn-lg">Sign in</Link>
-            )}
+            <Link href="/book" className="btn btn-glass btn-lg">Book your session</Link>
           </div>
         </FadeIn>
       </div>
@@ -170,6 +169,55 @@ function ComingSoon() {
       </div>
       <a href={`mailto:${brand.email}?subject=Course%20updates`} className="btn btn-glass shrink-0">Keep me posted</a>
     </motion.li>
+  );
+}
+
+const BLUEPRINT = ["Learn to attract more customers", "Know what gear to invest in"];
+
+/** "How we help": the business side, and the paid 1:1 session. */
+export function HowWeHelp() {
+  return (
+    <section id="help" className="scroll-mt-24 pb-24 sm:pb-32">
+      <div className="wrap">
+        <div className="border-t border-line pt-10">
+          <h2 className="display text-[clamp(30px,4vw,48px)] text-white">How we help</h2>
+        </div>
+        <div className="mt-10 grid gap-5 md:grid-cols-[1.2fr_1fr]">
+          <FadeIn>
+            <div className="flex h-full flex-col rounded-[32px] bg-surface p-7 ring-1 ring-inset ring-white/[0.06] sm:p-10">
+              <p className="text-[clamp(20px,2.2vw,26px)] font-semibold leading-snug tracking-[-0.01em] text-white">
+                Learn the creative business skills, content strategies, brand positioning and tools you need to attract more customers,
+                convert them into clients and keep them, with the right gear.
+              </p>
+              <p className="mt-5 max-w-[50ch] text-[16px] leading-relaxed text-muted">
+                Build a brand people love, create content that drives results, and develop the skills to grow a profitable business.
+              </p>
+              <div className="mt-auto pt-10">
+                <Link href="/book" className="btn btn-amber btn-lg">Book your session</Link>
+                <p className="mt-3 text-[13px] text-faint">One on one with {courses[0].instructor.name}. Pay, then pick a time on the calendar.</p>
+              </div>
+            </div>
+          </FadeIn>
+          <FadeIn delay={0.08}>
+            <div className="theme-dark relative flex h-full flex-col overflow-hidden rounded-[32px] bg-[#111] p-7 ring-1 ring-inset ring-white/10 sm:p-10">
+              <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-[radial-gradient(circle,rgba(245,165,36,0.28),transparent_65%)]" />
+              <p className="eyebrow relative">1:1 sessions</p>
+              <p className="relative mt-4 font-[family-name:var(--font-display)] text-[clamp(30px,3.4vw,42px)] font-extrabold leading-[1.02] tracking-[-0.03em] text-white">
+                Creative Business Blueprint
+              </p>
+              <ul className="relative mt-8 space-y-4">
+                {BLUEPRINT.map((t, i) => (
+                  <li key={t} className="flex items-baseline gap-4 border-t border-white/10 pt-4 text-[16px] font-semibold text-white">
+                    <span className="font-[family-name:var(--font-display)] text-[12px] tabular-nums tracking-[0.2em] text-amber">0{i + 1}</span>
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </FadeIn>
+        </div>
+      </div>
+    </section>
   );
 }
 
