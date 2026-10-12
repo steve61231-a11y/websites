@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/brand/wordmark";
-import { brand } from "@/lib/catalog";
+import { brand, communityHref } from "@/lib/catalog";
 import { RestartDemo } from "./restart-demo";
 
 export function SiteFooter() {
@@ -17,6 +17,8 @@ export function SiteFooter() {
           <Link href="/#courses" className="block text-ink-2 hover:text-white">Courses</Link>
           <Link href="/sign-in" className="block text-ink-2 hover:text-white">Sign in</Link>
           <Link href="/verify" className="block text-ink-2 hover:text-white">Verify a certificate</Link>
+          <Link href="/book" className="block text-ink-2 hover:text-white">Book a 1:1 session</Link>
+          <a href={communityHref()} className="block text-ink-2 hover:text-white" target="_blank" rel="noreferrer">Join the WhatsApp group</a>
         </div>
         <div className="space-y-3 text-[14px]">
           <p className="eyebrow !text-faint">Contact</p>

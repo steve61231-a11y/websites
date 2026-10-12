@@ -55,6 +55,7 @@ const routes: [string, Render][] = [
     },
   ],
   ["/enroll", () => <EnrollFlow />],
+  ["/book", () => <EnrollFlow mode="session" />],
   ["/welcome", () => <Welcome />],
   ["/sign-in", () => <SignInFlow />],
   ["/learn", () => <LearnPage />],

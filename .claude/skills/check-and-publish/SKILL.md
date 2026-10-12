@@ -34,7 +34,7 @@ Look at the screenshots, desktop (1440×900) and phone (390×844). Stop the serv
 npm run preview:artifact   # builds preview/dist/index.html and preview/dist/artifact.html
 ```
 
-Publish `preview/dist/artifact.html` with the Artifact tool **to the existing link** (`url: https://claude.ai/artifact/7Qup3NbXYABwAKnREms7gE`) so the client's link keeps working. The preview is a one-file Vite build of the same screens with an in-memory router (`preview/main.tsx`): when you add a route in `src/app`, add it to the `routes` table there too.
+Publish with the Artifact tool **to the existing link** (`url: https://claude.ai/artifact/XPnik5vpBd43ocrsAVxKj3`) so the client's link keeps working. Copy `preview/dist/artifact.html` as the page, and publish every image in `preview/dist/images.json` alongside it via `files` (published path = the same relative path, source under `public/`; use `root`). Images are not inlined: a 4 MB inlined page failed to open on other browsers. The preview is a one-file Vite build of the same screens with an in-memory router (`preview/main.tsx`): when you add a route in `src/app`, add it to the `routes` table there too.
 
 ## 4. Commit
 

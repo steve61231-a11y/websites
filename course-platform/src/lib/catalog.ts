@@ -12,8 +12,20 @@ export const brand: Brand = {
   email: "hello@productphotography.co.ke",
   whatsapp: "+254 724 714 388", // to confirm: the summary lists "254 (724) 714,388 319"
   website: "https://www.productphotography.co.ke",
-  bookingUrl: "#book", // calendar link to come
+  communityUrl: "", // WhatsApp group invite link, to come
+  session: {
+    title: "1:1 session with Duncan",
+    minutes: 60,
+    price: 5000, // placeholder
+    currency: "KES",
+    calendlyUrl: "", // Calendly link, to come
+  },
 };
+
+/** Where "Join the community" goes: the group invite, or a WhatsApp chat until it exists. */
+export function communityHref() {
+  return brand.communityUrl || `https://wa.me/${brand.whatsapp.replace(/\D/g, "")}`;
+}
 
 /** The course the learning app shows. Learning routes are single-course for now. */
 export const course: Course = theProd;

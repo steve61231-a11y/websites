@@ -9,14 +9,22 @@ import { brand, course, courseStats, formatPrice } from "@/lib/catalog";
 import { demo } from "@/lib/demo-store";
 import { Wordmark } from "@/components/brand/wordmark";
 import { ReceiptPrinter, type ReceiptPrinterStage } from "@/components/receipt-printer";
-import { demoReceipt, paidWith, receiptDate, type Receipt } from "@/lib/receipt";
+import { courseItem, demoReceipt, paidWith, receiptDate, type Purchase, type Receipt } from "@/lib/receipt";
 
 type Step = "details" | "pay" | "phone" | "receipt";
 // What the server does once Paystack reports the payment, shown on the printer screen.
-const VERIFY = ["Payment received", "Verifying with Paystack", "Granting your access", "Emailing your receipt"];
+const VERIFY = {
+  course: ["Payment received", "Verifying with Paystack", "Granting your access", "Emailing your receipt"],
+  session: ["Payment received", "Verifying with Paystack", "Reserving your session", "Emailing your receipt"],
+};
+
+const sessionItem: Purchase = { id: "session", label: brand.session.title, price: brand.session.price, currency: brand.session.currency };
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-export function EnrollFlow() {
+/** Checkout for the course (`/enroll`) or a paid 1:1 session (`/book`). */
+export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" }) {
+  const item = mode === "course" ? courseItem(course) : sessionItem;
+  const verify = VERIFY[mode];
   const router = useRouter();
   const [step, setStep] = useState<Step>("details");
   const [dir, setDir] = useState(1);
@@ -27,7 +35,7 @@ export function EnrollFlow() {
   const [done, setDone] = useState(0);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [stage, setStage] = useState<ReceiptPrinterStage>("processing");
-  const price = formatPrice(course.price, course.currency);
+  const price = formatPrice(item.price, item.currency);
   const stats = courseStats(course);
   const valid = name.trim().length > 1 && /^\S+@\S+\.\S+$/.test(email);
 
@@ -44,18 +52,18 @@ export function EnrollFlow() {
       return () => clearTimeout(t);
     }
     if (step !== "receipt" || stage !== "processing") return;
-    if (done < VERIFY.length - 1) {
+    if (done < verify.length - 1) {
       const t = setTimeout(() => setDone((d) => d + 1), 750);
       return () => clearTimeout(t);
     }
-    const r = demoReceipt(course, { name: name.trim(), email: email.trim(), method, contact: phone });
+    const r = demoReceipt(item, { name: name.trim(), email: email.trim(), method, contact: phone });
     const t = setTimeout(() => {
-      demo.purchase(course.id, email.trim(), name.trim(), r);
+      if (mode === "course") demo.purchase(course.id, email.trim(), name.trim(), r);
       setReceipt(r);
       setStage("printing");
     }, 650);
     return () => clearTimeout(t);
-  }, [step, stage, done, email, name, method, phone]);
+  }, [step, stage, done, email, name, method, phone, mode, item, verify]);
 
   useEffect(() => {
     if (stage !== "printing") return;
@@ -65,12 +73,15 @@ export function EnrollFlow() {
 
   return (
     <AuthShell
-      image="/thumbs/the-prod/day-1.jpg"
+      image={mode === "course" ? "/thumbs/the-prod/day-1.jpg" : "/stills/duncan.jpg"}
       caption={
         <div className="max-w-sm">
           <p className="eyebrow">What you get</p>
           <ul className="mt-4 space-y-2.5 text-[15px] text-ink-2">
-            {[`${stats.lessons} videos over 7 days`, `${stats.quizzes} quizzes and a final assessment`, "WhatsApp community and support", "Verifiable certificate", "Lifetime access"].map((t) => (
+            {(mode === "course"
+              ? [`${stats.lessons} videos over 7 days`, `${stats.quizzes} quizzes and a final assessment`, "WhatsApp community and support", "Verifiable certificate", "Lifetime access"]
+              : [`${brand.session.minutes} minutes, one on one with Duncan`, "Bring your products, your shots or your questions", "Pick a time that suits you after paying", "Online, by video call"]
+            ).map((t) => (
               <li key={t} className="flex items-center gap-2.5">
                 <Check size={16} className="text-amber" /> {t}
               </li>
@@ -96,8 +107,10 @@ export function EnrollFlow() {
               }}
             >
               <p className="eyebrow">Step 1 of 2</p>
-              <h1 className="headline mt-3 text-[38px] text-white">Almost there.</h1>
-              <p className="mt-3 text-[16px] leading-relaxed text-muted">Your access is linked to this email, and your certificate uses this name.</p>
+              <h1 className="headline mt-3 text-[38px] text-white">{mode === "course" ? "Almost there." : "Book your session."}</h1>
+              <p className="mt-3 text-[16px] leading-relaxed text-muted">
+                {mode === "course" ? "Your access is linked to this email, and your certificate uses this name." : "Pay first, then pick a time on the calendar. Your receipt goes to this email."}
+              </p>
               <div className="mt-9 space-y-4">
                 <label className="block">
                   <span className="mb-2 block text-[13px] font-medium text-ink-2">Full name</span>
@@ -125,7 +138,7 @@ export function EnrollFlow() {
                 <h1 className="headline text-[38px] text-white">Pay</h1>
                 <p className="font-[family-name:var(--font-display)] text-[26px] font-extrabold tracking-[-0.03em] text-white">{price}</p>
               </div>
-              <p className="mt-1 text-[14px] text-muted">{course.shortTitle} · {course.title}</p>
+              <p className="mt-1 text-[14px] text-muted">{item.label}</p>
 
               <div className="relative mt-8 grid grid-cols-2 rounded-2xl bg-white/[0.06] p-1 ring-1 ring-inset ring-white/10">
                 {(["mpesa", "card"] as const).map((m) => (
@@ -200,7 +213,7 @@ export function EnrollFlow() {
                     />
                   </ReceiptPrinter.Header>
                   <ReceiptPrinter.Screen>
-                    <ReceiptPrinter.Status>{stage === "processing" ? VERIFY[done] : undefined}</ReceiptPrinter.Status>
+                    <ReceiptPrinter.Status>{stage === "processing" ? verify[done] : undefined}</ReceiptPrinter.Status>
                   </ReceiptPrinter.Screen>
                 </ReceiptPrinter.Machine>
                 <ReceiptPrinter.Output className="h-[27rem]">
@@ -216,16 +229,30 @@ export function EnrollFlow() {
                     transition={{ duration: 0.5, ease: EASE, delay: 0.15 }}
                     className="-mt-4 w-full text-center"
                   >
-                    <h1 className="headline text-[26px] text-white">You&apos;re in.</h1>
-                    <p className="mx-auto mt-2 max-w-xs text-[15px] leading-relaxed text-muted">
-                      Your receipt and access link are on their way to <span className="text-white">{receipt.email}</span>.
-                    </p>
-                    <button
-                      onClick={() => router.push(`/welcome?email=${encodeURIComponent(receipt.email)}`)}
-                      className="btn btn-white btn-lg mt-6 w-full"
-                    >
-                      Continue
-                    </button>
+                    {mode === "course" ? (
+                      <>
+                        <h1 className="headline text-[26px] text-white">You&apos;re in.</h1>
+                        <p className="mx-auto mt-2 max-w-xs text-[15px] leading-relaxed text-muted">
+                          Your receipt and access link are on their way to <span className="text-white">{receipt.email}</span>.
+                        </p>
+                        <button
+                          onClick={() => router.push(`/welcome?email=${encodeURIComponent(receipt.email)}`)}
+                          className="btn btn-white btn-lg mt-6 w-full"
+                        >
+                          Continue
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <h1 className="headline text-[26px] text-white">Paid. Now pick a time.</h1>
+                        <p className="mx-auto mt-2 max-w-xs text-[15px] leading-relaxed text-muted">
+                          Your receipt is on its way to <span className="text-white">{receipt.email}</span>, with the calendar link.
+                        </p>
+                        <a href={brand.session.calendlyUrl || "#"} target="_blank" rel="noreferrer" className="btn btn-white btn-lg mt-6 w-full">
+                          Pick your time
+                        </a>
+                      </>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -262,7 +289,7 @@ function ReceiptSlip({ receipt: r }: { receipt: Receipt }) {
       <div className="my-4 border-t border-dashed border-black/25" />
       <p className="font-bold">{r.courseTitle}</p>
       <div className="flex justify-between">
-        <span className="text-black/55">1 × lifetime access</span>
+        <span className="text-black/55">{r.courseId === "session" ? `1 × ${brand.session.minutes}-min session` : "1 × lifetime access"}</span>
         <span>{total}</span>
       </div>
       <div className="my-4 border-t border-dashed border-black/25" />

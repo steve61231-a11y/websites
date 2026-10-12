@@ -110,7 +110,10 @@ export type Brand = {
   email: string;
   whatsapp: string;
   website: string;
-  bookingUrl: string;
+  /** WhatsApp group invite link (chat.whatsapp.com/…). Empty = chat with `whatsapp` instead. */
+  communityUrl: string;
+  /** The paid one-on-one session. After paying, students pick a time on `calendlyUrl`. */
+  session: { title: string; minutes: number; price: number; currency: string; calendlyUrl: string };
 };
 
 /** One piece of text written onto the certificate template. Positions and sizes are fractions of the image width/height, so any resolution works. */

@@ -21,7 +21,14 @@ export type Receipt = {
 };
 
 /** Demo receipt. In production every field comes from the Paystack webhook. */
-export function demoReceipt(course: Course, p: { name: string; email: string; method: "mpesa" | "card"; contact: string }): Receipt {
+/** What was bought: a course, or a 1:1 session (see `sessionItem`). */
+export type Purchase = { id: string; label: string; price: number; currency: string };
+
+export function courseItem(c: Course): Purchase {
+  return { id: c.id, label: `${c.shortTitle}: ${c.title}`, price: c.price, currency: c.currency };
+}
+
+export function demoReceipt(course: Purchase, p: { name: string; email: string; method: "mpesa" | "card"; contact: string }): Receipt {
   const seq = String(300 + Math.floor(Math.random() * 600)).padStart(6, "0");
   const ref = Array.from({ length: 10 }, () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]).join("");
   const digits = p.contact.replace(/\D/g, "");
@@ -29,7 +36,7 @@ export function demoReceipt(course: Course, p: { name: string; email: string; me
     number: `R-${new Date().getFullYear()}-${seq}`,
     reference: `PSK_${ref}`,
     courseId: course.id,
-    courseTitle: `${course.shortTitle}: ${course.title}`,
+    courseTitle: course.label,
     amount: course.price,
     currency: course.currency,
     method: p.method,

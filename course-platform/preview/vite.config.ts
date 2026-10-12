@@ -1,3 +1,4 @@
+import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
@@ -8,29 +9,32 @@ import { viteSingleFile } from "vite-plugin-singlefile";
 // preview link. Next.js APIs are swapped for small client-side shims.
 const here = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
-// Embed images referenced as "/stills/name.jpg", "/thumbs/<course>/name.jpg" or "/certificates/name.jpg"
-// so the preview is one file.
-function inlineStills(): Plugin {
+// Images referenced as "/stills/name.jpg", "/thumbs/<course>/name.jpg" or
+// "/certificates/name.jpg" become relative paths and are published next to the
+// page (preview/dist/images.json lists them), so the page itself stays small
+// enough to open anywhere. Inlining them made a 4 MB page that failed to load.
+const images = new Set<string>();
+function relativeStills(): Plugin {
   return {
-    name: "inline-stills",
+    name: "relative-stills",
     enforce: "pre",
     transform(code, id) {
       if (!/\/src\/.*\.(t|j)sx?$/.test(id) || !/\/(stills|thumbs|certificates)\//.test(code)) return;
-      const names = new Set<string>();
-      const out = code.replace(/(=)?(["'])\/((?:stills|certificates|thumbs\/[\w-]+)\/[\w-]+)\.jpg\2/g, (_m, eq: string | undefined, _q, file: string) => {
-        names.add(file);
-        const id = `__img_${file.replace(/[^\w]/g, "_")}`;
-        return eq ? `={${id}}` : id; // JSX attributes need braces
+      const out = code.replace(/(["'])\/((?:stills|certificates|thumbs\/[\w-]+)\/[\w-]+\.jpg)\1/g, (_m, q: string, file: string) => {
+        images.add(file);
+        return `${q}${file}${q}`;
       });
-      const imports = [...names].map((f) => `import __img_${f.replace(/[^\w]/g, "_")} from ${JSON.stringify(here(`../public/${f}.jpg`) + "?inline")};`).join("\n");
-      return { code: `${imports}\n${out}`, map: null };
+      return { code: out, map: null };
+    },
+    closeBundle() {
+      writeFileSync(here("./dist/images.json"), JSON.stringify([...images].sort(), null, 2));
     },
   };
 }
 
 export default defineConfig({
   root: here("."),
-  plugins: [inlineStills(), react(), tailwindcss(), viteSingleFile()],
+  plugins: [relativeStills(), react(), tailwindcss(), viteSingleFile()],
   resolve: {
     alias: [
       { find: "next/link", replacement: here("./shims/link.tsx") },

@@ -122,7 +122,7 @@ export function Pricing({ course }: { course: Course }) {
   const included = [
     `${stats.lessons} videos over ${stats.days} days, with notes and transcripts`,
     `${stats.quizzes} quizzes, so you know each day has landed`,
-        "The WhatsApp community and support line",
+    "The WhatsApp community group",
     "A verifiable certificate when you finish",
     "Lifetime access, on phone, tablet and laptop",
   ];
@@ -165,7 +165,7 @@ export function Pricing({ course }: { course: Course }) {
                 <Magnetic className="w-full" strength={0.12}>
                   <Link href="/enroll" className="btn btn-amber btn-lg w-full">Enrol now</Link>
                 </Magnetic>
-                <a href={brand.bookingUrl} className="btn btn-glass btn-lg w-full">Book a 1:1 session</a>
+                <Link href="/book" className="btn btn-glass btn-lg w-full">Book a 1:1 session</Link>
               </div>
             </div>
           </div>

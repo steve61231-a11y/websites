@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Award, Check, ChevronDown, Lock, Play } from "@/components/icons";
 import { EpisodeThumb } from "@/components/learn/episode-thumb";
 import { FadeIn, TextReveal } from "@/components/motion/reveal";
-import { brand, course, formatDuration, lessonLabel } from "@/lib/catalog";
+import { communityHref, course, formatDuration, lessonLabel } from "@/lib/catalog";
 import { useDemo } from "@/lib/demo-store";
 import { courseComplete, courseProgress, lessonsDone, moduleStatus, nextStep, quizPassed } from "@/lib/progress";
 import { CountUp } from "@/components/motion/count-up";
@@ -327,28 +327,16 @@ function QuizRow({ done, final, count, best, locked = false }: { done: boolean; 
 }
 
 function CommunityCard() {
-  const [copied, setCopied] = useState(false);
   return (
     <div className="panel p-6">
       <p className="text-[16px] font-semibold text-white">Join the community</p>
-      <p className="mt-1.5 text-[14px] leading-relaxed text-muted">WhatsApp us your number to join THE PROD photographers&apos; group and get support.</p>
-      <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl bg-white/[0.05] px-4 py-3 ring-1 ring-inset ring-white/10">
-        <span className="select-all text-[15px] font-semibold tabular-nums text-white">{brand.whatsapp}</span>
-        <button
-          onClick={() => {
-            navigator.clipboard
-              ?.writeText(brand.whatsapp.replace(/\s/g, ""))
-              .then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1600);
-              })
-              .catch(() => {});
-          }}
-          className="text-[13px] font-semibold text-amber"
-        >
-          {copied ? "Copied" : "Copy"}
-        </button>
-      </div>
+      <p className="mt-1.5 text-[14px] leading-relaxed text-muted">THE PROD photographers&apos; WhatsApp group: share your shots, get feedback and support.</p>
+      <a href={communityHref()} target="_blank" rel="noreferrer" className="btn btn-white mt-4 w-full">
+        Join the WhatsApp group
+      </a>
+      <Link href="/book" className="mt-3 block text-center text-[13px] font-semibold text-amber">
+        Book a 1:1 session with Duncan
+      </Link>
     </div>
   );
 }
