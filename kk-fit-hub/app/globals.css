@@ -1,0 +1,507 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   KK Fit Hub design tokens (PRD section 10).
+   Raw colour tokens are defined once here; components read the semantic
+   variables (--bg, --fg, --fg-2, --accent, --hairline …) that each section
+   theme sets (section 10.8).
+--------------------------------------------------------------------------- */
+
+@theme {
+  --color-paper: #ffffff;
+  --color-canvas: #f2f2f0;
+  --color-ink-900: #0b0b0c;
+  --color-ink-800: #161618;
+  --color-ink-700: #232326;
+  --color-text: #1d1d1f;
+  --color-text-2: #424245;
+  --color-text-3: #6e6e73;
+  --color-text-dark-2: #a1a1a6;
+  --color-green-100: #e6f3e9;
+  --color-green-300: #a9d8b5;
+  --color-green-500: #3aa655;
+  --color-green-600: #277a3d;
+  --color-green-700: #1f6332;
+  --color-orange-100: #fcebe5;
+  --color-orange-500: #e4572e;
+  --color-orange-600: #c2410c;
+  --color-orange-700: #a83a16;
+  --color-amber: #b18600;
+  --color-input-border: #d2d2d7;
+
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1440px;
+
+  --radius-card: 24px;
+  --radius-input: 14px;
+  --radius-photo: 28px;
+
+  --shadow-float: 0 12px 40px rgb(0 0 0 / 0.18);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-emphasis: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), var(--font-inter-fallback, ui-sans-serif), system-ui, sans-serif;
+
+  /* Semantic, theme-driven colours: bg-bg, text-fg, border-hairline … */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-coach-text: var(--coach-text);
+  --color-hairline: var(--hairline);
+  --color-focus: var(--focus);
+}
+
+:root {
+  --paper: #ffffff;
+  --canvas: #f2f2f0;
+  --ink-900: #0b0b0c;
+  --ink-800: #161618;
+  --ink-700: #232326;
+  --text: #1d1d1f;
+  --text-2: #424245;
+  --text-3: #6e6e73;
+  --text-dark-2: #a1a1a6;
+  --green-100: #e6f3e9;
+  --green-300: #a9d8b5;
+  --green-500: #3aa655;
+  --green-600: #277a3d;
+  --green-700: #1f6332;
+  --orange-100: #fcebe5;
+  --orange-500: #e4572e;
+  --orange-600: #c2410c;
+  --orange-700: #a83a16;
+  --hairline-light: rgb(0 0 0 / 0.08);
+  --hairline-dark: rgb(255 255 255 / 0.12);
+
+  /* Motion tokens (section 11.2) */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-emphasis: cubic-bezier(0.2, 0, 0, 1);
+  --dur-micro: 150ms;
+  --dur-small: 240ms;
+  --dur-medium: 450ms;
+  --dur-large: 800ms;
+  --stagger: 70ms;
+  --reveal-distance: 16px;
+
+  /* Layout */
+  --gutter: 20px;
+  --section-pad: 96px;
+  --header-h: 56px;
+
+  /* Gradients (section 10.4) */
+  --energy-line: linear-gradient(90deg, #3aa655, #b18600, #e4572e);
+
+  color-scheme: light;
+}
+
+@supports (background: linear-gradient(90deg in oklch, red, blue)) {
+  :root {
+    --energy-line: linear-gradient(90deg in oklch, #3aa655, #e4572e);
+  }
+}
+
+@media (min-width: 640px) {
+  :root {
+    --reveal-distance: 24px;
+  }
+}
+@media (min-width: 768px) {
+  :root {
+    --gutter: 32px;
+  }
+}
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 48px;
+    --section-pad: 160px;
+    --header-h: 52px;
+  }
+}
+
+/* Section themes. The site has no global dark mode: themes are per section. */
+:root,
+[data-theme="light"] {
+  --bg: var(--canvas);
+  --surface: var(--paper);
+  --surface-2: var(--canvas);
+  --fg: var(--text);
+  --fg-2: var(--text-2);
+  --fg-3: var(--text-3);
+  --accent: var(--green-500);
+  --accent-text: var(--green-700);
+  --coach-text: var(--orange-700);
+  --hairline: var(--hairline-light);
+  --focus: var(--green-600);
+  --chip-ok-bg: var(--green-100);
+  --chip-ok-fg: var(--green-700);
+  --brand-kk: var(--green-700);
+}
+[data-theme="tint"] {
+  --bg: var(--green-100);
+  --surface: var(--paper);
+  --surface-2: var(--green-100);
+  --fg: var(--text);
+  --fg-2: var(--text-2);
+  /* Rule 5: on the green tint, secondary text uses --text-2, never --text-3. */
+  --fg-3: var(--text-2);
+  --accent: var(--green-500);
+  --accent-text: var(--green-700);
+  --coach-text: var(--orange-700);
+  --hairline: var(--hairline-light);
+  --focus: var(--green-600);
+  --chip-ok-bg: var(--paper);
+  --chip-ok-fg: var(--green-700);
+  --brand-kk: var(--green-700);
+}
+[data-theme="dark"] {
+  --bg: var(--ink-900);
+  --surface: var(--ink-800);
+  --surface-2: var(--ink-700);
+  --fg: var(--canvas);
+  --fg-2: var(--text-dark-2);
+  --fg-3: var(--text-dark-2);
+  --accent: var(--green-500);
+  --accent-text: var(--green-300);
+  --coach-text: var(--orange-500);
+  --hairline: var(--hairline-dark);
+  --focus: var(--green-300);
+  --chip-ok-bg: rgb(58 166 85 / 0.16);
+  --chip-ok-fg: var(--green-300);
+  --brand-kk: var(--green-500);
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 16px);
+}
+
+body {
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.5;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+[data-theme] {
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+/* Focus ring (section 10.7): never removed. */
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--green-300);
+  color: var(--ink-900);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   Typography (section 10.5)
+--------------------------------------------------------------------------- */
+@utility type-display-xl {
+  font-size: clamp(48px, 9vw, 112px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+@utility type-display-l {
+  font-size: clamp(36px, 6vw, 80px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+@utility type-statement {
+  font-size: clamp(32px, 5vw, 64px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+@utility type-h3 {
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+@utility type-lead {
+  font-size: clamp(19px, 1.6vw, 24px);
+  font-weight: 400;
+  line-height: 1.4;
+}
+@utility type-body {
+  font-size: 17px;
+  line-height: 1.5;
+}
+@utility type-small {
+  font-size: 14px;
+  line-height: 1.45;
+}
+@utility type-eyebrow {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--accent-text);
+  @media (min-width: 1024px) {
+    font-size: 17px;
+  }
+}
+@utility type-counter {
+  font-size: clamp(56px, 8vw, 96px);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   Layout helpers (section 10.6)
+--------------------------------------------------------------------------- */
+@utility container-site {
+  width: 100%;
+  max-width: calc(1200px + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+@utility container-text {
+  width: 100%;
+  max-width: calc(980px + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+@utility section-pad {
+  padding-block: var(--section-pad);
+}
+@utility measure {
+  max-width: 68ch;
+}
+
+/* ---------------------------------------------------------------------------
+   Gradients and surfaces (section 10.4)
+--------------------------------------------------------------------------- */
+.bg-stage-glow {
+  background:
+    radial-gradient(60% 50% at 70% 60%, rgb(58 166 85 / 0.28), transparent 70%),
+    var(--ink-900);
+}
+.bg-impact-glow {
+  background: radial-gradient(
+    18% 18% at var(--strike-x, 50%) var(--strike-y, 50%),
+    rgb(228 87 46 / 0.35),
+    transparent 70%
+  );
+}
+.bg-energy-line {
+  background: var(--energy-line);
+}
+.bg-door-schools {
+  background:
+    radial-gradient(70% 60% at 30% 100%, rgb(58 166 85 / 0.35), transparent 70%),
+    var(--ink-800);
+}
+.bg-door-coaches {
+  background:
+    radial-gradient(70% 60% at 70% 100%, rgb(228 87 46 / 0.32), transparent 70%),
+    var(--ink-800);
+}
+.bg-canvas-lift {
+  background: linear-gradient(180deg, #ffffff 0%, #f2f2f0 40%);
+}
+
+/* 2% film grain over large glows to prevent banding. */
+.grain {
+  position: relative;
+  isolation: isolate;
+}
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.02;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.grain > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Header glass (section 10.7). Solid fallback without backdrop-filter. */
+.glass {
+  background: rgb(242 242 240 / 0.97);
+  border-bottom: 1px solid var(--hairline-light);
+}
+.glass[data-header-theme="dark"] {
+  background: rgb(11 11 12 / 0.97);
+  border-bottom-color: var(--hairline-dark);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: rgb(242 242 240 / 0.72);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    backdrop-filter: saturate(180%) blur(20px);
+  }
+  .glass[data-header-theme="dark"] {
+    background: rgb(11 11 12 / 0.72);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion defaults (section 11). CSS only; enhanced versions replace them.
+   Content is visible without JavaScript: the reveal is only armed once the
+   motion provider marks <html data-motion="ready">.
+--------------------------------------------------------------------------- */
+@keyframes kk-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--reveal-distance), 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes kk-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes kk-settle {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes kk-draw {
+  from {
+    stroke-dashoffset: var(--draw-length, 100);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Above-the-fold entrance: runs on first paint, no JS needed. */
+.rise-in {
+  animation: kk-rise var(--dur-large) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+.settle-in {
+  animation: kk-settle 1.2s var(--ease-out) both;
+}
+
+/* Scroll reveals: hidden only when JS has armed them, visible otherwise. */
+html[data-motion="ready"] [data-reveal]:not([data-revealed]) {
+  opacity: 0;
+  transform: translate3d(0, var(--reveal-distance), 0);
+}
+html[data-motion="ready"] [data-reveal] {
+  transition:
+    opacity var(--dur-large) var(--ease-out),
+    transform var(--dur-large) var(--ease-out);
+  transition-delay: calc(var(--i, 0) * var(--stagger));
+}
+
+/* Press feedback for all buttons (section 11.6). */
+.press {
+  transition:
+    transform var(--dur-micro) var(--ease-standard),
+    background-color var(--dur-small) var(--ease-standard),
+    box-shadow var(--dur-small) var(--ease-standard),
+    color var(--dur-small) var(--ease-standard),
+    border-color var(--dur-small) var(--ease-standard);
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+/* Text link underline draws left to right; arrow nudges 4px. */
+.text-link {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1.5px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--dur-small) var(--ease-out);
+}
+.text-link:hover,
+.text-link:focus-visible {
+  background-size: 100% 1.5px;
+}
+.text-link .arrow {
+  display: inline-block;
+  transition: transform var(--dur-small) var(--ease-out);
+}
+.text-link:hover .arrow,
+.text-link:focus-visible .arrow {
+  transform: translateX(4px);
+}
+
+html[data-menu-open] .action-bar {
+  display: none;
+}
+
+/* Scrollbars hidden on snap rows, still scrollable. */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Reduced motion: no movement beyond short fades (section 16.4). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  html[data-motion="ready"] [data-reveal]:not([data-revealed]) {
+    opacity: 1;
+    transform: none;
+  }
+  .press:active {
+    transform: none;
+  }
+}
