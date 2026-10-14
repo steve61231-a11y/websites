@@ -14,11 +14,19 @@ export const brand: Brand = {
   website: "https://www.productphotography.co.ke",
   communityUrl: "", // WhatsApp group invite link, to come
   session: {
-    title: "1:1 session with Duncan",
     minutes: 60,
-    price: 5000, // placeholder
+    price: 5000, // placeholder, to confirm
     currency: "KES",
-    calendlyUrl: "", // Calendly link, to come
+    topics: [
+      { id: "blueprint", title: "Creative Business Blueprint", blurb: "Brand, content and the skills to grow a profitable business." },
+      { id: "customers", title: "Attract More Customers", blurb: "Content strategy and brand positioning that win and keep clients." },
+      { id: "gear", title: "Know What Gear To Invest In", blurb: "The right gear and tools for your budget and your work." },
+    ],
+    timezone: "Africa/Nairobi",
+    utcOffsetHours: 3,
+    hours: { 1: [9, 17], 2: [9, 17], 3: [9, 17], 4: [9, 17], 5: [9, 17], 6: [10, 14] }, // to confirm with Duncan
+    noticeHours: 24,
+    days: 21,
   },
 };
 

@@ -41,12 +41,12 @@ export function CourseHome() {
   return (
     <>
       {/* Cinematic header: the next thing to do */}
-      <section className="theme-dark relative flex min-h-[78svh] items-end overflow-hidden bg-black pt-14">
+      <section className="theme-dark relative mt-14 flex min-h-[calc(78svh-3.5rem)] items-end overflow-hidden bg-black">
         <motion.img
           key={focus.still}
           src={focus.still}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover md:left-[32%] md:w-[68%]"
+          className="absolute inset-0 h-full w-full object-cover md:left-[32%] md:w-[68%] md:[mask-image:linear-gradient(to_right,transparent,#000_32%)]"
           initial={{ scale: 1.12, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 1.4, ease: EASE }}

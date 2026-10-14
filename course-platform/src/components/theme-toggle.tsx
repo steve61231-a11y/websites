@@ -3,18 +3,18 @@
 import { flushSync } from "react-dom";
 import { useId, useSyncExternalStore } from "react";
 
-// Dark is the default; a choice is remembered on this device. The attribute
+// Light is the default; a choice is remembered on this device. The attribute
 // is set before first paint by THEME_SCRIPT, so there's no flash.
 
 export type Theme = "dark" | "light";
 const KEY = "the-prod-theme";
 
-export const THEME_SCRIPT = `try{document.documentElement.dataset.theme=localStorage.getItem("${KEY}")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}`;
+export const THEME_SCRIPT = `try{document.documentElement.dataset.theme=localStorage.getItem("${KEY}")==="dark"?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}`;
 
 const listeners = new Set<() => void>();
 
 function read(): Theme {
-  return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
 
 function subscribe(fn: () => void) {
@@ -23,7 +23,7 @@ function subscribe(fn: () => void) {
 }
 
 export function useTheme() {
-  return useSyncExternalStore(subscribe, read, () => "dark" as Theme);
+  return useSyncExternalStore(subscribe, read, () => "light" as Theme);
 }
 
 function apply(theme: Theme) {

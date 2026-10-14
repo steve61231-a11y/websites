@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import Link from "next/link";
-import { Arrow, Award, Doc, Play } from "@/components/icons";
+import { Arrow, Award, Camera, Doc, Play, TrendUp, Users } from "@/components/icons";
 import { FadeIn, TextReveal } from "@/components/motion/reveal";
 import { brand, courses, courseStats, formatDuration, formatPrice } from "@/lib/catalog";
 import { useDemo } from "@/lib/demo-store";
@@ -18,26 +18,27 @@ export function HomeHero() {
   const mine = courses.find((c) => state.enrolled.includes(c.id));
   const pct = mine ? Math.round(courseProgress(state, mine) * 100) : 0;
   return (
-    <section className="relative overflow-hidden pb-14 pt-32 sm:pb-20 sm:pt-40">
+    <section className="relative overflow-hidden pb-16 pt-32 sm:pb-24 sm:pt-44">
       <div
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-0 h-[620px] w-[1100px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(245,165,36,0.22),transparent_62%)] blur-2xl"
       />
-      <div className="wrap relative">
+      <div className="wrap relative flex flex-col items-center text-center">
         <FadeIn inView={false} y={10}>
-          <p className="eyebrow">E-commerce product photography with AI</p>
+          <p className="inline-flex items-center gap-2 rounded-full bg-surface px-4 py-2 text-[12px] font-semibold text-ink-2 ring-1 ring-inset ring-white/[0.08] sm:text-[13px]">
+            <span aria-hidden className="size-1.5 rounded-full bg-amber" /> E-commerce product photography with AI
+          </p>
         </FadeIn>
-        <h1 className="display mt-6 max-w-[20ch] text-[clamp(36px,4.9vw,70px)]">
-          <TextReveal as="span" inView={false} delay={0.05} text="Become an e-commerce product photographer" className="block text-white" />
-          <TextReveal as="span" inView={false} delay={0.18} text="in the fastest time possible." className="block text-white/30" />
+        <h1 className="mt-8 max-w-[26ch] font-[family-name:var(--font-display)] text-[clamp(34px,5.4vw,70px)] font-extrabold leading-[1.08] tracking-[-0.025em] text-white [text-wrap:balance]">
+          <FadeIn inView={false} delay={0.05} y={14} className="block">
+            Become an <span className="whitespace-nowrap">e-commerce</span> product photographer
+          </FadeIn>
+          <FadeIn inView={false} delay={0.16} y={14} className="block">
+            in the <span className="text-[var(--hl)]">fastest time possible.</span>
+          </FadeIn>
         </h1>
         <FadeIn inView={false} delay={0.3} y={10}>
-          <p className="mt-8 max-w-[52ch] text-[clamp(17px,1.6vw,20px)] leading-relaxed text-ink-2">
-            Learn practical product photography, lighting, AI-powered workflows, image editing, creative direction and e-commerce content
-            strategy. Build the skills to create professional product visuals faster, and help businesses present and sell their products
-            online.
-          </p>
-          <div className="mt-10 flex flex-wrap items-center gap-3">
+          <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row">
             {mine ? (
               <Link href="/learn" className="btn btn-white btn-lg">
                 <Play size={16} /> Continue learning · {pct}%
@@ -172,49 +173,57 @@ function ComingSoon() {
   );
 }
 
-const BLUEPRINT = ["Learn to attract more customers", "Know what gear to invest in"];
+const HELP = [
+  {
+    topic: "blueprint",
+    label: "Business",
+    title: "Creative Business Blueprint",
+    body: "Build a brand people love, create content that drives results, and develop the skills to grow a profitable business.",
+    Icon: TrendUp,
+  },
+  {
+    topic: "customers",
+    label: "Clients",
+    title: "Attract More Customers",
+    body: "Learn the content strategies and brand positioning that bring in more customers, turn them into clients and keep them.",
+    Icon: Users,
+  },
+  {
+    topic: "gear",
+    label: "Gear",
+    title: "Know What Gear To Invest In",
+    body: "Get straight answers on the right gear and tools for your budget and the work you do, so every shilling counts.",
+    Icon: Camera,
+  },
+] as const;
 
-/** "How we help": the business side, and the paid 1:1 session. */
+/** "How we help": three separate sessions, each bookable on its own. */
 export function HowWeHelp() {
   return (
-    <section id="help" className="scroll-mt-24 pb-24 sm:pb-32">
+    <section id="help" className="scroll-mt-24 pb-24 sm:pb-36">
       <div className="wrap">
-        <div className="border-t border-line pt-10">
-          <h2 className="display text-[clamp(30px,4vw,48px)] text-white">How we help</h2>
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="headline text-[clamp(32px,5vw,60px)] text-white">How we help</h2>
+          <p className="mt-4 text-[clamp(16px,1.5vw,19px)] leading-relaxed text-muted">
+            Learn the creative business skills, content strategies and tools to attract more customers, turn them into clients and build a brand people love.
+          </p>
         </div>
-        <div className="mt-10 grid gap-5 md:grid-cols-[1.2fr_1fr]">
-          <FadeIn>
-            <div className="flex h-full flex-col rounded-[32px] bg-surface p-7 ring-1 ring-inset ring-white/[0.06] sm:p-10">
-              <p className="text-[clamp(20px,2.2vw,26px)] font-semibold leading-snug tracking-[-0.01em] text-white">
-                Learn the creative business skills, content strategies, brand positioning and tools you need to attract more customers,
-                convert them into clients and keep them, with the right gear.
-              </p>
-              <p className="mt-5 max-w-[50ch] text-[16px] leading-relaxed text-muted">
-                Build a brand people love, create content that drives results, and develop the skills to grow a profitable business.
-              </p>
-              <div className="mt-auto pt-10">
-                <Link href="/book" className="btn btn-amber btn-lg">Book your session</Link>
-                <p className="mt-3 text-[13px] text-faint">One on one with {courses[0].instructor.name}. Pay, then pick a time on the calendar.</p>
+        <div className="mt-12 grid gap-4 md:grid-cols-3">
+          {HELP.map((h, i) => (
+            <FadeIn key={h.topic} delay={i * 0.08}>
+              <div className="group flex h-full flex-col rounded-[28px] bg-surface p-7 ring-1 ring-inset ring-white/[0.06] transition-[transform,box-shadow] duration-500 ease-(--ease-out-expo) hover:-translate-y-1 hover:ring-white/[0.14] sm:p-9">
+                <span className="grid size-14 place-items-center rounded-full bg-amber/15 text-amber">
+                  <h.Icon size={24} />
+                </span>
+                <p className="eyebrow mt-9">{h.label}</p>
+                <h3 className="headline mt-2 text-[26px] text-white">{h.title}</h3>
+                <p className="mt-3 text-[16px] leading-relaxed text-muted">{h.body}</p>
+                <Link href={`/book?topic=${h.topic}`} className="btn btn-glass mt-auto w-fit self-start" style={{ marginTop: "2.5rem" }}>
+                  Book a session <Arrow size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                </Link>
               </div>
-            </div>
-          </FadeIn>
-          <FadeIn delay={0.08}>
-            <div className="theme-dark relative flex h-full flex-col overflow-hidden rounded-[32px] bg-[#111] p-7 ring-1 ring-inset ring-white/10 sm:p-10">
-              <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-[radial-gradient(circle,rgba(245,165,36,0.28),transparent_65%)]" />
-              <p className="eyebrow relative">1:1 sessions</p>
-              <p className="relative mt-4 font-[family-name:var(--font-display)] text-[clamp(30px,3.4vw,42px)] font-extrabold leading-[1.02] tracking-[-0.03em] text-white">
-                Creative Business Blueprint
-              </p>
-              <ul className="relative mt-8 space-y-4">
-                {BLUEPRINT.map((t, i) => (
-                  <li key={t} className="flex items-baseline gap-4 border-t border-white/10 pt-4 text-[16px] font-semibold text-white">
-                    <span className="font-[family-name:var(--font-display)] text-[12px] tabular-nums tracking-[0.2em] text-amber">0{i + 1}</span>
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </FadeIn>
+            </FadeIn>
+          ))}
         </div>
       </div>
     </section>

@@ -11,7 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
  */
 export function AuthShell({ image, caption, children }: { image: string; caption?: ReactNode; children: ReactNode }) {
   return (
-    <div className="grid min-h-dvh bg-black lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+    <div className="grid min-h-dvh grid-cols-[minmax(0,1fr)] bg-black lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       <aside className="relative h-[30svh] min-h-52 overflow-hidden lg:order-2 lg:m-3 lg:h-auto lg:rounded-[32px]">
         <img
           src={image}

@@ -54,3 +54,7 @@ export const Mail = (p: P) => <Icon {...p}><rect x="3.5" y="5.5" width="17" heig
 export const Back10 = (p: P) => (
   <Icon {...p}><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3L4.5 9" /><path d="M4.5 4.5V9H9" /><text x="12" y="15.5" fontSize="7" textAnchor="middle" fill="currentColor" stroke="none" fontWeight="600">10</text></Icon>
 );
+export const Camera = (p: P) => <Icon {...p}><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.2l1.1-1.7A1 1 0 0 1 9.7 5h4.6a1 1 0 0 1 .9.5L16.3 7h2.2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5z" /><circle cx="12" cy="12.5" r="3.4" /></Icon>;
+export const TrendUp = (p: P) => <Icon {...p}><path d="m4 16 5-5 3.5 3.5L20 7" /><path d="M14.5 7H20v5.5" /></Icon>;
+export const Users = (p: P) => <Icon {...p}><circle cx="9" cy="8.5" r="3.3" /><path d="M2.8 19.5a6.2 6.2 0 0 1 12.4 0" /><path d="M16 5.6a3.3 3.3 0 0 1 0 5.8M17.5 14.2a6.2 6.2 0 0 1 3.7 5.3" /></Icon>;
+export const Star = (p: P) => <Icon {...p}><path d="m12 4 2.4 5 5.4.7-4 3.7 1 5.4-4.8-2.7-4.8 2.7 1-5.4-4-3.7 5.4-.7z" /></Icon>;

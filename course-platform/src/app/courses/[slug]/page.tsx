@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CourseHero } from "@/components/course/hero";
-import { Curriculum } from "@/components/course/curriculum";
+import { Testimonials } from "@/components/site/social-proof";
 import { Faq, Instructor, Outcomes, Pricing } from "@/components/course/sections";
 import { SiteFooter } from "@/components/site/footer";
 import { SiteNav } from "@/components/site/nav";
@@ -42,7 +42,7 @@ async function CourseBody({ params }: { params: Params }) {
   return (
     <>
       <CourseHero course={course} />
-      <Curriculum course={course} />
+      <Testimonials />
       <Outcomes course={course} />
       <Instructor course={course} />
       <Pricing course={course} />

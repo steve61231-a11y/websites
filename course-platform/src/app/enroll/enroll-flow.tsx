@@ -1,8 +1,9 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { BookedCard, fmtWhen, TimeStep, TopicStep } from "@/components/book/steps";
 import { Check, ChevronLeft, Lock } from "@/components/icons";
 import { AuthShell } from "@/components/site/auth-shell";
 import { brand, course, courseStats, formatPrice } from "@/lib/catalog";
@@ -10,34 +11,46 @@ import { demo } from "@/lib/demo-store";
 import { Wordmark } from "@/components/brand/wordmark";
 import { ReceiptPrinter, type ReceiptPrinterStage } from "@/components/receipt-printer";
 import { courseItem, demoReceipt, paidWith, receiptDate, type Purchase, type Receipt } from "@/lib/receipt";
+import type { SessionTopic } from "@/lib/types";
 
-type Step = "details" | "pay" | "phone" | "receipt";
+type Step = "topic" | "time" | "details" | "pay" | "phone" | "receipt";
 // What the server does once Paystack reports the payment, shown on the printer screen.
 const VERIFY = {
   course: ["Payment received", "Verifying with Paystack", "Granting your access", "Emailing your receipt"],
   session: ["Payment received", "Verifying with Paystack", "Reserving your session", "Emailing your receipt"],
 };
 
-const sessionItem: Purchase = { id: "session", label: brand.session.title, price: brand.session.price, currency: brand.session.currency };
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 /** Checkout for the course (`/enroll`) or a paid 1:1 session (`/book`). */
 export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" }) {
-  const item = mode === "course" ? courseItem(course) : sessionItem;
+  const session = mode === "session";
   const verify = VERIFY[mode];
+  const params = useSearchParams();
+  const firstTopic = session ? (brand.session.topics.find((t) => t.id === params.get("topic")) ?? null) : null;
+  const [topic, setTopic] = useState<SessionTopic | null>(firstTopic);
+  const [slot, setSlot] = useState<string | null>(null);
+  const [notes, setNotes] = useState("");
+  const item = useMemo<Purchase>(
+    () =>
+      session
+        ? { id: "session", label: topic?.title ?? "1:1 session", ...(slot ? { detail: fmtWhen(slot) } : {}), price: brand.session.price, currency: brand.session.currency }
+        : courseItem(course),
+    [session, topic, slot],
+  );
   const router = useRouter();
-  const [step, setStep] = useState<Step>("details");
+  const [step, setStep] = useState<Step>(!session ? "details" : firstTopic ? "time" : "topic");
   const [dir, setDir] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [method, setMethod] = useState<"mpesa" | "card">("mpesa");
-  const [phone, setPhone] = useState("0712 345 678");
+  const [phone, setPhone] = useState(session ? "" : "0712 345 678");
   const [done, setDone] = useState(0);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [stage, setStage] = useState<ReceiptPrinterStage>("processing");
   const price = formatPrice(item.price, item.currency);
   const stats = courseStats(course);
-  const valid = name.trim().length > 1 && /^\S+@\S+\.\S+$/.test(email);
+  const valid = name.trim().length > 1 && /^\S+@\S+\.\S+$/.test(email) && (!session || phone.replace(/\D/g, "").length >= 9);
 
   const go = (s: Step, d = 1) => {
     setDir(d);
@@ -73,7 +86,7 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
 
   return (
     <AuthShell
-      image={mode === "course" ? "/thumbs/the-prod/day-1.jpg" : "/stills/duncan.jpg"}
+      image={session ? "/stills/duncan.jpg" : "/thumbs/the-prod/day-1.jpg"}
       caption={
         <div className="max-w-sm">
           <p className="eyebrow">What you get</p>
@@ -99,6 +112,19 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
           exit={{ opacity: 0, x: -16 * dir, transition: { duration: 0.18, ease: [0.4, 0, 1, 1] } }}
           transition={{ duration: 0.4, ease: EASE }}
         >
+          {step === "topic" && (
+            <TopicStep
+              onPick={(t) => {
+                setTopic(t);
+                go("time");
+              }}
+            />
+          )}
+
+          {step === "time" && topic && (
+            <TimeStep topic={topic} slot={slot} onPick={setSlot} onBack={() => go("topic", -1)} onContinue={() => slot && go("details")} />
+          )}
+
           {step === "details" && (
             <form
               onSubmit={(e) => {
@@ -106,10 +132,15 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
                 if (valid) go("pay");
               }}
             >
-              <p className="eyebrow">Step 1 of 2</p>
-              <h1 className="headline mt-3 text-[38px] text-white">{mode === "course" ? "Almost there." : "Book your session."}</h1>
+              {session && (
+                <button type="button" onClick={() => go("time", -1)} className="mb-6 inline-flex items-center gap-1 text-[14px] text-muted hover:text-white">
+                  <ChevronLeft size={16} /> {slot ? fmtWhen(slot) : "Time"}
+                </button>
+              )}
+              <p className="eyebrow">{session ? "Step 3 of 4" : "Step 1 of 2"}</p>
+              <h1 className="headline mt-3 text-[38px] text-white">{session ? "Your details." : "Almost there."}</h1>
               <p className="mt-3 text-[16px] leading-relaxed text-muted">
-                {mode === "course" ? "Your access is linked to this email, and your certificate uses this name." : "Pay first, then pick a time on the calendar. Your receipt goes to this email."}
+                {session ? "We'll send your receipt and the calendar invite to this email." : "Your access is linked to this email, and your certificate uses this name."}
               </p>
               <div className="mt-9 space-y-4">
                 <label className="block">
@@ -120,6 +151,18 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
                   <span className="mb-2 block text-[13px] font-medium text-ink-2">Email</span>
                   <input id="email" className="field" type="email" inputMode="email" autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
                 </label>
+                {session && (
+                  <>
+                    <label className="block">
+                      <span className="mb-2 block text-[13px] font-medium text-ink-2">WhatsApp number</span>
+                      <input id="whatsapp" className="field tabular-nums" type="tel" inputMode="tel" autoComplete="tel" placeholder="0712 345 678" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                    </label>
+                    <label className="block">
+                      <span className="mb-2 block text-[13px] font-medium text-ink-2">What do you want to cover? <span className="text-faint">(optional)</span></span>
+                      <textarea id="notes" className="field min-h-28 resize-none py-4" rows={3} maxLength={600} placeholder="Your business, your products, the questions you have" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                    </label>
+                  </>
+                )}
               </div>
               <button disabled={!valid} className="btn btn-white btn-lg mt-8 w-full">Continue to payment</button>
               <p className="mt-5 flex items-center justify-center gap-1.5 text-[12px] text-faint">
@@ -133,12 +176,13 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
               <button onClick={() => go("details", -1)} className="inline-flex items-center gap-1 text-[14px] text-muted hover:text-white">
                 <ChevronLeft size={16} /> Details
               </button>
-              <p className="eyebrow mt-6">Step 2 of 2</p>
+              <p className="eyebrow mt-6">{session ? "Step 4 of 4" : "Step 2 of 2"}</p>
               <div className="mt-3 flex items-baseline justify-between gap-4">
                 <h1 className="headline text-[38px] text-white">Pay</h1>
                 <p className="font-[family-name:var(--font-display)] text-[26px] font-extrabold tracking-[-0.03em] text-white">{price}</p>
               </div>
               <p className="mt-1 text-[14px] text-muted">{item.label}</p>
+              {item.detail && <p className="text-[14px] text-muted">{item.detail}</p>}
 
               <div className="relative mt-8 grid grid-cols-2 rounded-2xl bg-white/[0.06] p-1 ring-1 ring-inset ring-white/10">
                 {(["mpesa", "card"] as const).map((m) => (
@@ -229,7 +273,7 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
                     transition={{ duration: 0.5, ease: EASE, delay: 0.15 }}
                     className="-mt-4 w-full text-center"
                   >
-                    {mode === "course" ? (
+                    {!session ? (
                       <>
                         <h1 className="headline text-[26px] text-white">You&apos;re in.</h1>
                         <p className="mx-auto mt-2 max-w-xs text-[15px] leading-relaxed text-muted">
@@ -243,15 +287,7 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
                         </button>
                       </>
                     ) : (
-                      <>
-                        <h1 className="headline text-[26px] text-white">Paid. Now pick a time.</h1>
-                        <p className="mx-auto mt-2 max-w-xs text-[15px] leading-relaxed text-muted">
-                          Your receipt is on its way to <span className="text-white">{receipt.email}</span>, with the calendar link.
-                        </p>
-                        <a href={brand.session.calendlyUrl || "#"} target="_blank" rel="noreferrer" className="btn btn-white btn-lg mt-6 w-full">
-                          Pick your time
-                        </a>
-                      </>
+                      slot && <BookedCard topic={item.label} slot={slot} email={receipt.email} receiptNumber={receipt.number} />
                     )}
                   </motion.div>
                 )}
@@ -267,7 +303,7 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
 function Row({ k, v, strong = false }: { k: string; v: string; strong?: boolean }) {
   return (
     <div className={`flex justify-between gap-4 ${strong ? "text-[13px] font-bold" : ""}`}>
-      <span className={strong ? "" : "text-black/55"}>{k}</span>
+      <span className={strong ? "" : "text-[#161616]/55"}>{k}</span>
       <span className="text-right">{v}</span>
     </div>
   );
@@ -281,22 +317,23 @@ function ReceiptSlip({ receipt: r }: { receipt: Receipt }) {
       <div className="flex flex-col items-center text-center">
         <Wordmark className="h-7 w-auto text-[#161616]" />
         <p className="mt-2 uppercase tracking-[0.18em]">{brand.organisation}</p>
-        <p className="text-black/55">productphotography.co.ke</p>
+        <p className="text-[#161616]/55">productphotography.co.ke</p>
       </div>
-      <div className="my-4 border-t border-dashed border-black/25" />
+      <div className="my-4 border-t border-dashed border-[#161616]/25" />
       <Row k="Receipt" v={r.number} />
       <Row k="Date" v={receiptDate(r)} />
-      <div className="my-4 border-t border-dashed border-black/25" />
+      <div className="my-4 border-t border-dashed border-[#161616]/25" />
       <p className="font-bold">{r.courseTitle}</p>
+      {r.detail && <p className="text-[#161616]/55">{r.detail}</p>}
       <div className="flex justify-between">
-        <span className="text-black/55">{r.courseId === "session" ? `1 × ${brand.session.minutes}-min session` : "1 × lifetime access"}</span>
+        <span className="text-[#161616]/55">{r.courseId === "session" ? `1 × ${brand.session.minutes}-min session` : "1 × lifetime access"}</span>
         <span>{total}</span>
       </div>
-      <div className="my-4 border-t border-dashed border-black/25" />
+      <div className="my-4 border-t border-dashed border-[#161616]/25" />
       <Row k="Total" v={total} strong />
       <Row k="Paid with" v={paidWith(r)} />
       <Row k="Ref" v={r.reference} />
-      <div className="my-4 border-t border-dashed border-black/25" />
+      <div className="my-4 border-t border-dashed border-[#161616]/25" />
       <p className="text-center">Thank you, {r.name.split(" ")[0]}!</p>
       <svg viewBox="0 0 120 22" className="mx-auto mt-3 h-6 w-40" aria-hidden>
         {Array.from({ length: 46 }, (_, i) => {

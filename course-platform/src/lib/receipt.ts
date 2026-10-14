@@ -10,6 +10,8 @@ export type Receipt = {
   reference: string; // Paystack transaction reference
   courseId: string;
   courseTitle: string;
+  /** For a session: when it is, e.g. "Thu 15 Oct, 10:00 AM (Nairobi)". */
+  detail?: string;
   amount: number;
   currency: string;
   method: "mpesa" | "card";
@@ -22,7 +24,7 @@ export type Receipt = {
 
 /** Demo receipt. In production every field comes from the Paystack webhook. */
 /** What was bought: a course, or a 1:1 session (see `sessionItem`). */
-export type Purchase = { id: string; label: string; price: number; currency: string };
+export type Purchase = { id: string; label: string; detail?: string; price: number; currency: string };
 
 export function courseItem(c: Course): Purchase {
   return { id: c.id, label: `${c.shortTitle}: ${c.title}`, price: c.price, currency: c.currency };
@@ -37,6 +39,7 @@ export function demoReceipt(course: Purchase, p: { name: string; email: string; 
     reference: `PSK_${ref}`,
     courseId: course.id,
     courseTitle: course.label,
+    ...(course.detail ? { detail: course.detail } : {}),
     amount: course.price,
     currency: course.currency,
     method: p.method,
@@ -60,7 +63,8 @@ export function receiptEmail(r: Receipt) {
   const first = r.name.split(" ")[0] || "there";
   const total = formatPrice(r.amount, r.currency);
   const rows: [string, string][] = [
-    ["Course", r.courseTitle],
+    [r.courseId === "session" ? "Session" : "Course", r.courseTitle],
+    ...(r.detail ? ([["When", r.detail]] as [string, string][]) : []),
     ["Amount", total],
     ["Paid with", paidWith(r)],
     ["Date", receiptDate(r)],

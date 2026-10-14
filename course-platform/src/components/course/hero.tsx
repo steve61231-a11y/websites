@@ -55,7 +55,7 @@ export function CourseHero({ course }: { course: Course }) {
                   {owned ? "Continue learning" : `Enrol · ${formatPrice(course.price, course.currency)}`}
                 </Link>
               </Magnetic>
-              <a href="#curriculum" className="btn btn-glass btn-lg">See what&apos;s inside</a>
+              <a href="#reviews" className="btn btn-glass btn-lg">Hear from students</a>
             </div>
             <p className="mt-4 text-[13px] text-muted">
               {stats.days} days · {stats.lessons} videos · {formatDuration(stats.seconds)} · Lifetime access · Certificate

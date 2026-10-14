@@ -21,6 +21,7 @@
   --amber: #f5a524;
   --amber-2: #ffd08a;
   --amber-deep: #b5620e;
+  --hl: #f5a524;
   --success: #30d158;
   --danger: #ff5a4f;
   --paper: #f5f5f7;
@@ -47,10 +48,11 @@
   --ink: #1d1d1f;
   --ink-2: #3a3a3e;
   --muted: #6e6e73;
-  --faint: #9a9aa0;
+  --faint: #85858b;
   --amber: #e8940c;
   --amber-2: #f5a524;
   --amber-deep: #a4560a;
+  --hl: #c75b07;
   --success: #248a3d;
   --danger: #d70015;
   --on-amber: #000000;
@@ -209,6 +211,16 @@ html[data-theme-switching]::view-transition-new(*) {
   .hairline {
     @apply h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent;
   }
+}
+
+/* Light theme: amber text needs more depth to read on white. Dark islands keep the bright amber. */
+[data-theme="light"] .text-amber,
+[data-theme="light"] .eyebrow {
+  color: var(--amber-deep);
+}
+[data-theme="light"] .theme-dark .text-amber,
+[data-theme="light"] .theme-dark .eyebrow {
+  color: var(--amber);
 }
 
 /* Film grain over dark surfaces, very subtle. */

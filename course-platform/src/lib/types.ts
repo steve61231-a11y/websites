@@ -112,8 +112,25 @@ export type Brand = {
   website: string;
   /** WhatsApp group invite link (chat.whatsapp.com/…). Empty = chat with `whatsapp` instead. */
   communityUrl: string;
-  /** The paid one-on-one session. After paying, students pick a time on `calendlyUrl`. */
-  session: { title: string; minutes: number; price: number; currency: string; calendlyUrl: string };
+  /** The paid one-on-one sessions: pick a topic and a time, pay, and it lands on the instructor's calendar. */
+  session: SessionConfig;
+};
+
+export type SessionTopic = { id: string; title: string; blurb: string };
+
+export type SessionConfig = {
+  minutes: number;
+  price: number;
+  currency: string;
+  topics: SessionTopic[];
+  /** Display time zone, and its fixed offset from UTC in hours (Nairobi: +3, no daylight saving). */
+  timezone: string;
+  utcOffsetHours: number;
+  /** Bookable hours by weekday (0 = Sunday), as [from, to) in local hours; null or missing = closed. */
+  hours: Record<number, [number, number] | null>;
+  /** How far ahead a slot must be, and how many days ahead can be booked. */
+  noticeHours: number;
+  days: number;
 };
 
 /** One piece of text written onto the certificate template. Positions and sizes are fractions of the image width/height, so any resolution works. */

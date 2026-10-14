@@ -26,7 +26,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" data-theme="dark" className={`${inter.variable} ${montserrat.variable}`} suppressHydrationWarning>
+    <html lang="en" data-theme="light" className={`${inter.variable} ${montserrat.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>

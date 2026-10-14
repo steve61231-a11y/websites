@@ -10,8 +10,8 @@ npm run preview:artifact   # one-file shareable preview in preview/dist/
 
 ## The journey
 
-1. **Home** (`/`): what the school is and the course catalog. There's one course for now, plus a "more on the way" card.
-2. **Course page** (`/courses/the-prod`): a camera viewfinder shows the course in one loop (settings dial in, click, the shot goes live in a store), then the curriculum, outcomes, instructor, pricing and FAQ.
+1. **Home** (`/`): a centred headline with "Access the course" and "Book your session", trusted-by logos, the course catalog, the three "How we help" session cards, and how it works. Light mode is the default.
+2. **Course page** (`/courses/the-prod`): a camera viewfinder shows the course in one loop (settings dial in, click, the shot goes live in a store), then student testimonials, outcomes, instructor, pricing and FAQ (no curriculum: the lesson list stays behind the sign-in).
 3. **Get access** (`/enroll`): name and email, then M-Pesa or card. A receipt printer confirms the payment and prints the receipt. **Welcome** (`/welcome`) shows the access email and the plain receipt email (`src/lib/receipt.ts` builds both the on-screen receipt and the email).
 4. **Sign in** (`/sign-in`): email and a 6-digit code, or Google. In the demo any code works.
 5. **Course home** (`/learn`): what's next and overall progress. Each day opens to show its videos and quiz.
@@ -41,6 +41,7 @@ scripts/                        transcript import, thumbnail import, frame grabs
 supabase/migrations/            Phase 2 schema with row-level security
 docs/BACKEND-PLAN.md            backend, payments, video protection and security plan
 docs/VIDEO-SETUP.md             protected video: what it does, costs, setup clicks
+docs/BOOKING-SETUP.md           paid 1:1 sessions on Duncan's Google Calendar
 src/lib/video/ + src/app/api/video/  key server for protected streams
 scripts/video/                  video packaging, leak tracing, tests (run by .github/workflows/package-videos.yml)
 preview/                        single-file build for sharing a link
@@ -59,6 +60,7 @@ Skills in `/.claude/skills` walk Claude through each routine job:
 | `edit-course-details` | price, day names, WhatsApp, FAQs, home page text |
 | `add-course` | a second course in the catalog |
 | `update-certificate` | swap in a new certificate design (e.g. from Canva) and position the name/date |
+| `update-social-proof` | testimonials and trusted companies |
 | `check-and-publish` | checks, click-through, refresh the preview link, commit |
 
 ## Still needed from the client
@@ -66,4 +68,5 @@ Skills in `/.claude/skills` walk Claude through each routine job:
 - Videos: the one-time Cloudflare + GitHub setup and the Drive folder link (see `docs/VIDEO-SETUP.md`), and the gear-list PDF
 - The certificate template from Canva (see the `update-certificate` skill)
 - The points in `content/REVIEW.md`
-- Price (KES 15,000 is a placeholder), the WhatsApp number to confirm, the booking calendar link
+- Price (KES 15,000 is a placeholder), the WhatsApp number to confirm, the WhatsApp group link, the 1:1 session price and hours, and the one-time Google Calendar setup (`docs/BOOKING-SETUP.md`)
+- Real testimonials and trusted companies (placeholders now; `update-social-proof` skill)
