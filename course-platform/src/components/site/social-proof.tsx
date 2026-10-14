@@ -15,7 +15,7 @@ const initials = (name: string) =>
 /** A quiet row of the companies and people who trust us. */
 export function TrustedBy() {
   return (
-    <section aria-label="Trusted by" className="pb-16 sm:pb-24">
+    <section aria-label="Trusted by" className="bg-black pb-4 pt-16 sm:pt-20">
       <div className="wrap">
         <p className="text-center text-[12px] font-semibold uppercase tracking-[0.22em] text-faint">Trusted by</p>
         <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">

@@ -10,8 +10,8 @@ npm run preview:artifact   # one-file shareable preview in preview/dist/
 
 ## The journey
 
-1. **Home** (`/`): a centred headline with "Access the course" and "Book your session", trusted-by logos, the course catalog, the three "How we help" session cards, and how it works. Light mode is the default.
-2. **Course page** (`/courses/the-prod`): a camera viewfinder shows the course in one loop (settings dial in, click, the shot goes live in a store), then student testimonials, outcomes, instructor, pricing and FAQ (no curriculum: the lesson list stays behind the sign-in).
+1. **Home** (`/`): a centred headline with "Access the course" and "Book your session", the course catalog, the three "How we help" session cards, and how it works. Light mode is the default.
+2. **Course page** (`/courses/the-prod`): a camera viewfinder shows the course in one loop (settings dial in, click, the shot goes live in a store), then the trusted-by logos, student testimonials, outcomes, instructor, pricing and FAQ (no curriculum: the lesson list stays behind the sign-in).
 3. **Get access** (`/enroll`): name and email, then M-Pesa or card. A receipt printer confirms the payment and prints the receipt. **Welcome** (`/welcome`) shows the access email and the plain receipt email (`src/lib/receipt.ts` builds both the on-screen receipt and the email).
 4. **Sign in** (`/sign-in`): email and a 6-digit code, or Google. In the demo any code works.
 5. **Course home** (`/learn`): what's next and overall progress. Each day opens to show its videos and quiz.

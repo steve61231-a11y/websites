@@ -18,7 +18,7 @@ export function HomeHero() {
   const mine = courses.find((c) => state.enrolled.includes(c.id));
   const pct = mine ? Math.round(courseProgress(state, mine) * 100) : 0;
   return (
-    <section className="relative overflow-hidden pb-16 pt-32 sm:pb-24 sm:pt-44">
+    <section className="relative overflow-hidden pb-20 pt-32 sm:pb-28 sm:pt-44">
       <div
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-0 h-[620px] w-[1100px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(245,165,36,0.22),transparent_62%)] blur-2xl"

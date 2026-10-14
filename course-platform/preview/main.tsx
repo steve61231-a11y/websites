@@ -23,7 +23,7 @@ import { AppBar } from "@/components/learn/app-bar";
 import { StudentGate } from "@/components/student-gate";
 import { course, getCourse, getEpisode, getLesson } from "@/lib/catalog";
 import { CourseHero } from "@/components/course/hero";
-import { Testimonials } from "@/components/site/social-proof";
+import { Testimonials, TrustedBy } from "@/components/site/social-proof";
 import { Faq, Instructor, Outcomes, Pricing } from "@/components/course/sections";
 import { SiteFooter } from "@/components/site/footer";
 import { SiteNav } from "@/components/site/nav";
@@ -43,6 +43,7 @@ const routes: [string, Render][] = [
           <SiteNav />
           <main className="bg-black">
             <CourseHero course={c} />
+            <TrustedBy />
             <Testimonials />
             <Outcomes course={c} />
             <Instructor course={c} />
