@@ -15,8 +15,11 @@ import { Belt } from "@/components/sections/shared/Belt";
 import { ExpectCards } from "@/components/sections/shared/ExpectCards";
 import { ProcessSteps } from "@/components/sections/shared/ProcessSteps";
 import { getActivities, getPartners, getSettings, getTestimonials } from "@/lib/data/public";
+import { JsonLd, serviceJsonLd } from "@/lib/seo";
 
 /** Home: 12 sections alternating dark and light (PRD 6). */
+export const metadata = { alternates: { canonical: "/" } };
+
 export default async function HomePage() {
   const [activities, settings, testimonials, partners] = await Promise.all([
     getActivities(),
@@ -27,6 +30,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <JsonLd data={serviceJsonLd("Kenpo Karate", "/programmes/kenpo-karate", settings.counties)} />
       <Hero counties={settings.counties} />
       <Manifesto />
       <Flagship />

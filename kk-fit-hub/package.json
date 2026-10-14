@@ -15,7 +15,11 @@
     "stack:start": "bash scripts/local-stack/start.sh",
     "stack:stop": "bash scripts/local-stack/stop.sh",
     "db:types": "supabase gen types typescript --db-url \"$DATABASE_URL\" --schema public > lib/supabase/database.types.ts && prettier --write lib/supabase/database.types.ts",
-    "invite": "tsx scripts/invite.ts"
+    "invite": "tsx scripts/invite.ts",
+    "test:lighthouse": "lhci autorun",
+    "photos": "tsx scripts/process-photos.ts",
+    "build:map": "tsx scripts/build-map.ts",
+    "build:particles": "tsx scripts/sample-glyphs.ts"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

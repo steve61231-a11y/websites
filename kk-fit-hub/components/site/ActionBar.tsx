@@ -23,7 +23,7 @@ export function ActionBar({ whatsappHref }: { whatsappHref: string }) {
 
   useEffect(() => {
     if (isHiddenRoute) return;
-    const hero = document.querySelector("#main > :first-child");
+    const hero = document.querySelector("#main [data-theme]");
     const footer = document.querySelector("footer");
     const observers: IntersectionObserver[] = [];
     if (hero) {

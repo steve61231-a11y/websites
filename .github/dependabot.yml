@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /kk-fit-hub
+    schedule:
+      interval: weekly
+    groups:
+      next-and-react:
+        patterns: ["next", "react", "react-dom", "eslint-config-next", "@types/react*"]
+      motion-and-3d:
+        patterns: ["gsap", "@gsap/*", "lenis", "motion", "three", "@react-three/*", "@types/three"]
+      supabase:
+        patterns: ["@supabase/*", "supabase"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

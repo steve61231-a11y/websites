@@ -1,0 +1,58 @@
+name: KK Fit Hub
+
+on:
+  pull_request:
+    paths: ["kk-fit-hub/**", ".github/workflows/kk-fit-hub.yml"]
+  push:
+    branches: [main]
+    paths: ["kk-fit-hub/**", ".github/workflows/kk-fit-hub.yml"]
+
+defaults:
+  run:
+    working-directory: kk-fit-hub
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      PGPORT: "54322"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: kk-fit-hub/package-lock.json
+      - run: npm ci
+      - name: Lint and typecheck
+        run: npm run lint && npm run typecheck
+
+      # Local stand-in for Supabase: Postgres, Supabase Auth, PostgREST, storage and a gateway.
+      - name: Start local Supabase stand-in
+        run: |
+          sudo apt-get update -q && sudo apt-get install -yq postgresql-16 || true
+          bash scripts/local-stack/start.sh
+          cat .stack/env >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SITE_URL=http://localhost:3100" >> "$GITHUB_ENV"
+      - name: Unit and row-level security tests
+        run: npm test
+      - name: Test accounts
+        run: |
+          npx tsx scripts/invite.ts --email owner@kk.test --name "Kennedy Kopala" --role owner --password owner-password-123
+          npx tsx scripts/invite.ts --email staff@kk.test --name "Amina Staff" --role staff --password staff-password-123
+      - run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: End-to-end, accessibility and motion tests
+        run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: kk-fit-hub/test-results
+          retention-days: 7
+      - name: Lighthouse CI (budgets fail the build)
+        run: npx lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}

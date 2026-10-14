@@ -3,7 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 
 // Inter, variable, with the optical-size axis so display sizes tighten
-// (PRD 10.5). Self-hosted by next/font with a metric-matched fallback.
+// (PRD 10.5). Self-hosted by next/font; the fallback is metric-matched, so
+// the swap causes no layout shift.
 const inter = Inter({
   subsets: ["latin"],
   axes: ["opsz"],
@@ -23,6 +24,15 @@ export const metadata: Metadata = {
   description:
     "Vetted, professional coaches for your school, with the whole programme managed. Starting with Kenpo Karate. Serving Nairobi and five more counties.",
   applicationName: "KK Fit Hub",
+  openGraph: {
+    type: "website",
+    siteName: "KK Fit Hub",
+    locale: "en_KE",
+    title: "KK Fit Hub · Co-curricular programmes for Kenyan schools",
+    description:
+      "Vetted, professional coaches for your school, with the whole programme managed. Starting with Kenpo Karate. Serving Nairobi and five more counties.",
+  },
+  twitter: { card: "summary_large_image" },
   formatDetection: { telephone: false },
 };
 

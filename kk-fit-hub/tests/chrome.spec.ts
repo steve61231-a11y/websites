@@ -93,8 +93,10 @@ test.describe("mobile action bar", () => {
     await page.goto("/");
     const bar = page.locator(".action-bar");
     await expect(bar).toHaveClass(/translate-y-full/);
-    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 2));
-    await expect(bar).toHaveClass(/translate-y-0/);
+    await expect(async () => {
+      await page.mouse.wheel(0, 500);
+      await expect(bar).toHaveClass(/translate-y-0/, { timeout: 500 });
+    }).toPass({ timeout: 10_000 });
     await expect(bar.locator('[data-cta="bar-cta"]')).toHaveAttribute("href", "/request?source=bar");
   });
 });

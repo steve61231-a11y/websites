@@ -147,7 +147,6 @@ export function ApplicationForm({
   // Offer a saved draft from this device.
   useEffect(() => {
     const d = readDraft();
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading browser storage after mount
     if (d) setSavedDraft(d);
   }, []);
 
