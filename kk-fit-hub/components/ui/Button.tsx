@@ -8,7 +8,7 @@ export type ButtonVariant = "primary" | "coach" | "secondary";
 export type ButtonSize = "lg" | "md" | "sm";
 
 const base =
-  "press inline-flex items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap select-none " +
+  "press inline-flex items-center justify-center gap-2 rounded-full text-center leading-tight font-semibold select-none sm:whitespace-nowrap " +
   "disabled:cursor-not-allowed disabled:opacity-60 [&_svg]:shrink-0";
 
 const variants: Record<ButtonVariant, string> = {
@@ -21,9 +21,9 @@ const variants: Record<ButtonVariant, string> = {
 };
 
 const sizes: Record<ButtonSize, string> = {
-  lg: "h-[52px] px-7 text-[17px]",
-  md: "h-[52px] px-7 text-[17px]",
-  sm: "h-11 px-5 text-[15px]",
+  lg: "min-h-[52px] px-7 py-2 text-[17px]",
+  md: "min-h-[52px] px-7 py-2 text-[17px]",
+  sm: "min-h-11 px-5 py-1.5 text-[15px]",
 };
 
 export function buttonClass(variant: ButtonVariant = "primary", size: ButtonSize = "md", extra?: string) {

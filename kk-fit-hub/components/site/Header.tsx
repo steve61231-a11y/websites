@@ -123,7 +123,7 @@ export function Header({
             >
               Contact
             </Link>
-            <ButtonLink href="/request?source=nav" size="sm" cta="nav-cta" className="h-9! px-4! text-[14px]!">
+            <ButtonLink href="/request?source=nav" size="sm" cta="nav-cta" className="min-h-10! px-4! py-0! text-[14px]! whitespace-nowrap lg:min-h-11!">
               <span className="lg:hidden">Request</span>
               <span className="hidden lg:inline">Request a demonstration</span>
             </ButtonLink>

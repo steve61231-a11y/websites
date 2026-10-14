@@ -320,6 +320,16 @@ body {
     transparent 70%
   );
 }
+.hero-impact {
+  --strike-x: var(--strike-x-m);
+  --strike-y: var(--strike-y-m);
+}
+@media (min-width: 1024px) {
+  .hero-impact {
+    --strike-x: var(--strike-x-d);
+    --strike-y: var(--strike-y-d);
+  }
+}
 .bg-energy-line {
   background: var(--energy-line);
 }
@@ -421,6 +431,19 @@ body {
 /* Above-the-fold entrance: runs on first paint, no JS needed. */
 .rise-in {
   animation: kk-rise var(--dur-large) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+/* Headlines: movement only, never hidden, so they paint (and count as LCP) at once. */
+@keyframes kk-rise-solid {
+  from {
+    transform: translate3d(0, var(--reveal-distance), 0);
+  }
+  to {
+    transform: none;
+  }
+}
+.rise-in-solid {
+  animation: kk-rise-solid var(--dur-large) var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 70ms);
 }
 .settle-in {
