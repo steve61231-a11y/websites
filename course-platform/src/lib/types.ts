@@ -119,6 +119,11 @@ export type Brand = {
 export type SessionTopic = { id: string; title: string; blurb: string };
 
 export type SessionConfig = {
+  /** "cal": after paying, Duncan's Cal.com calendar pops up (his Google Calendar and Meet are connected there).
+   *  "own": our built-in time picker, reading his Google Calendar directly (docs/BOOKING-SETUP.md, backup). */
+  provider: "cal" | "own";
+  /** His Cal.com booking link for the "1:1 session" event, e.g. "https://cal.com/duncan/session". Empty = a preview calendar is shown. */
+  calUrl: string;
   minutes: number;
   price: number;
   currency: string;
@@ -126,7 +131,7 @@ export type SessionConfig = {
   /** Display time zone, and its fixed offset from UTC in hours (Nairobi: +3, no daylight saving). */
   timezone: string;
   utcOffsetHours: number;
-  /** Bookable hours by weekday (0 = Sunday), as [from, to) in local hours; null or missing = closed. */
+  /** Weekly hours for the built-in picker and the preview calendar (with Cal.com, his real hours live in Cal.com). [from, to) in local hours; null or missing = closed. */
   hours: Record<number, [number, number] | null>;
   /** How far ahead a slot must be, and how many days ahead can be booked. */
   noticeHours: number;

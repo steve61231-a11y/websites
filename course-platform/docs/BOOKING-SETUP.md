@@ -1,33 +1,30 @@
 # 1:1 session booking
 
-Students pick a topic, a day and a time, pay (M-Pesa or card), and the session lands on Duncan's Google Calendar with a Google Meet link. Google emails the student the invite. No subscription: it's built into the site and uses Google Calendar's free API.
+Students pick a topic, enter their details and pay (M-Pesa or card). As soon as the payment is confirmed, Duncan's **Cal.com** calendar pops up on the same page with their name and email already filled in. They choose a day and time, and it lands on his Google Calendar with a Google Meet link. Cal.com sends the confirmation, reminders and reschedule/cancel links. No subscription: Cal.com's free plan is enough, and payment stays on our own checkout (Cal.com can't take M-Pesa).
 
-## What a student sees
-1. **Topic**: Creative Business Blueprint, Attract More Customers, or Know What Gear To Invest In. The "How we help" cards link straight to the right one.
-2. **Day and time**: only times Duncan is free. Times are in Nairobi time.
-3. **Details**: name, email, WhatsApp number, and what they want to cover.
-4. **Pay**, then the receipt prints and a "You're booked" card appears with an "Add to my calendar" button.
+## What Duncan does (about 15 minutes, once)
+1. Go to **cal.com** and sign up for free with **Continue with Google**, using the Google account his calendar is on.
+2. When it asks, **connect Google Calendar** and click Allow. Tick the calendars to check for busy times (anything on them blocks those times).
+3. **Availability:** set the days and hours he's open for sessions, in Nairobi time.
+4. **Create one event** called "1:1 session", with the length he wants. Under **Location**, choose **Google Meet**.
+5. **Booking questions** (event → Advanced): add the questions he wants answered by people who book, for example "What do you want to work on?" and "Tell me about your business".
+6. Copy the event's link (it looks like `cal.com/duncan/session`) and send it to whoever runs the site.
 
-## What Duncan sees
-A normal event on his Google Calendar: "Topic: Student name", with a Meet link, the student's email, WhatsApp number, payment reference and what they want to cover. Anything already on his calendar (meetings, personal events) automatically removes those times from what students can book. To block a time off, just put an event there.
+Keep it as **one** event rather than three: the student's topic is passed in the notes box automatically. (Cal.com's free plan may limit the number of events, and one is all we need.)
 
-## One-time Google setup (about 10 minutes, with Duncan's Google account)
-1. Go to **console.cloud.google.com**, create a project called "THE PROD", then **APIs & Services → Library → Google Calendar API → Enable**.
-2. **APIs & Services → OAuth consent screen**: User type **External**, fill in the app name and your email. Add Duncan's Gmail as a **test user**. Then click **Publish app** (so the key doesn't expire after 7 days; Google may show an "unverified" notice, which is fine for your own use).
-3. **Credentials → Create credentials → OAuth client ID → Web application**. Under **Authorized redirect URIs** add `https://developers.google.com/oauthplayground`. Copy the **Client ID** and **Client secret**.
-4. Open **developers.google.com/oauthplayground**. Click the gear icon, tick **Use your own OAuth credentials**, paste the Client ID and secret.
-5. In Step 1, paste these two scopes in the box and click **Authorize APIs**, signing in as Duncan:
-   `https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.freebusy`
-6. In Step 2, click **Exchange authorization code for tokens**. Copy the **Refresh token**.
-7. In the hosting settings (Vercel or Cloudflare), add `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `GOOGLE_REFRESH_TOKEN`. Leave `GOOGLE_CALENDAR_ID` empty to use his main calendar.
+## What goes on the site
+- The link goes in `brand.session.calUrl` in `src/lib/catalog.ts`. Until it's set, a preview calendar is shown so the whole journey can be walked through.
+- Price, length and the three topics are in the same place (`brand.session`).
 
-## Settings you can change (`brand.session` in `src/lib/catalog.ts`)
-Price, length, the three topics, working hours per weekday (currently Mon–Fri 9–5 and Sat 10–2, to confirm with Duncan), how much notice a booking needs (24 hours) and how many days ahead students can book (21).
+## How it fits together
+`/book` (or a "How we help" card) → topic → details → pay → receipt prints → the calendar pops up (`src/components/book/cal-modal.tsx`, address built in `src/lib/booking/cal.ts`). The receipt email also carries the link, in case someone pays and closes the page before choosing a time.
+
+## Stopping people booking without paying (Phase 2)
+The Cal.com link is public if someone finds it. With the payment step (Paystack webhook) we close that gap: after each verified payment the server asks Cal.com for a **single-use private link** (hash-based, stops working after one booking) and shows that instead. This needs a Cal.com API key (`CAL_API_KEY`) and has to be confirmed against the free plan when it's built. A backstop: Cal.com can tell our server about every new booking, so any booking without a matching payment can be flagged and cancelled.
+
+## Backup: our own booking screens
+`brand.session.provider = "own"` switches to our built-in picker, which reads Duncan's Google Calendar directly (`GOOGLE_*` settings in `.env.example`, `src/lib/booking/`) and holds a slot for 10 minutes while the student pays (`supabase/migrations/0003_bookings.sql`). It needs a one-time Google developer setup, which is why Cal.com is the default.
 
 ## Status
-- Built and tested: the slot maths (`scripts/booking/test-slots.ts`), the booking screens and the calendar file.
-- Built, not yet run against a real calendar: the Google connection (`src/lib/booking/google.ts`). It needs the setup above.
-- Phase 2 (with the Paystack webhook): after a payment is verified, the server calls `confirmBooking()` to re-check the time is still free and create the calendar event. A time is held for 10 minutes while the student pays (`supabase/migrations/0003_bookings.sql`) so two people can't book the same slot. Until then, `/api/booking/create` is a closed test route (`BOOKING_DEV_OPEN`).
-
-## Why not Cal.com or Calendly
-Both have free plans and Google Calendar sync, but their payments work through Stripe or PayPal, not M-Pesa or Paystack, and the booking would live on their site instead of ours. Building it in keeps one checkout, one receipt and one look.
+- Built and tested: topic → details → pay → receipt → calendar pop-up, on phone and desktop; the Cal.com address builder; the built-in slot maths.
+- Not yet tested against the real Cal.com page: it needs Duncan's link. Check that the pop-up loads, the name and email are filled in and a test booking reaches his Google Calendar.

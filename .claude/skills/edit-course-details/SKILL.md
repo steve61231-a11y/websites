@@ -17,7 +17,7 @@ All paths are relative to `course-platform/`.
 | "What you'll be able to do" tiles | `outcomes` in `index.ts` |
 | FAQs on the course page | `faqs` in `index.ts` |
 | WhatsApp, email, website, WhatsApp group link (`communityUrl`), school name | `brand` in `src/lib/catalog.ts` |
-| 1:1 session price, length, topics, weekly hours, notice | `brand.session` in `src/lib/catalog.ts` (see `docs/BOOKING-SETUP.md`) |
+| 1:1 session price, length, topics, and his Cal.com link (`calUrl`) | `brand.session` in `src/lib/catalog.ts` (see `docs/BOOKING-SETUP.md`) |
 | Testimonials, trusted companies | `src/lib/content/social-proof.ts` (see the `update-social-proof` skill) |
 | Home page headline and "How it works" steps | `src/components/home/catalog.tsx` |
 | Footer | `src/components/site/footer.tsx` |

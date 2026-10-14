@@ -1,11 +1,12 @@
 // node scripts/booking/test-slots.ts
 import assert from "node:assert/strict";
+import { calEmbedUrl } from "../../src/lib/booking/cal.ts";
 import { buildIcs } from "../../src/lib/booking/ics.ts";
 import { dayKey, generateSlots, groupByDay, isSlotOpen } from "../../src/lib/booking/slots.ts";
 import type { SessionConfig } from "../../src/lib/types.ts";
 
 const cfg: SessionConfig = {
-  minutes: 60, price: 1, currency: "KES", topics: [], timezone: "Africa/Nairobi", utcOffsetHours: 3,
+  provider: "cal", calUrl: "", minutes: 60, price: 1, currency: "KES", topics: [], timezone: "Africa/Nairobi", utcOffsetHours: 3,
   hours: { 1: [9, 17], 2: [9, 17], 3: [9, 17], 4: [9, 17], 5: [9, 17], 6: [10, 14] }, noticeHours: 24, days: 14,
 };
 // Mon 12 Oct 2026, 08:00 Nairobi = 05:00 UTC
@@ -59,5 +60,16 @@ t("the calendar file has the essentials", () => {
   assert.match(ics, /DTEND:20261014T070000Z/);
   assert.match(ics, /SUMMARY:A\\, B/);
   assert.match(ics, /DESCRIPTION:line1\\nline2/);
+});
+t("the Cal.com address carries name, email and topic, and refuses anything but https", () => {
+  const u = calEmbedUrl({ url: "https://cal.com/duncan/session", name: "Amani W", email: "a@b.co", topic: "Gear", notes: "candles", theme: "dark" })!;
+  const q = new URL(u).searchParams;
+  assert.equal(q.get("name"), "Amani W");
+  assert.equal(q.get("email"), "a@b.co");
+  assert.equal(q.get("notes"), "Topic: Gear\ncandles");
+  assert.equal(q.get("embed"), "true");
+  assert.equal(calEmbedUrl({ url: "http://cal.com/x", name: "", email: "", topic: "", notes: "", theme: "light" }), null);
+  assert.equal(calEmbedUrl({ url: "javascript:alert(1)", name: "", email: "", topic: "", notes: "", theme: "light" }), null);
+  assert.equal(calEmbedUrl({ url: "", name: "", email: "", topic: "", notes: "", theme: "light" }), null);
 });
 console.log(`\n${ok} tests passed`);

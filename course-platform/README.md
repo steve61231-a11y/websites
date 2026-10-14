@@ -41,7 +41,7 @@ scripts/                        transcript import, thumbnail import, frame grabs
 supabase/migrations/            Phase 2 schema with row-level security
 docs/BACKEND-PLAN.md            backend, payments, video protection and security plan
 docs/VIDEO-SETUP.md             protected video: what it does, costs, setup clicks
-docs/BOOKING-SETUP.md           paid 1:1 sessions on Duncan's Google Calendar
+docs/BOOKING-SETUP.md           paid 1:1 sessions: pay, then Duncan's Cal.com calendar pops up
 src/lib/video/ + src/app/api/video/  key server for protected streams
 scripts/video/                  video packaging, leak tracing, tests (run by .github/workflows/package-videos.yml)
 preview/                        single-file build for sharing a link
@@ -68,5 +68,5 @@ Skills in `/.claude/skills` walk Claude through each routine job:
 - Videos: the one-time Cloudflare + GitHub setup and the Drive folder link (see `docs/VIDEO-SETUP.md`), and the gear-list PDF
 - The certificate template from Canva (see the `update-certificate` skill)
 - The points in `content/REVIEW.md`
-- Price (KES 15,000 is a placeholder), the WhatsApp number to confirm, the WhatsApp group link, the 1:1 session price and hours, and the one-time Google Calendar setup (`docs/BOOKING-SETUP.md`)
+- Price (KES 15,000 is a placeholder), the WhatsApp number to confirm, the WhatsApp group link, the 1:1 session price and hours, and Duncan's Cal.com link (`docs/BOOKING-SETUP.md`)
 - Real testimonials and trusted companies (placeholders now; `update-social-proof` skill)

@@ -14,6 +14,8 @@ export const brand: Brand = {
   website: "https://www.productphotography.co.ke",
   communityUrl: "", // WhatsApp group invite link, to come
   session: {
+    provider: "cal",
+    calUrl: "", // Duncan's Cal.com link, to come
     minutes: 60,
     price: 5000, // placeholder, to confirm
     currency: "KES",

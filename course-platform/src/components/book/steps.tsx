@@ -41,10 +41,10 @@ function useSlots(attempt: number): Loaded {
   return data;
 }
 
-export function TopicStep({ onPick }: { onPick: (t: SessionTopic) => void }) {
+export function TopicStep({ onPick, total = 4 }: { onPick: (t: SessionTopic) => void; total?: number }) {
   return (
     <div>
-      <p className="eyebrow">Step 1 of 4</p>
+      <p className="eyebrow">Step 1 of {total}</p>
       <h1 className="headline mt-3 text-[38px] text-white">What do you want to work on?</h1>
       <p className="mt-3 text-[16px] leading-relaxed text-muted">One hour, one on one with Duncan. Pick the session that fits.</p>
       <div className="mt-8 space-y-3">
@@ -59,7 +59,7 @@ export function TopicStep({ onPick }: { onPick: (t: SessionTopic) => void }) {
   );
 }
 
-export function TimeStep({ topic, slot, onPick, onBack, onContinue }: { topic: SessionTopic; slot: string | null; onPick: (iso: string) => void; onBack: () => void; onContinue: () => void }) {
+export function TimeStep({ topic, slot, onPick, onBack, onContinue, eyebrow = "Step 2 of 4", cta = "Continue" }: { topic: SessionTopic; slot: string | null; onPick: (iso: string) => void; onBack: () => void; onContinue: () => void; eyebrow?: string; cta?: string }) {
   const [attempt, setAttempt] = useState(0);
   const { slots, state } = useSlots(attempt);
   const days = useMemo(() => groupByDay(slots, TZ), [slots]);
@@ -71,7 +71,7 @@ export function TimeStep({ topic, slot, onPick, onBack, onContinue }: { topic: S
       <button onClick={onBack} className="inline-flex items-center gap-1 text-[14px] text-muted hover:text-white">
         <ChevronLeft size={16} /> {topic.title}
       </button>
-      <p className="eyebrow mt-6">Step 2 of 4</p>
+      <p className="eyebrow mt-6">{eyebrow}</p>
       <h1 className="headline mt-3 text-[38px] text-white">Pick a time.</h1>
       <p className="mt-3 text-[15px] leading-relaxed text-muted">
         {brand.session.minutes} minutes, online. Times are in Nairobi time (EAT) and come straight from Duncan&apos;s calendar.
@@ -150,7 +150,7 @@ export function TimeStep({ topic, slot, onPick, onBack, onContinue }: { topic: S
       )}
 
       <button onClick={onContinue} disabled={!slot} className="btn btn-white btn-lg mt-8 w-full">
-        {slot ? `Continue · ${fmtWhen(slot).split(" (")[0]}` : "Choose a time"}
+        {slot ? `${cta} · ${fmtWhen(slot).split(" (")[0]}` : "Choose a time"}
       </button>
     </div>
   );

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { CalModal } from "@/components/book/cal-modal";
 import { BookedCard, fmtWhen, TimeStep, TopicStep } from "@/components/book/steps";
 import { Check, ChevronLeft, Lock } from "@/components/icons";
 import { AuthShell } from "@/components/site/auth-shell";
@@ -25,6 +26,9 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 /** Checkout for the course (`/enroll`) or a paid 1:1 session (`/book`). */
 export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" }) {
   const session = mode === "session";
+  const cal = session && brand.session.provider === "cal"; // pay first, then Duncan's calendar pops up
+  const total = cal ? 3 : 4;
+  const [calOpen, setCalOpen] = useState(false);
   const verify = VERIFY[mode];
   const params = useSearchParams();
   const firstTopic = session ? (brand.session.topics.find((t) => t.id === params.get("topic")) ?? null) : null;
@@ -39,7 +43,7 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
     [session, topic, slot],
   );
   const router = useRouter();
-  const [step, setStep] = useState<Step>(!session ? "details" : firstTopic ? "time" : "topic");
+  const [step, setStep] = useState<Step>(!session ? "details" : firstTopic ? (cal ? "details" : "time") : "topic");
   const [dir, setDir] = useState(1);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -78,6 +82,13 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
     return () => clearTimeout(t);
   }, [step, stage, done, email, name, method, phone, mode, item, verify]);
 
+  // Cal.com mode: the calendar pops up by itself once the receipt has printed.
+  useEffect(() => {
+    if (!cal || stage !== "complete") return;
+    const t = setTimeout(() => setCalOpen(true), 900);
+    return () => clearTimeout(t);
+  }, [cal, stage]);
+
   useEffect(() => {
     if (stage !== "printing") return;
     const t = setTimeout(() => setStage("complete"), 1900);
@@ -93,7 +104,7 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
           <ul className="mt-4 space-y-2.5 text-[15px] text-ink-2">
             {(mode === "course"
               ? [`${stats.lessons} videos over 7 days`, `${stats.quizzes} quizzes and a final assessment`, "WhatsApp community and support", "Verifiable certificate", "Lifetime access"]
-              : [`${brand.session.minutes} minutes, one on one with Duncan`, "Bring your products, your shots or your questions", "Pick a time that suits you after paying", "Online, by video call"]
+              : [`${brand.session.minutes} minutes, one on one with Duncan`, "Bring your products, your shots or your questions", "Pay, then pick a time that suits you", "Online, by video call"]
             ).map((t) => (
               <li key={t} className="flex items-center gap-2.5">
                 <Check size={16} className="text-amber" /> {t}
@@ -114,9 +125,10 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
         >
           {step === "topic" && (
             <TopicStep
+              total={total}
               onPick={(t) => {
                 setTopic(t);
-                go("time");
+                go(cal ? "details" : "time");
               }}
             />
           )}
@@ -133,14 +145,14 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
               }}
             >
               {session && (
-                <button type="button" onClick={() => go("time", -1)} className="mb-6 inline-flex items-center gap-1 text-[14px] text-muted hover:text-white">
-                  <ChevronLeft size={16} /> {slot ? fmtWhen(slot) : "Time"}
+                <button type="button" onClick={() => go(cal ? "topic" : "time", -1)} className="mb-6 inline-flex items-center gap-1 text-[14px] text-muted hover:text-white">
+                  <ChevronLeft size={16} /> {cal ? (topic?.title ?? "Topic") : slot ? fmtWhen(slot) : "Time"}
                 </button>
               )}
-              <p className="eyebrow">{session ? "Step 3 of 4" : "Step 1 of 2"}</p>
+              <p className="eyebrow">{session ? `Step ${cal ? 2 : 3} of ${total}` : "Step 1 of 2"}</p>
               <h1 className="headline mt-3 text-[38px] text-white">{session ? "Your details." : "Almost there."}</h1>
               <p className="mt-3 text-[16px] leading-relaxed text-muted">
-                {session ? "We'll send your receipt and the calendar invite to this email." : "Your access is linked to this email, and your certificate uses this name."}
+                {session ? (cal ? "Your receipt goes to this email. After paying, you'll pick your time." : "We'll send your receipt and the calendar invite to this email.") : "Your access is linked to this email, and your certificate uses this name."}
               </p>
               <div className="mt-9 space-y-4">
                 <label className="block">
@@ -176,7 +188,7 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
               <button onClick={() => go("details", -1)} className="inline-flex items-center gap-1 text-[14px] text-muted hover:text-white">
                 <ChevronLeft size={16} /> Details
               </button>
-              <p className="eyebrow mt-6">{session ? "Step 4 of 4" : "Step 2 of 2"}</p>
+              <p className="eyebrow mt-6">{session ? `Step ${total} of ${total}` : "Step 2 of 2"}</p>
               <div className="mt-3 flex items-baseline justify-between gap-4">
                 <h1 className="headline text-[38px] text-white">Pay</h1>
                 <p className="font-[family-name:var(--font-display)] text-[26px] font-extrabold tracking-[-0.03em] text-white">{price}</p>
@@ -287,7 +299,19 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
                         </button>
                       </>
                     ) : (
-                      slot && <BookedCard topic={item.label} slot={slot} email={receipt.email} receiptNumber={receipt.number} />
+                      cal ? (
+                        <>
+                          <h1 className="headline text-[26px] text-white">Paid. Now pick your time.</h1>
+                          <p className="mx-auto mt-2 max-w-xs text-[15px] leading-relaxed text-muted">
+                            Choose a day and time on Duncan&apos;s calendar. Your receipt is on its way to <span className="text-white">{receipt.email}</span>.
+                          </p>
+                          <button onClick={() => setCalOpen(true)} className="btn btn-white btn-lg mt-6 w-full">
+                            Pick your time
+                          </button>
+                        </>
+                      ) : (
+                        slot && <BookedCard topic={item.label} slot={slot} email={receipt.email} receiptNumber={receipt.number} />
+                      )
                     )}
                   </motion.div>
                 )}
@@ -296,6 +320,9 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
           )}
         </motion.div>
       </AnimatePresence>
+      {cal && topic && receipt && (
+        <CalModal open={calOpen} onClose={() => setCalOpen(false)} topic={topic} name={name.trim()} email={email.trim()} notes={notes} receiptNumber={receipt.number} />
+      )}
     </AuthShell>
   );
 }
