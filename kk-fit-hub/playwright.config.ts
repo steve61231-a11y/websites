@@ -16,9 +16,45 @@ export default defineConfig({
     launchOptions: executablePath ? { executablePath } : undefined,
   },
   projects: [
-    { name: "mobile", use: { ...devices["Pixel 7"], viewport: { width: 375, height: 812 }, launchOptions: executablePath ? { executablePath } : undefined } },
-    { name: "tablet", use: { ...devices["Desktop Chrome"], viewport: { width: 768, height: 1024 }, launchOptions: executablePath ? { executablePath } : undefined } },
-    { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, launchOptions: executablePath ? { executablePath } : undefined } },
+    {
+      name: "mobile",
+      testIgnore: /admin\.spec/,
+      use: {
+        ...devices["Pixel 7"],
+        viewport: { width: 375, height: 812 },
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    {
+      name: "tablet",
+      testIgnore: /admin\.spec/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 768, height: 1024 },
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    {
+      name: "desktop",
+      testIgnore: /admin\.spec/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
+    // The admin suite changes shared accounts, records and public content, so
+    // it runs once, after the public suites, at 375px.
+    {
+      name: "admin",
+      testMatch: /admin\.spec/,
+      dependencies: ["mobile", "tablet", "desktop"],
+      use: {
+        ...devices["Pixel 7"],
+        viewport: { width: 375, height: 812 },
+        launchOptions: executablePath ? { executablePath } : undefined,
+      },
+    },
   ],
   webServer: process.env.BASE_URL
     ? undefined

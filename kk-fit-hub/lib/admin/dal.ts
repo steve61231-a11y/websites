@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 import type { Database } from "@/lib/supabase/database.types";
 import { hasSupabase } from "@/lib/supabase/env";
@@ -27,6 +28,8 @@ export type StaffResult = { ok: true; staff: Staff } | { ok: false; reason: "sig
 /** Resolves the signed-in staff member, without redirecting. */
 export const resolveStaff = cache(async (): Promise<StaffResult> => {
   if (!hasSupabase()) return { ok: false, reason: "signed-out" };
+  // Session reads are per request; never part of a prerender.
+  await connection();
   const db = await createSessionClient();
   const {
     data: { user },
@@ -81,4 +84,10 @@ export async function staffOrError(owner = false): Promise<{ staff: Staff } | { 
   if (!r.ok) return { error: "Your session has ended. Please sign in again." };
   if (owner && !r.staff.isOwner) return { error: "Only the owner can do that." };
   return { staff: r.staff };
+}
+
+/** The current time for a request-time render (admin pages are never prerendered). */
+export async function requestNow(): Promise<number> {
+  await connection();
+  return Date.now();
 }

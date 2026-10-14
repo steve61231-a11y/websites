@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { firstName, whatsappMessages } from "@/content/whatsapp";
 import { ContactButtons, Empty, Overdue, PageHeader, Tile } from "@/components/admin/ui";
-import { requireStaff } from "@/lib/admin/dal";
+import { requestNow, requireStaff } from "@/lib/admin/dal";
 import { formatDate, isOverdue, todayEAT } from "@/lib/admin/format";
 import { openInquiryStatuses } from "@/lib/admin/labels";
 
@@ -11,7 +11,7 @@ export const metadata = { title: "Overview" };
 export default async function OverviewPage() {
   const staff = await requireStaff();
   const db = staff.db;
-  const now = Date.now();
+  const now = await requestNow();
   const today = todayEAT(now);
 
   const [newReq, overdue, review, vetting, todayList, interest, activities] = await Promise.all([

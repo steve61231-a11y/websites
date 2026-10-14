@@ -19,7 +19,8 @@ import type { Database } from "@/lib/supabase/database.types";
 export type AdminResult = { ok: true; data?: Record<string, string> } | { ok: false; error: string };
 
 const id = z.uuid();
-const optionalText = (max: number) => z.string().trim().max(max).optional().transform((v) => (v ? v : null));
+const optionalText = (max: number) =>
+  z.string().trim().max(max).nullish().transform((v) => (v ? v : null));
 const dbError = (error: { message: string; code?: string } | null): AdminResult | null => {
   if (!error) return null;
   if (error.code === "42501") return { ok: false, error: error.message.includes("owner") ? error.message : "You don't have permission to do that." };

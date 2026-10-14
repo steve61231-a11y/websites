@@ -39,7 +39,14 @@ export function parseInquiryFilters(p: Params): InquiryFilters {
 export const inquiryListColumns =
   "id, ref, type, status, contact_name, contact_role, school_name, county, county_other, phone_e164, email, created_at, next_action, next_action_due, assigned_to, source, lost_reason, institution_type, sector, learners_band, grades, preferred_days, preferred_time, start_term, contact_pref, message, utm, inquiry_activities(activities(slug, name)), assignee:profiles!inquiries_assigned_to_fkey(full_name)";
 
-export function inquiryQuery(db: Db, f: InquiryFilters, now: number) {
+/** Inquiry ids for an activity filter (resolved first, then passed to inquiryQuery). */
+export async function inquiryIdsForActivity(db: Db, slug: string): Promise<string[] | undefined> {
+  if (!slug) return undefined;
+  const { data } = await db.from("inquiry_activities").select("inquiry_id, activities!inner(slug)").eq("activities.slug", slug);
+  return (data ?? []).map((r) => r.inquiry_id);
+}
+
+export function inquiryQuery(db: Db, f: InquiryFilters, now: number, activityIds?: string[]) {
   let q = db.from("inquiries").select(inquiryListColumns, { count: "exact" });
   if (f.status) q = q.eq("status", f.status as InquiryStatus);
   if (f.type) q = q.eq("type", f.type as InquiryType);
@@ -47,18 +54,7 @@ export function inquiryQuery(db: Db, f: InquiryFilters, now: number) {
   if (f.assignee === "none") q = q.is("assigned_to", null);
   else if (f.assignee) q = q.eq("assigned_to", f.assignee);
   if (f.overdue) q = q.in("status", openInquiryStatuses).lt("next_action_due", todayEAT(now));
-  if (f.activity) {
-    q = db
-      .from("inquiries")
-      .select(inquiryListColumns.replace("inquiry_activities(", "inquiry_activities!inner(").replace("activities(slug", "activities!inner(slug"), { count: "exact" })
-      .eq("inquiry_activities.activities.slug", f.activity);
-    if (f.status) q = q.eq("status", f.status as InquiryStatus);
-    if (f.type) q = q.eq("type", f.type as InquiryType);
-    if (f.county) q = q.eq("county", f.county);
-    if (f.assignee === "none") q = q.is("assigned_to", null);
-    else if (f.assignee) q = q.eq("assigned_to", f.assignee);
-    if (f.overdue) q = q.in("status", openInquiryStatuses).lt("next_action_due", todayEAT(now));
-  }
+  if (activityIds) q = q.in("id", activityIds.length > 0 ? activityIds : ["00000000-0000-0000-0000-000000000000"]);
   const term = safeSearch(f.q);
   if (term) {
     const phone = normaliseKenyanPhone(term);
@@ -79,13 +75,16 @@ export function parseApplicationFilters(p: Params): ApplicationFilters {
 export const applicationListColumns =
   "id, ref, status, full_name, phone_e164, email, county, counties, created_at, years_practising, years_coaching, highest_rank, work_preference, availability, first_aid, good_conduct, video_url, source, main_activity_other, main:activities!applications_main_activity_id_fkey(slug, name), vetting_checks(check_type, result)";
 
-export function applicationQuery(db: Db, f: ApplicationFilters) {
-  const columns = f.activity
-    ? applicationListColumns.replace("main:activities!applications_main_activity_id_fkey(", "main:activities!applications_main_activity_id_fkey!inner(")
-    : applicationListColumns;
-  let q = db.from("applications").select(columns, { count: "exact" });
+export async function activityIdForSlug(db: Db, slug: string): Promise<string | null | undefined> {
+  if (!slug) return undefined;
+  const { data } = await db.from("activities").select("id").eq("slug", slug).maybeSingle();
+  return data?.id ?? null;
+}
+
+export function applicationQuery(db: Db, f: ApplicationFilters, activityId?: string | null) {
+  let q = db.from("applications").select(applicationListColumns, { count: "exact" });
   if (f.status) q = q.eq("status", f.status as ApplicationStatus);
-  if (f.activity) q = q.eq("main.slug", f.activity);
+  if (activityId !== undefined) q = q.eq("main_activity_id", activityId ?? "00000000-0000-0000-0000-000000000000");
   if (f.county) q = q.or(`county.eq.${safeSearch(f.county)},counties.cs.{"${safeSearch(f.county)}"}`);
   const term = safeSearch(f.q);
   if (term) {
