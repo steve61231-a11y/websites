@@ -84,11 +84,26 @@ export function Button({
   className,
   children,
   type = "button",
+  holdFocus,
+  onMouseDown,
   ...rest
-}: CommonProps & Omit<ComponentProps<"button">, "className" | "children">) {
+}: CommonProps &
+  Omit<ComponentProps<"button">, "className" | "children"> & {
+    /**
+     * Keep focus where it is on press. Form buttons use this so the field
+     * being left doesn't blur, show its error and shift the button before
+     * the click lands. Defaults to true for submit buttons.
+     */
+    holdFocus?: boolean;
+  }) {
+  const hold = holdFocus ?? type === "submit";
   return (
     <button
       type={type}
+      onMouseDown={(e) => {
+        if (hold) e.preventDefault();
+        onMouseDown?.(e);
+      }}
       className={buttonClass(variant, size, className)}
       data-cta={cta}
       data-magnetic={magnetic ? "" : undefined}

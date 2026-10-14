@@ -3,6 +3,7 @@ import { ActionBar } from "@/components/site/ActionBar";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
 import { WhatsAppFab } from "@/components/site/WhatsAppFab";
+import { UtmCapture } from "@/components/forms/UtmCapture";
 import { RevealObserver } from "@/motion/RevealObserver";
 import { getBuildYear } from "@/lib/data/build";
 import { getActivities, getSettings } from "@/lib/data/public";
@@ -28,6 +29,7 @@ export default async function SiteLayout({ children }: LayoutProps<"/">) {
       <ActionBar whatsappHref={wa} />
       <WhatsAppFab whatsappHref={wa} />
       <RevealObserver />
+      <UtmCapture />
     </>
   );
 }

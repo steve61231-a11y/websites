@@ -428,6 +428,36 @@ body {
   }
 }
 
+/* Form steps: the incoming step follows the outgoing one (PRD 11.6). */
+@keyframes kk-step-in {
+  from {
+    opacity: 0;
+    transform: translate3d(24px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes kk-step-back {
+  from {
+    opacity: 0;
+    transform: translate3d(-24px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes kk-knot {
+  from {
+    transform: scale(1.35, 0.7);
+  }
+  to {
+    transform: none;
+  }
+}
+
 /* Above-the-fold entrance: runs on first paint, no JS needed. */
 .rise-in {
   animation: kk-rise var(--dur-large) var(--ease-out) both;
@@ -494,6 +524,13 @@ html[data-motion="ready"] [data-reveal] {
 .text-link:hover .arrow,
 .text-link:focus-visible .arrow {
   transform: translateX(4px);
+}
+
+/* Keep focused fields above the fixed Back/Continue bar (application form). */
+@media (max-width: 1023.98px) {
+  html:has([data-apply-bar]) {
+    scroll-padding-bottom: 104px;
+  }
 }
 
 html[data-menu-open] .action-bar {
