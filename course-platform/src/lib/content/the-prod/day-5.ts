@@ -243,7 +243,7 @@ export const quiz: Quiz = makeQuiz("q-day-5", "Lighting & Modifiers", [
       ["Raise the ISO until the dark side of the product is bright"],
       ["Switch to a continuous light so you can see the result"],
       ["Read where the shadows fall, then reposition the light, for example above the product", true],
-      ["Move the light as close as possible so the shadows soften"],
+      ["Turn off the light and shoot with the room lights instead"],
     ],
     "You read light by reading the shadows. Moving the light on top gave softer shadows and a well-lit product, while the side light left one side dark.",
     "You shoot with the light at the side of the product: one side is well lit and the other has dark, harsh shadows.",

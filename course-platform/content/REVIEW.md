@@ -1,5 +1,7 @@
 # Transcript review list
 
+**Status:** only four things go to Duncan (the "Most important" list below). Everything else is handled: the notes use the most sensible reading, and no quiz question rests on a statement we were unsure about (the questions that did were removed or reworded: 4.5 handheld/tripod, 4.7 shutter demo, 6.4 f-stops and ISO numbers, the 5.5 light-distance distractor, and the unit-dependent figures). The list below is for reference.
+
 The lesson notes and quizzes were written from the video transcripts. Auto-transcription mishears names and numbers, so these are the places where the notes had to interpret something. Please check each one with Duncan. Once a point is confirmed, update the notes (see the `edit-lessons-and-quizzes` skill) and delete it from this list.
 
 ## Most important

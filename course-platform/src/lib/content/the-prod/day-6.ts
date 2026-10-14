@@ -186,18 +186,6 @@ export const quiz: Quiz = makeQuiz("q-day-6", "Shooting for White Background", [
     "You are shooting with one light and the side of a matte product facing away from it looks dull and dark. You do not have a foam board.",
   ),
   ask(
-    "d6-4",
-    "What does Duncan do first?",
-    [
-      ["Open the aperture to let in more light"],
-      ["Stop down toward the lens's sweet spot (for example f/13), then add a little ISO if the product gets too dark", true],
-      ["Move the camera closer to the product"],
-      ["Raise the ISO to 3200"],
-    ],
-    "Closing the aperture brings the highlights back, and a small ISO bump (he used 160) brings the product's brightness back. If detail is still blown out, check the power on the backlight.",
-    "You start a strobe shoot at ISO 100 and f/8, and the highlights on a bottle are blown out.",
-  ),
-  ask(
     "d6-5",
     "What does Duncan do?",
     [

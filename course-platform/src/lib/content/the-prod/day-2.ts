@@ -359,7 +359,7 @@ export const quiz: Quiz = makeQuiz("q-day-2", "Gear Recommendations", [
       ["A 24-70 zoom"],
       ["A 14 mm ultra-wide"],
     ],
-    "The 100 mm macro is the lens to get if you're looking for detail. If the budget isn't there for it, the 24-70 can still handle most jobs.",
+    "The 100 mm macro is the lens to get if you're looking for detail.",
     "A client wants close, detailed shots of small products.",
   ),
   ask(
@@ -382,7 +382,7 @@ export const quiz: Quiz = makeQuiz("q-day-2", "Gear Recommendations", [
       ["A foam board reflector"],
       ["A reflector with a grid", true],
     ],
-    "A reflector with a grid, such as a 30° grid, is good for hard light and shaping your light for drama. Frost paper is used to soften light.",
+    "A reflector with a grid is good for hard light and shaping your light for drama. Frost paper is used to soften light.",
   ),
   ask(
     "d2-8",

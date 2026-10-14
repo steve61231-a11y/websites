@@ -241,37 +241,13 @@ export const quiz: Quiz = makeQuiz("q-day-4", "Mastering the Camera", [
       ["Switch the picture profile back to Auto"],
       ["Shoot RAW plus JPEG"],
     ],
-    "A higher aperture number lets in less light, so the sensor needs more sensitivity. Duncan raises ISO (400, then 640, then 800) and the image gets brighter and stays sharp.",
+    "A higher aperture number lets in less light, so the sensor needs more sensitivity. Duncan raises the ISO and the image gets brighter while the aperture keeps the product sharp.",
     "You close the aperture to f/8 so the whole product is sharp, but the photo comes out too dark.",
-  ),
-  ask(
-    "d4-5",
-    "What is the best fix?",
-    [
-      ["Slow the shutter down even more to 1/25"],
-      ["Raise the f-number so the photo is sharper"],
-      ["Put the camera on a tripod and set your focus point again", true],
-      ["Shoot in JPEG so the camera sharpens the photo"],
-    ],
-    "A slow shutter picks up any hand shake. For products, mount the camera on a tripod and set the focus point; if you must hold the camera, keep the shutter at 1/125.",
-    "You are shooting a product handheld at 1/30 and the photo comes out blurry.",
   ),
   truth(
     "d4-6",
     "A higher ISO makes the camera sensor less sensitive to light, so the image becomes darker.",
     false,
     "A higher ISO makes the sensor more sensitive, so the image is brighter. The trade-off is more noise (grain), which is why a lower ISO is cleaner.",
-  ),
-  ask(
-    "d4-7",
-    "What does Duncan do to fix this?",
-    [
-      ["Raise the shutter speed to 1/240"],
-      ["Lower the shutter speed a little to let in more light", true],
-      ["Open the aperture to f/1.2"],
-      ["Take the camera off the tripod and shoot handheld"],
-    ],
-    "With the camera on a tripod you can use a slower shutter, which lets in more light. In the demo Duncan lowered the shutter speed a little to get a good exposure.",
-    "Your camera is on a tripod, the aperture is already set for a sharp image, and the photo is still a bit dark.",
   ),
 ]);
