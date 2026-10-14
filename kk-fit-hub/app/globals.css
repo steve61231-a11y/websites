@@ -366,8 +366,14 @@ body {
   z-index: 1;
 }
 
-/* Header glass (section 10.7). Solid fallback without backdrop-filter. */
+/* Header glass (section 10.7). Solid fallback without backdrop-filter.
+   The theme crossfades over 240ms at section boundaries (11.6). */
 .glass {
+  transition:
+    background-color var(--dur-small) var(--ease-standard),
+    border-color var(--dur-small) var(--ease-standard),
+    color var(--dur-small) var(--ease-standard),
+    transform var(--dur-small) var(--ease-standard);
   background: rgb(242 242 240 / 0.97);
   border-bottom: 1px solid var(--hairline-light);
 }
@@ -545,6 +551,41 @@ html[data-menu-open] .action-bar {
   display: none;
 }
 
+/* Scroll progress (11.6): a 2px energy line under the header on long pages,
+   driven by the scroll timeline where supported; absent elsewhere. */
+.scroll-progress {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    display: block;
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 49;
+    background: var(--energy-line);
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    animation: kk-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+@keyframes kk-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Page transitions (11.6): a 240ms fade-through between routes where the
+   View Transitions API exists; nothing elsewhere. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--dur-small);
+  animation-timing-function: var(--ease-emphasis);
+}
+
 /* Reduced motion: no movement beyond short fades (section 16.4). */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -563,5 +604,12 @@ html[data-menu-open] .action-bar {
   }
   .press:active {
     transform: none;
+  }
+  .scroll-progress {
+    display: none;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
   }
 }

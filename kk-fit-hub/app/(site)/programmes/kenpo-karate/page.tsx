@@ -9,6 +9,7 @@ import { ButtonLink, TextLink } from "@/components/ui/Button";
 import { StatusChip } from "@/components/ui/Chip";
 import { PhotoSlot } from "@/components/ui/PhotoSlot";
 import { WhatsAppIcon } from "@/components/site/icons";
+import { ScrollProgress } from "@/components/site/ScrollProgress";
 import { SectionShell } from "@/components/site/SectionShell";
 import { EndBand } from "@/components/sections/shared/EndBand";
 import { PageHero } from "@/components/sections/shared/PageHero";
@@ -30,6 +31,7 @@ export default async function KenpoKaratePage() {
 
   return (
     <>
+      <ScrollProgress />
       <JsonLd data={[serviceJsonLd("Kenpo Karate", "/programmes/kenpo-karate", settings.counties), faqJsonLd(faqs)]} />
       <PageHero
         theme="dark"

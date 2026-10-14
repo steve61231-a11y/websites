@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { SlotLoader } from "./SlotLoader";
 import { slotDefaults } from "./slots/defaults";
 import type { SlotId } from "./types";
 
@@ -22,6 +23,7 @@ export function MotionSlot({
   return (
     <div data-motion-slot={id} className={className} style={style}>
       <Default>{children}</Default>
+      <SlotLoader id={id} />
     </div>
   );
 }

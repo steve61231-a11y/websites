@@ -8,6 +8,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { ActivityGlyph } from "@/components/ui/ActivityGlyph";
 import { chipClass } from "@/components/ui/Chip";
 import { PhotoSlot } from "@/components/ui/PhotoSlot";
+import { ScrollProgress } from "@/components/site/ScrollProgress";
 import { Eyebrow, SectionShell } from "@/components/site/SectionShell";
 import { EndBand } from "@/components/sections/shared/EndBand";
 import { PageHero } from "@/components/sections/shared/PageHero";
@@ -31,6 +32,7 @@ export default async function JoinPage() {
 
   return (
     <>
+      <ScrollProgress />
       <JsonLd data={faqJsonLd(joinPage.faqs)} />
       <PageHero
         theme="dark"

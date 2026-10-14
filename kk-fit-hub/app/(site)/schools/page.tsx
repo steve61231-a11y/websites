@@ -8,6 +8,7 @@ import { Accordion } from "@/components/ui/Accordion";
 import { ButtonLink } from "@/components/ui/Button";
 import { PhotoSlot } from "@/components/ui/PhotoSlot";
 import { WhatsAppIcon } from "@/components/site/icons";
+import { ScrollProgress } from "@/components/site/ScrollProgress";
 import { SectionShell } from "@/components/site/SectionShell";
 import { Belt } from "@/components/sections/shared/Belt";
 import { EndBand } from "@/components/sections/shared/EndBand";
@@ -33,6 +34,7 @@ export default async function SchoolsPage() {
 
   return (
     <>
+      <ScrollProgress />
       <JsonLd data={faqJsonLd(faqs)} />
       <PageHero
         title={schoolsPage.h1}

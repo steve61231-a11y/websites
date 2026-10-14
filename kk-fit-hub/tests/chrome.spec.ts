@@ -16,8 +16,12 @@ test.describe("header", () => {
   test("hides on scroll down past 600px and returns on scroll up", async ({ page }) => {
     await page.goto("/");
     const header = page.locator("header.site-header");
-    await page.mouse.wheel(0, 900);
-    await expect(header).toHaveClass(/-translate-y-full/);
+    // Smooth scrolling may switch on mid-test, so keep scrolling until past 600px.
+    await expect(async () => {
+      await page.mouse.wheel(0, 400);
+      expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(700);
+      await expect(header).toHaveClass(/-translate-y-full/, { timeout: 500 });
+    }).toPass({ timeout: 10_000 });
     await page.mouse.wheel(0, -200);
     await expect(header).not.toHaveClass(/-translate-y-full/);
   });

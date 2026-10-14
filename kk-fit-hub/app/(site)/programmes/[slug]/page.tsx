@@ -4,6 +4,7 @@ import { soonPage } from "@/content/pages";
 import { ButtonLink, TextLink } from "@/components/ui/Button";
 import { ActivityGlyph } from "@/components/ui/ActivityGlyph";
 import { StatusChip } from "@/components/ui/Chip";
+import { ScrollProgress } from "@/components/site/ScrollProgress";
 import { SectionShell } from "@/components/site/SectionShell";
 import { PageHero } from "@/components/sections/shared/PageHero";
 import { ProgrammeCard } from "@/components/sections/shared/ProgrammeCard";
@@ -35,6 +36,7 @@ export default async function ProgrammePage({ params }: PageProps<"/programmes/[
 
   return (
     <>
+      <ScrollProgress />
       <PageHero
         eyebrow={<StatusChip status={available ? "available" : "soon"} />}
         title={activity.name}

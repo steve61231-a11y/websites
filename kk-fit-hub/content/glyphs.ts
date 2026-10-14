@@ -77,3 +77,7 @@ export const glyphShapes: Record<GlyphId, GlyphShape[]> = {
     { kind: "path", d: "M21.5 12.5v3" },
   ],
 };
+
+/** Order of glyphs in public/media/particles.bin (scripts/sample-glyphs.ts). */
+export const particleGlyphOrder: GlyphId[] = ["karate", "chess", "skating", "ballet", "dance", "music", "coding"];
+export const PARTICLE_POINTS = 4096;
