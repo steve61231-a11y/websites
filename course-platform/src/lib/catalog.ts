@@ -15,7 +15,7 @@ export const brand: Brand = {
   communityUrl: "", // WhatsApp group invite link, to come
   session: {
     provider: "cal",
-    calUrl: "", // Duncan's Cal.com link, to come
+    calUrl: "https://cal.com/product-photography-wiw3ac/1hr",
     minutes: 60,
     currency: "KES",
     topics: [
