@@ -36,11 +36,16 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
   const firstTopic = session ? (brand.session.topics.find((t) => t.id === params.get("topic")) ?? null) : null;
   const [topic, setTopic] = useState<SessionTopic | null>(firstTopic);
   const [slot, setSlot] = useState<string | null>(null);
-  const [notes, setNotes] = useState("");
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  // The answers travel as one block of text: to Duncan's email, the booking and Cal.com's notes box.
+  const notes = (topic?.questions ?? [])
+    .filter((q) => answers[q.id]?.trim())
+    .map((q) => `${q.label} ${answers[q.id].trim()}`)
+    .join("\n");
   const item = useMemo<Purchase>(
     () =>
       session
-        ? { id: "session", label: topic?.title ?? "1:1 session", ...(slot ? { detail: fmtWhen(slot) } : {}), price: brand.session.price, currency: brand.session.currency }
+        ? { id: "session", label: topic?.title ?? "1:1 session", ...(slot ? { detail: fmtWhen(slot) } : {}), price: topic?.price ?? brand.session.topics[0].price, currency: brand.session.currency }
         : courseItem(course),
     [session, topic, slot],
   );
@@ -56,7 +61,7 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
   const [stage, setStage] = useState<ReceiptPrinterStage>("processing");
   const price = formatPrice(item.price, item.currency);
   const stats = courseStats(course);
-  const valid = name.trim().length > 1 && /^\S+@\S+\.\S+$/.test(email) && (!session || phone.replace(/\D/g, "").length >= 9);
+  const valid = name.trim().length > 1 && /^\S+@\S+\.\S+$/.test(email) && (!session || (phone.replace(/\D/g, "").length >= 9 && (topic?.questions ?? []).every((q) => !q.required || !!answers[q.id]?.trim())));
 
   const [payBusy, setPayBusy] = useState(false);
   const [payError, setPayError] = useState("");
@@ -160,6 +165,7 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
               total={total}
               onPick={(t) => {
                 setTopic(t);
+                setAnswers({});
                 go(cal ? "details" : "time");
               }}
             />
@@ -201,10 +207,21 @@ export function EnrollFlow({ mode = "course" }: { mode?: "course" | "session" })
                       <span className="mb-2 block text-[13px] font-medium text-ink-2">WhatsApp number</span>
                       <input id="whatsapp" className="field tabular-nums" type="tel" inputMode="tel" autoComplete="tel" placeholder="0712 345 678" value={phone} onChange={(e) => setPhone(e.target.value)} />
                     </label>
-                    <label className="block">
-                      <span className="mb-2 block text-[13px] font-medium text-ink-2">What do you want to cover? <span className="text-faint">(optional)</span></span>
-                      <textarea id="notes" className="field min-h-28 resize-none py-4" rows={3} maxLength={600} placeholder="Your business, your products, the questions you have" value={notes} onChange={(e) => setNotes(e.target.value)} />
-                    </label>
+                    {topic?.questions.map((q) => (
+                      <label key={q.id} className="block">
+                        <span className="mb-2 block text-[13px] font-medium text-ink-2">
+                          {q.label} {!q.required && <span className="text-faint">(optional)</span>}
+                        </span>
+                        <textarea
+                          className="field min-h-20 resize-none py-3"
+                          rows={2}
+                          maxLength={400}
+                          placeholder={q.placeholder}
+                          value={answers[q.id] ?? ""}
+                          onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                        />
+                      </label>
+                    ))}
                   </>
                 )}
               </div>

@@ -36,12 +36,13 @@ export async function POST(request: Request) {
   } else {
     const topic = brand.session.topics.find((t) => t.id === item);
     if (!topic) return json(404, { error: "That session isn't available." });
-    ({ price: amount, currency } = brand.session);
+    ({ price: amount } = topic);
+    currency = brand.session.currency;
     label = topic.title;
   }
 
   const reference = `PRD_${randomBytes(9).toString("base64url").replace(/[-_]/g, "x")}`;
-  const meta = kind === "session" ? { phone: str(body.phone, 40) ?? "", notes: str(body.notes, 600) ?? "" } : {};
+  const meta = kind === "session" ? { phone: str(body.phone, 40) ?? "", notes: str(body.notes, 1500) ?? "" } : {};
   try {
     await supabaseStore().insertPayment({ reference, kind, item, email, name, amount, currency, meta });
     const t = await initializeTransaction(env.paystackSecret(), {

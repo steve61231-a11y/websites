@@ -116,7 +116,14 @@ export type Brand = {
   session: SessionConfig;
 };
 
-export type SessionTopic = { id: string; title: string; blurb: string };
+export type SessionTopic = {
+  id: string;
+  title: string;
+  blurb: string;
+  price: number;
+  /** Up to three short questions asked before paying; the answers go to Duncan with the booking. */
+  questions: { id: string; label: string; placeholder: string; required?: boolean }[];
+};
 
 export type SessionConfig = {
   /** "cal": after paying, Duncan's Cal.com calendar pops up (his Google Calendar and Meet are connected there).
@@ -125,7 +132,6 @@ export type SessionConfig = {
   /** His Cal.com booking link for the "1:1 session" event, e.g. "https://cal.com/duncan/session". Empty = a preview calendar is shown. */
   calUrl: string;
   minutes: number;
-  price: number;
   currency: string;
   topics: SessionTopic[];
   /** Display time zone, and its fixed offset from UTC in hours (Nairobi: +3, no daylight saving). */

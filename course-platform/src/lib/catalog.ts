@@ -17,12 +17,41 @@ export const brand: Brand = {
     provider: "cal",
     calUrl: "", // Duncan's Cal.com link, to come
     minutes: 60,
-    price: 5000, // placeholder, to confirm
     currency: "KES",
     topics: [
-      { id: "blueprint", title: "Creative Business Blueprint", blurb: "Brand, content and the skills to grow a profitable business." },
-      { id: "customers", title: "Attract More Customers", blurb: "Content strategy and brand positioning that win and keep clients." },
-      { id: "gear", title: "Know What Gear To Invest In", blurb: "The right gear and tools for your budget and your work." },
+      {
+        id: "blueprint",
+        title: "Creative Business Blueprint",
+        blurb: "Brand, content and the skills to grow a profitable business.",
+        price: 5000,
+        questions: [
+          { id: "business", label: "What does your business do?", placeholder: "What you sell or offer, and who it's for", required: true },
+          { id: "stage", label: "Where are you right now?", placeholder: "Just starting, getting a few clients, or ready to scale" },
+          { id: "goal", label: "What do you want to leave the call with?", placeholder: "A plan, a price list, a direction..." },
+        ],
+      },
+      {
+        id: "customers",
+        title: "Attract More Customers",
+        blurb: "Content strategy and brand positioning that win and keep clients.",
+        price: 3500,
+        questions: [
+          { id: "business", label: "What do you sell, and to whom?", placeholder: "Your products and your ideal customer", required: true },
+          { id: "channels", label: "Where do you post or sell today?", placeholder: "Instagram, TikTok, a website, WhatsApp..." },
+          { id: "stuck", label: "What's not working?", placeholder: "Few enquiries, low sales, no clear style..." },
+        ],
+      },
+      {
+        id: "gear",
+        title: "Know What Gear To Invest In",
+        blurb: "The right gear and tools for your budget and your work.",
+        price: 3500,
+        questions: [
+          { id: "shoot", label: "What do you photograph?", placeholder: "Products, food, fashion, people...", required: true },
+          { id: "have", label: "What gear do you already have?", placeholder: "Phone, camera, lights, none yet" },
+          { id: "budget", label: "What's your budget?", placeholder: "In KES, roughly" },
+        ],
+      },
     ],
     timezone: "Africa/Nairobi",
     utcOffsetHours: 3,

@@ -14,7 +14,7 @@ Keep it as **one** event rather than three: the student's topic is passed in the
 
 ## What goes on the site
 - The link goes in `brand.session.calUrl` in `src/lib/catalog.ts`. Until it's set, a preview calendar is shown so the whole journey can be walked through.
-- Price, length and the three topics are in the same place (`brand.session`).
+- Each topic has its own price and three short questions (asked on our form before paying; the answers go to Duncan and into Cal.com's notes box). All in `brand.session.topics`, `src/lib/catalog.ts`. Prices: Blueprint KES 5,000, Attract More Customers KES 3,500, Gear KES 3,500.
 
 ## How it fits together
 `/book` (or a "How we help" card) → topic → details → pay → receipt prints → the calendar pops up (`src/components/book/cal-modal.tsx`, address built in `src/lib/booking/cal.ts`). The receipt email also carries the link, in case someone pays and closes the page before choosing a time.

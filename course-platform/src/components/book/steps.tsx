@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronLeft } from "@/components/icons";
 import { buildIcs } from "@/lib/booking/ics";
 import { generateSlots, groupByDay } from "@/lib/booking/slots";
-import { brand } from "@/lib/catalog";
+import { brand, formatPrice } from "@/lib/catalog";
 import type { SessionTopic } from "@/lib/types";
 
 const TZ = brand.session.timezone;
@@ -50,7 +50,10 @@ export function TopicStep({ onPick, total = 4 }: { onPick: (t: SessionTopic) => 
       <div className="mt-8 space-y-3">
         {brand.session.topics.map((t) => (
           <button key={t.id} onClick={() => onPick(t)} className="group w-full rounded-2xl bg-white/[0.06] p-5 text-left ring-1 ring-inset ring-white/10 transition-[background-color,transform] duration-300 hover:bg-white/[0.1] active:scale-[0.985]">
-            <span className="block text-[17px] font-semibold text-white">{t.title}</span>
+            <span className="flex items-baseline justify-between gap-4">
+              <span className="text-[17px] font-semibold text-white">{t.title}</span>
+              <span className="shrink-0 text-[14px] font-semibold tabular-nums text-amber">{formatPrice(t.price, brand.session.currency)}</span>
+            </span>
             <span className="mt-1 block text-[14px] leading-snug text-muted">{t.blurb}</span>
           </button>
         ))}

@@ -6,7 +6,7 @@ import { dayKey, generateSlots, groupByDay, isSlotOpen } from "../../src/lib/boo
 import type { SessionConfig } from "../../src/lib/types.ts";
 
 const cfg: SessionConfig = {
-  provider: "cal", calUrl: "", minutes: 60, price: 1, currency: "KES", topics: [], timezone: "Africa/Nairobi", utcOffsetHours: 3,
+  provider: "cal", calUrl: "", minutes: 60, currency: "KES", topics: [], timezone: "Africa/Nairobi", utcOffsetHours: 3,
   hours: { 1: [9, 17], 2: [9, 17], 3: [9, 17], 4: [9, 17], 5: [9, 17], 6: [10, 14] }, noticeHours: 24, days: 14,
 };
 // Mon 12 Oct 2026, 08:00 Nairobi = 05:00 UTC

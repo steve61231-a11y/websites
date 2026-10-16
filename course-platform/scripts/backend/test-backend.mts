@@ -163,9 +163,9 @@ await test("if Paystack can't be reached the order stays open for the next try",
 
 // ---- session payment --------------------------------------------------------
 await test("a paid session creates a booking and emails the booking link, with no course access", async () => {
-  const { db, sent, deps } = setup({ verify: async (ref) => ({ status: "success", reference: ref, id: "2", amount: brand.session.price * 100, currency: brand.session.currency, channel: "card", paidAt: null }) });
+  const { db, sent, deps } = setup({ verify: async (ref) => ({ status: "success", reference: ref, id: "2", amount: brand.session.topics[1].price * 100, currency: brand.session.currency, channel: "card", paidAt: null }) });
   const topic = brand.session.topics[1];
-  await db.store.insertPayment({ reference: "PRD_sess", kind: "session", item: topic.id, email: "amani@example.com", name: "Amani Wanjiru", amount: brand.session.price, currency: brand.session.currency, meta: { phone: "0712 345 678", notes: "candles" } });
+  await db.store.insertPayment({ reference: "PRD_sess", kind: "session", item: topic.id, email: "amani@example.com", name: "Amani Wanjiru", amount: topic.price, currency: brand.session.currency, meta: { phone: "0712 345 678", notes: "candles" } });
   const r = await settle("PRD_sess", deps);
   assert.equal(r.status, "success");
   assert.equal(db.enrollments.length, 0);
