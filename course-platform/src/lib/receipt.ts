@@ -51,7 +51,8 @@ export function demoReceipt(course: Purchase, p: { name: string; email: string; 
 }
 
 export function paidWith(r: Receipt) {
-  return r.method === "mpesa" ? `M-Pesa ···${r.last4}` : `Card ···${r.last4}`;
+  const label = r.method === "mpesa" ? "M-Pesa" : "Card";
+  return r.last4 ? `${label} ···${r.last4}` : label;
 }
 
 export function receiptDate(r: Receipt) {
@@ -79,7 +80,7 @@ export function receiptEmail(r: Receipt) {
     "",
     ...rows.map(([k, v]) => `${k}: ${v}`),
     "",
-    "Your course access is in a separate email.",
+    r.courseId === "session" ? "The link to pick your time is in a separate email." : "Your course access is in a separate email.",
     "",
     `${brand.organisation} · ${brand.email}`,
   ].join("\n");
@@ -90,7 +91,7 @@ export function receiptEmail(r: Receipt) {
 <table style="border-collapse:collapse;width:100%;margin:16px 0">${rows
     .map(([k, v]) => `<tr><td style="padding:6px 0;color:#666;width:120px">${esc(k)}</td><td style="padding:6px 0">${esc(v)}</td></tr>`)
     .join("")}</table>
-<p>Your course access is in a separate email.</p>
+<p>${r.courseId === "session" ? "The link to pick your time is in a separate email." : "Your course access is in a separate email."}</p>
 <p style="color:#666;font-size:13px">${esc(brand.organisation)} · ${esc(brand.email)}</p>
 </div>`;
   return { subject, text, html, rows, first, total };

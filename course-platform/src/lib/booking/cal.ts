@@ -3,6 +3,15 @@
 // doesn't type them twice; the topic and their notes go into Cal.com's
 // standard "notes" box, which every event has.
 
+/** The plain booking link (no embed settings), for emails. Empty when no link is set yet. */
+export function calBookingUrl(p: { url: string; name: string; email: string; topic: string; notes: string }): string {
+  const u = calEmbedUrl({ ...p, theme: "light" });
+  if (!u) return "";
+  const url = new URL(u);
+  for (const k of ["embed", "embedType", "layout", "theme"]) url.searchParams.delete(k);
+  return url.toString();
+}
+
 export function calEmbedUrl(p: { url: string; name: string; email: string; topic: string; notes: string; theme: "light" | "dark" }): string | null {
   let u: URL;
   try {
