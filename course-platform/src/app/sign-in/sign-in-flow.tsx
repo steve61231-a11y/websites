@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { ChevronLeft } from "@/components/icons";
 import { AuthShell } from "@/components/site/auth-shell";
 import { course } from "@/lib/catalog";
+import { backendOn, googleAuthOn } from "@/lib/backend";
 import { demo } from "@/lib/demo-store";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -30,23 +31,44 @@ export function SignInFlow() {
   const [stage, setStage] = useState<"email" | "code">("email");
   const [code, setCode] = useState<string[]>(Array(6).fill(""));
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
   const valid = /^\S+@\S+\.\S+$/.test(email);
 
-  function sendCode(e: React.FormEvent) {
+  async function sendCode(e: React.FormEvent) {
     e.preventDefault();
     if (!valid) return;
     setBusy(true);
+    setError(null);
+    if (backendOn) {
+      const problem = await demo.requestCode(email.trim().toLowerCase());
+      setBusy(false);
+      if (problem) return setError(problem);
+      return setStage("code");
+    }
     setTimeout(() => {
       setBusy(false);
       setStage("code");
     }, 650);
   }
 
-  function update(filled: string[]) {
+  async function update(filled: string[]) {
     setCode(filled);
     if (filled.every((c) => c !== "")) {
       setBusy(true);
+      setError(null);
+      if (backendOn) {
+        const problem = await demo.verifyCode(email.trim().toLowerCase(), filled.join(""));
+        if (problem) {
+          setBusy(false);
+          setError(problem);
+          setCode(Array(6).fill(""));
+          inputs.current[0]?.focus();
+          return;
+        }
+        router.push(next);
+        return;
+      }
       setTimeout(() => {
         demo.signIn(email.trim());
         router.push(next);
@@ -86,12 +108,17 @@ export function SignInFlow() {
             <h1 className="headline text-[40px] text-white">Sign in</h1>
             <p className="mt-2 text-[16px] text-muted">Use the email you paid with.</p>
 
-            <button onClick={sample} className="btn btn-glass btn-lg mt-9 w-full">
-              <GoogleMark /> Continue with Google
-            </button>
-            <div className="my-7 flex items-center gap-4 text-[12px] text-faint">
-              <span className="h-px flex-1 bg-white/10" /> or with your email <span className="h-px flex-1 bg-white/10" />
-            </div>
+            {(!backendOn || googleAuthOn) && (
+              <>
+                <button onClick={backendOn ? () => void demo.signInWithGoogle() : sample} className="btn btn-glass btn-lg mt-9 w-full">
+                  <GoogleMark /> Continue with Google
+                </button>
+                <div className="my-7 flex items-center gap-4 text-[12px] text-faint">
+                  <span className="h-px flex-1 bg-white/10" /> or with your email <span className="h-px flex-1 bg-white/10" />
+                </div>
+              </>
+            )}
+            {backendOn && !googleAuthOn && <div className="mt-9" />}
 
             <form onSubmit={sendCode}>
               <input
@@ -108,6 +135,7 @@ export function SignInFlow() {
               <button disabled={!valid || busy} className="btn btn-white btn-lg mt-4 w-full">
                 {busy ? <span className="size-5 animate-spin rounded-full border-2 border-black/20 border-t-black" /> : "Email me a code"}
               </button>
+              {error && <p role="alert" className="mt-4 text-[14px] leading-relaxed text-danger">{error}</p>}
             </form>
             <p className="mt-8 text-center text-[14px] text-muted">
               New here?{" "}
@@ -154,16 +182,32 @@ export function SignInFlow() {
                 />
               ))}
             </div>
-            <p className="mt-6 h-5 text-center text-[14px] text-muted">{busy ? "Signing you in…" : "Demo: any six digits work."}</p>
+            <p role={error ? "alert" : undefined} className={`mt-6 min-h-5 text-center text-[14px] ${error ? "text-danger" : "text-muted"}`}>
+              {busy ? "Signing you in…" : (error ?? (backendOn ? "The code is good for an hour." : "Demo: any six digits work."))}
+            </p>
+            {backendOn && !busy && (
+              <button
+                onClick={() => {
+                  setStage("email");
+                  setCode(Array(6).fill(""));
+                  setError(null);
+                }}
+                className="mx-auto mt-3 block text-[13px] text-faint hover:text-white"
+              >
+                Didn&apos;t get it? Send a new code
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="mt-12 border-t border-white/10 pt-6 text-center">
-        <button onClick={sample} className="text-[13px] text-faint hover:text-white">
-          Demo shortcut: continue as an enrolled student
-        </button>
-      </div>
+      {!backendOn && (
+        <div className="mt-12 border-t border-white/10 pt-6 text-center">
+          <button onClick={sample} className="text-[13px] text-faint hover:text-white">
+            Demo shortcut: continue as an enrolled student
+          </button>
+        </div>
+      )}
     </AuthShell>
   );
 }

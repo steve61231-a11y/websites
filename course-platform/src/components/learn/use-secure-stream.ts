@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import type Hls from "hls.js";
 import type { ErrorData } from "hls.js";
+import { backendOn } from "@/lib/backend";
 import { useDemo } from "@/lib/demo-store";
+import { authedFetch } from "@/lib/supabase-browser";
 import type { Lesson } from "@/lib/types";
 
 // Plays a protected lesson video (lesson.stream) in the player's <video>.
@@ -85,13 +87,15 @@ async function fetchSession(
 ): Promise<StreamSession> {
   let res: Response;
   try {
-    res = await fetch("/api/video/session", {
+    // Real students: their sign-in token goes along. The demo identity only
+    // counts while the server has VIDEO_DEV_OPEN=1.
+    const init: RequestInit = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // The demo identity only counts while the server has VIDEO_DEV_OPEN=1.
-      body: JSON.stringify({ ...video, from, ...(viewer ? { demo: { name: viewer.name, email: viewer.email } } : {}) }),
+      body: JSON.stringify({ ...video, from, ...(!backendOn && viewer ? { demo: { name: viewer.name, email: viewer.email } } : {}) }),
       signal,
-    });
+    };
+    res = backendOn ? await authedFetch("/api/video/session", init) : await fetch("/api/video/session", init);
   } catch (e) {
     if (signal.aborted) throw e;
     throw new SessionError(GENERIC, false);

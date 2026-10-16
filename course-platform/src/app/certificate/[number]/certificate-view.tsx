@@ -7,13 +7,24 @@ import { Wordmark } from "@/components/brand/wordmark";
 import { Check, Download, Share, Shield } from "@/components/icons";
 import { CertificateImage, certificateFileName } from "@/components/learn/personal-certificate";
 import { formatCertificateDate, useCertificateImage } from "@/lib/certificate-render";
-import { lookupCertificate } from "@/lib/certificates";
+import { findCertificate, lookupCertificate, type Found } from "@/lib/certificates";
+import { backendOn } from "@/lib/backend";
 import { useDemo } from "@/lib/demo-store";
 import { formatDate } from "@/lib/format";
 
 export function CertificateView({ number }: { number: string }) {
   const state = useDemo();
-  const found = state.ready ? lookupCertificate(number, state.certificates) : undefined;
+  const own = state.ready ? lookupCertificate(number, state.certificates) : undefined;
+  const [remote, setRemote] = useState<Found | null | undefined>(undefined);
+  useEffect(() => {
+    if (!state.ready || own) return;
+    let live = true;
+    findCertificate(number, []).then((f) => live && setRemote(f ?? null));
+    return () => {
+      live = false;
+    };
+  }, [state.ready, own, number]);
+  const found = own ?? remote ?? undefined;
   const [copied, setCopied] = useState(false);
   const image = useCertificateImage(
     found?.course.certificate,
@@ -28,7 +39,7 @@ export function CertificateView({ number }: { number: string }) {
     }
   }, [image]);
 
-  if (!state.ready) return <div className="min-h-dvh bg-black" />;
+  if (!state.ready || (!own && remote === undefined && backendOn)) return <div className="min-h-dvh bg-black" />;
 
   if (!found) {
     return (

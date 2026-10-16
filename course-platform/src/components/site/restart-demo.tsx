@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { backendOn } from "@/lib/backend";
 import { demo } from "@/lib/demo-store";
 
 /** Demo only: wipe payment, sign-in and progress, and go back to the start. */
 export function RestartDemo() {
   const router = useRouter();
+  if (backendOn) return null;
   return (
     <button
       type="button"

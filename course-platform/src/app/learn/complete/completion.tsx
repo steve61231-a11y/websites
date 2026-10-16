@@ -62,21 +62,32 @@ function ConfirmName({ defaultName }: { defaultName: string }) {
   const t = course.certificate;
   const image = useCertificateImage(t, { name: debounced, date: formatCertificateDate(t, new Date().toISOString()), number: `CERT-${new Date().getFullYear()}-${course.code}-······` });
   const valid = name.trim().length > 1;
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
 
   return (
     <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20, transition: { duration: 0.2 } }} transition={{ duration: 0.7, ease: EASE, delay: 0.7 }} className="mt-12 w-full max-w-4xl">
       <CertificateImage template={t} url={image?.url} name={debounced} className="shadow-[0_50px_120px_-30px_rgba(245,165,36,0.3)]" />
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          if (valid) demo.issueCertificate(course.id, course.code, name);
+          if (!valid || busy) return;
+          setBusy(true);
+          setError("");
+          try {
+            await demo.issueCertificate(course.id, course.code, name);
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "We couldn't issue it. Please try again.");
+            setBusy(false);
+          }
         }}
         className="mx-auto mt-8 max-w-md text-left"
       >
         <label htmlFor="cert-name" className="text-[14px] font-semibold text-white">Your name, exactly as it should appear</label>
         <input id="cert-name" value={name} onChange={(e) => setName(e.target.value)} className="field mt-2" autoComplete="name" maxLength={60} />
         <p className="mt-2 text-[13px] text-faint">Check the spelling. Your certificate can be verified by anyone, so it can&apos;t be changed after it&apos;s issued.</p>
-        <button type="submit" disabled={!valid} className="btn btn-amber btn-lg mt-5 w-full">Issue my certificate</button>
+        {error && <p role="alert" className="mt-3 text-[14px] text-danger">{error}</p>}
+        <button type="submit" disabled={!valid || busy} className="btn btn-amber btn-lg mt-5 w-full">{busy ? "Issuing…" : "Issue my certificate"}</button>
       </form>
     </motion.div>
   );

@@ -2,11 +2,17 @@
 
 import { useSyncExternalStore } from "react";
 import type { ProgressState, QuizAttempt } from "./progress";
+import { backendOn } from "./backend";
 import type { Receipt } from "./receipt";
+import { authedFetch, browser } from "./supabase-browser";
 
-// Phase 1 demo persistence. Everything here maps 1:1 to Supabase tables in
-// Phase 2: user → profiles, enrolled → enrollments, completedLessons →
-// lesson_progress, quizAttempts → quiz_attempts, certificates → certificates.
+// The app's single source of student state, in two modes:
+//  * Demo (no Supabase settings): a sample student, saved in this browser.
+//  * Backend (see lib/backend.ts): the same shape, loaded from /api/me after
+//    sign-in. Changes show at once, and are sent to the server, which
+//    re-checks them (enrolment, unlock rules, quiz grading) and keeps the
+//    record. user → profiles, enrolled → enrollments, completedLessons →
+//    lesson_progress, quizAttempts → quiz_attempts, certificates → certificates.
 
 export type Certificate = {
   number: string;
@@ -49,6 +55,11 @@ const listeners = new Set<() => void>();
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;
+  if (backendOn) {
+    state = { ...empty }; // not ready until we know whether someone is signed in
+    void hydrate();
+    return;
+  }
   try {
     const raw = window.localStorage.getItem(KEY);
     state = { ...empty, ...(raw ? JSON.parse(raw) : {}), ready: true };
@@ -60,12 +71,71 @@ function load() {
 function set(update: (s: DemoState) => Partial<DemoState>) {
   load();
   state = { ...state, ...update(state) };
-  try {
-    window.localStorage.setItem(KEY, JSON.stringify({ ...state, ready: undefined }));
-  } catch {
-    // Storage can be unavailable (private mode); the demo still works in memory.
+  if (!backendOn) {
+    try {
+      window.localStorage.setItem(KEY, JSON.stringify({ ...state, ready: undefined }));
+    } catch {
+      // Storage can be unavailable (private mode); the demo still works in memory.
+    }
   }
   listeners.forEach((l) => l());
+}
+
+// ---- backend mode ------------------------------------------------------------
+
+type Me = {
+  user: { name: string; email: string };
+  enrolled: string[];
+  completedLessons: Record<string, string>;
+  quizAttempts: ProgressState["quizAttempts"];
+  positions: Record<string, number>;
+  certificates: Certificate[];
+};
+
+async function fetchMe() {
+  try {
+    const res = await authedFetch("/api/me");
+    if (!res.ok) {
+      set(() => ({ ...empty, ready: true }));
+      return;
+    }
+    const me = (await res.json()) as Me;
+    set(() => ({ ready: true, user: me.user, enrolled: me.enrolled, completedLessons: me.completedLessons, quizAttempts: me.quizAttempts, positions: me.positions, certificates: me.certificates }));
+  } catch {
+    set(() => ({ ready: true }));
+  }
+}
+
+async function hydrate() {
+  try {
+    const sb = await browser();
+    const { data } = await sb.auth.getSession();
+    if (data.session) await fetchMe();
+    else set(() => ({ ready: true }));
+    sb.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session) void fetchMe();
+      if (event === "SIGNED_OUT") set(() => ({ ...empty, ready: true }));
+    });
+  } catch {
+    set(() => ({ ready: true }));
+  }
+}
+
+/** Tells the server about a change. If it refuses (or can't be reached), reload the truth. */
+function send(body: Record<string, unknown>) {
+  return authedFetch("/api/progress", { method: "POST", body: JSON.stringify(body) }).then(
+    async (res) => {
+      if (!res.ok) await fetchMe();
+    },
+    () => fetchMe(),
+  );
+}
+
+async function api(path: string, init: RequestInit) {
+  const res = await authedFetch(path, init);
+  const body = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) throw new Error(typeof body.error === "string" ? body.error : "Something went wrong. Please try again.");
+  return body;
 }
 
 function subscribe(listener: () => void) {
@@ -111,12 +181,40 @@ export const demo = {
     }));
   },
   signOut() {
+    if (backendOn) {
+      void browser().then((sb) => sb.auth.signOut());
+      set(() => ({ ...empty, ready: true }));
+      return;
+    }
     set(() => ({ user: null }));
   },
   updateName(name: string) {
     set((s) => ({ user: s.user ? { ...s.user, name } : null }));
+    if (backendOn) void api("/api/me", { method: "PATCH", body: JSON.stringify({ name }) }).catch(() => fetchMe());
+  },
+  /** Backend: emails a 6-digit code. Only people who have bought something can sign in. */
+  async requestCode(email: string): Promise<string | null> {
+    const sb = await browser();
+    const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+    if (!error) return null;
+    if (/not allowed|not found|signups/i.test(error.message)) return "We couldn't find a purchase for that email. Use the email you paid with, or get access first.";
+    if (/rate|seconds|too many/i.test(error.message)) return "Please wait a minute before asking for another code.";
+    return "We couldn't send the code. Please try again.";
+  },
+  /** Backend: checks the code. On success the app loads the student's data. */
+  async verifyCode(email: string, token: string): Promise<string | null> {
+    const sb = await browser();
+    const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+    if (error) return "That code didn't work. Check it and try again, or ask for a new one.";
+    await fetchMe(); // so the next page already knows who this is
+    return null;
+  },
+  async signInWithGoogle() {
+    const sb = await browser();
+    await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/learn` } });
   },
   completeLesson(lessonId: string) {
+    if (backendOn && !state.completedLessons[lessonId]) void send({ action: "lesson", lessonId });
     set((s) =>
       s.completedLessons[lessonId]
         ? {}
@@ -124,17 +222,25 @@ export const demo = {
     );
   },
   savePosition(lessonId: string, seconds: number) {
+    if (backendOn) void send({ action: "position", lessonId, seconds: Math.floor(seconds) });
     set((s) => ({ positions: { ...s.positions, [lessonId]: seconds } }));
   },
   recordAttempt(quizId: string, attempt: QuizAttempt) {
+    // Shown at once; in backend mode the server re-grades it and the app reloads the saved result.
+    if (backendOn) void send({ action: "quiz", quizId, answers: attempt.answers }).then(() => fetchMe());
     set((s) => ({
       quizAttempts: { ...s.quizAttempts, [quizId]: [...(s.quizAttempts[quizId] ?? []), attempt] },
     }));
   },
-  issueCertificate(courseId: string, code: string, name?: string): Certificate {
+  async issueCertificate(courseId: string, code: string, name?: string): Promise<Certificate> {
     load();
     const existing = state.certificates.find((c) => c.courseId === courseId);
     if (existing) return existing;
+    if (backendOn) {
+      const body = (await api("/api/certificate", { method: "POST", body: JSON.stringify({ courseId, name }) })) as { certificate: Certificate };
+      set((s) => ({ certificates: [...s.certificates.filter((c) => c.courseId !== courseId), body.certificate] }));
+      return body.certificate;
+    }
     const year = new Date().getFullYear();
     const seq = String(100 + Math.floor(Math.random() * 900)).padStart(6, "0");
     const cert: Certificate = {

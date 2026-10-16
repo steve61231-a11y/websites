@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { course } from "@/lib/catalog";
+import { backendOn } from "@/lib/backend";
 import { demo, useDemo } from "@/lib/demo-store";
 
 export function Account() {
@@ -57,6 +58,7 @@ export function Account() {
         Sign out
       </button>
 
+      {!backendOn && (
       <section className="mt-16">
         <p className="eyebrow">Demo controls</p>
         <p className="mt-2 text-[14px] text-muted">For showing the client the whole journey. Not part of the product.</p>
@@ -74,6 +76,7 @@ export function Account() {
           ))}
         </div>
       </section>
+      )}
     </div>
   );
 }

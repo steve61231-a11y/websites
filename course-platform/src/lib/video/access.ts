@@ -3,9 +3,9 @@ import { devOpen } from "./config.ts";
 
 // Who is asking to watch, and may they? Used by POST /api/video/session.
 //
-// Today (Phase 1) there is no real sign-in, so the only way in is
-// VIDEO_DEV_OPEN=1, which treats every visitor as a demo viewer. With it off,
-// nobody gets a token (401).
+// With the Supabase backend configured, only signed-in, enrolled students get
+// in. Without it, the only way in is VIDEO_DEV_OPEN=1, which treats every
+// visitor as a demo viewer. With that off too, nobody gets a token (401).
 
 export type Viewer = {
   userId: string;
@@ -26,21 +26,42 @@ export async function demoWatermarkId(email: string) {
   return (((digest[0] << 8) | digest[1]) % MAX_WATERMARK_ID) + 1;
 }
 
+// ---- Real students (when the Supabase backend is configured) ---------------
+// The browser sends its sign-in token as "Authorization: Bearer ...". The
+// server checks it with Supabase, then takes the student's hidden watermark
+// id from their profile. Imported lazily so the video tools and tests that
+// run without a database never load Supabase.
+
+/** undefined = backend not configured (fall back to the demo rules). */
+async function realViewer(request: Request): Promise<Viewer | null | undefined> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) return undefined;
+  const { supabaseStore, userFromRequest } = await import("@/lib/server/store");
+  const user = await userFromRequest(request);
+  if (!user) return null;
+  const profile = await supabaseStore().profile(user.id);
+  if (!profile?.watermark_id) return null;
+  return { userId: user.id, watermarkId: profile.watermark_id, label: `${profile.full_name || user.email} · ${user.email}` };
+}
+
+/** Enrolled in this course, and the day this video belongs to is unlocked. */
+async function realCanWatch(userId: string, video: VideoRef): Promise<boolean> {
+  const { getCourse } = await import("@/lib/catalog");
+  const { snapshot, canWatch: unlocked } = await import("@/lib/server/learn");
+  const { supabaseStore } = await import("@/lib/server/store");
+  const course = getCourse(video.course);
+  if (!course) return false;
+  const mod = course.modules.find((m) => m.lessons.some((l) => l.code === video.code));
+  if (!mod) return false;
+  const store = supabaseStore();
+  if (!(await store.enrolledCourses(userId)).includes(course.slug)) return false;
+  const state = snapshot(course, await store.lessonRows(userId, course.slug), await store.attemptRows(userId, course.slug), []);
+  return unlocked(state, course, mod);
+}
+
 /** The signed-in viewer, or null (401). */
 export async function getViewer(request: Request, video: VideoRef, demo?: DemoIdentity): Promise<Viewer | null> {
-  // ---- Phase 2 hook: real sign-in ------------------------------------------
-  // const supabase = createServerClient(...cookies from `request`...);
-  // const { data: { user } } = await supabase.auth.getUser();
-  // if (user) {
-  //   const { data: profile } = await supabase.from("profiles")
-  //     .select("full_name, email, watermark_id").eq("id", user.id).single();
-  //   return { userId: user.id, watermarkId: profile.watermark_id,
-  //            label: `${profile.full_name} · ${profile.email}` };
-  // }
-  // return null;
-  // --------------------------------------------------------------------------
-  void request;
-  void video;
+  const real = await realViewer(request);
+  if (real !== undefined) return real; // backend on: only real, signed-in students
 
   if (!devOpen()) return null;
   const email = clean(demo?.email, 200).toLowerCase() || "demo@example.com";
@@ -55,16 +76,6 @@ export async function getViewer(request: Request, video: VideoRef, demo?: DemoId
 /** May this viewer watch this video? false = 403 (not enrolled, or the day is
  *  still locked). */
 export async function canWatch(viewer: Viewer, video: VideoRef): Promise<boolean> {
-  // ---- Phase 2 hook: enrollment + day unlocked -----------------------------
-  // With the service role (server only):
-  // 1. enrollments: a row for (viewer.userId, course) with status 'active' and
-  //    expires_at null or in the future. None -> return false.
-  // 2. Find the lesson with code video.code (src/lib/catalog.ts getCourse +
-  //    course.modules[].lessons[].code) and its module.
-  // 3. Load the student's ProgressState from lesson_progress + quiz_attempts and
-  //    return moduleUnlocked(state, course, module) from src/lib/progress.ts,
-  //    the same rule the app uses to lock days.
-  // --------------------------------------------------------------------------
-  void video;
+  if (!viewer.userId.startsWith("demo:")) return realCanWatch(viewer.userId, video);
   return viewer.userId.startsWith("demo:") && devOpen();
 }

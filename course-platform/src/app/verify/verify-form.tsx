@@ -4,21 +4,25 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useState } from "react";
 import { CheckDraw } from "@/components/celebrate";
-import { lookupCertificate, sampleCertificate } from "@/lib/certificates";
+import { backendOn } from "@/lib/backend";
+import { findCertificate, sampleCertificate, type Found } from "@/lib/certificates";
 import { useDemo } from "@/lib/demo-store";
 import { formatDate } from "@/lib/format";
 
 export function VerifyForm() {
   const { certificates } = useDemo();
   const [value, setValue] = useState("");
-  const [result, setResult] = useState<ReturnType<typeof lookupCertificate> | null | undefined>(undefined);
+  const [result, setResult] = useState<Found | null | undefined>(undefined);
+  const [busy, setBusy] = useState(false);
 
   return (
     <div className="mt-12 w-full max-w-lg">
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          setResult(lookupCertificate(value, certificates) ?? null);
+          setBusy(true);
+          setResult((await findCertificate(value, certificates)) ?? null);
+          setBusy(false);
         }}
         className="flex gap-2"
       >
@@ -33,11 +37,13 @@ export function VerifyForm() {
           }}
           aria-label="Certificate ID"
         />
-        <button disabled={value.trim().length < 6} className="btn btn-white min-h-14 shrink-0">Verify</button>
+        <button disabled={busy || value.trim().length < 6} className="btn btn-white min-h-14 shrink-0">{busy ? "Checking…" : "Verify"}</button>
       </form>
-      <button onClick={() => setValue(sampleCertificate.number)} className="mt-3 text-[13px] text-faint hover:text-white">
-        Try a sample: {sampleCertificate.number}
-      </button>
+      {!backendOn && (
+        <button onClick={() => setValue(sampleCertificate.number)} className="mt-3 text-[13px] text-faint hover:text-white">
+          Try a sample: {sampleCertificate.number}
+        </button>
+      )}
 
       <AnimatePresence mode="wait">
         {result && (

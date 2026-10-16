@@ -1,3 +1,4 @@
+import { backendOn } from "./backend";
 import { getCourseById } from "./catalog";
 import type { Certificate } from "./demo-store";
 
@@ -11,7 +12,23 @@ export const sampleCertificate: Certificate = {
 
 export function lookupCertificate(number: string, mine: Certificate[]) {
   const n = number.trim().toUpperCase();
-  const cert = mine.find((c) => c.number === n) ?? (n === sampleCertificate.number ? sampleCertificate : undefined);
+  const cert = mine.find((c) => c.number === n) ?? (!backendOn && n === sampleCertificate.number ? sampleCertificate : undefined);
   const course = cert && getCourseById(cert.courseId);
   return cert && course ? { cert, course } : undefined;
+}
+
+export type Found = NonNullable<ReturnType<typeof lookupCertificate>>;
+
+/** Finds a certificate: the student's own first, then (with the backend on) the public record on the server. */
+export async function findCertificate(number: string, mine: Certificate[]): Promise<Found | undefined> {
+  const local = lookupCertificate(number, mine);
+  if (local || !backendOn) return local;
+  try {
+    const res = await fetch(`/api/certificate/verify?number=${encodeURIComponent(number.trim())}`);
+    const d = (await res.json()) as { valid?: boolean; number: string; name: string; courseId: string; issuedAt: string };
+    const course = d.valid ? getCourseById(d.courseId) : undefined;
+    return course ? { cert: { number: d.number, courseId: d.courseId, name: d.name, issuedAt: d.issuedAt }, course } : undefined;
+  } catch {
+    return undefined;
+  }
 }

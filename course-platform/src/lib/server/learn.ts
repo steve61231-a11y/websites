@@ -34,16 +34,16 @@ export function snapshot(course: Course, lessons: LessonRow[], attempts: Attempt
 }
 
 export function findLesson(course: Course, lessonId: string) {
-  for (const module of course.modules) {
-    const lesson = module.lessons.find((l) => l.id === lessonId);
-    if (lesson) return { module, lesson };
+  for (const mod of course.modules) {
+    const lesson = mod.lessons.find((l) => l.id === lessonId);
+    if (lesson) return { module: mod, lesson };
   }
   return undefined;
 }
 
 export function findQuiz(course: Course, quizId: string): { module: Module; quiz: Quiz } | undefined {
-  const module = course.modules.find((m) => m.quiz?.id === quizId);
-  return module?.quiz ? { module, quiz: module.quiz } : undefined;
+  const mod = course.modules.find((m) => m.quiz?.id === quizId);
+  return mod?.quiz ? { module: mod, quiz: mod.quiz } : undefined;
 }
 
 /** A video can be finished once its day is unlocked. */

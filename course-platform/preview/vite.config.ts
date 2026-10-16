@@ -34,6 +34,12 @@ function relativeStills(): Plugin {
 
 export default defineConfig({
   root: here("."),
+  // The preview is always the demo: no backend settings.
+  define: {
+    "process.env.NEXT_PUBLIC_SUPABASE_URL": '""',
+    "process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY": '""',
+    "process.env.NEXT_PUBLIC_GOOGLE_AUTH": '""',
+  },
   plugins: [relativeStills(), react(), tailwindcss(), viteSingleFile()],
   resolve: {
     alias: [
@@ -43,6 +49,7 @@ export default defineConfig({
       { find: "next/dynamic", replacement: here("./shims/dynamic.tsx") },
       // No key server in the preview: lessons always use the stand-in player.
       { find: /^.*\/streams\.json$/, replacement: here("./shims/streams.json") },
+      { find: /^@supabase\/supabase-js$/, replacement: here("./shims/supabase.ts") },
       { find: /^hls\.js$/, replacement: here("./shims/hls.ts") },
       { find: /^@\//, replacement: here("../src/") },
     ],
