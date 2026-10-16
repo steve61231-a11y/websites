@@ -22,7 +22,7 @@ The tables and security rules are already created.
 2. Create an API key → `RESEND_API_KEY`. Set `MAIL_FROM` to an address on that domain.
 
 ## 4. Hosting and domain
-Host the `course-platform` folder on Vercel (Next.js 16 works there out of the box) or Cloudflare. Add every variable from `.env.example` in the host's Environment Variables, set `SITE_URL` to the final address, then point the domain at the host (it shows the DNS records). Redeploy.
+Host the `course-platform` folder on Vercel (Next.js 16 works there out of the box). The Vercel project `the-prod` is already created and linked to this repo (root folder `course-platform`). Real payments need the Pro plan; Hobby is non-commercial. Add every variable from `.env.example` in the host's Environment Variables, set `SITE_URL` to the final address, then point the domain at the host (it shows the DNS records). Redeploy.
 
 ## 5. Cal.com
 Put the event link in `brand.session.calUrl` (`src/lib/catalog.ts`). See `docs/BOOKING-SETUP.md`.
