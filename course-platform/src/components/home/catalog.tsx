@@ -44,7 +44,7 @@ export function HomeHero() {
                 <Play size={16} /> Continue learning · {pct}%
               </Link>
             ) : (
-              <Link href={`/courses/${courses[0].slug}`} className="btn btn-white btn-lg">Access the course</Link>
+              <Link href="/#courses" className="btn btn-white btn-lg">See all courses</Link>
             )}
             <Link href="/book" className="btn btn-glass btn-lg">Book your session</Link>
           </div>

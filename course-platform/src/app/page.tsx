@@ -10,8 +10,8 @@ export default function Home() {
       <PageTransition>
         <main className="bg-black">
           <HomeHero />
-          <CourseList />
           <HowWeHelp />
+          <CourseList />
           <HowItWorks />
         </main>
       </PageTransition>
