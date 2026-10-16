@@ -95,7 +95,10 @@ test("demonstration request: validation, both steps and WhatsApp reference", asy
   await page.getByRole("button", { name: "Save details" }).click();
   await expect(page.getByRole("heading", { name: "Details saved." })).toBeVisible();
 
-  const after = await db.query("select sector, learners_band, grades, preferred_days, message, details_added_at from inquiries where ref = $1", [ref]);
+  const after = await db.query(
+    "select sector, learners_band, grades, preferred_days, message, details_added_at from inquiries where ref = $1",
+    [ref],
+  );
   expect(after.rows[0]).toMatchObject({
     sector: "Private",
     learners_band: "100–300",
@@ -115,7 +118,9 @@ test("register interest mode", async ({ page }) => {
   await page.getByRole("checkbox", { name: /I agree/ }).check();
   await page.getByRole("button", { name: "Register interest" }).click();
   await expect(page.getByRole("heading", { name: "Interest registered." })).toBeVisible();
-  await expect(page.locator("[data-success]")).toContainText("We'll contact Interest School first when Chess launches.");
+  await expect(page.locator("[data-success]")).toContainText(
+    "We'll contact Interest School first when Chess launches.",
+  );
   const { rows } = await db.query("select type from inquiries where phone_e164 = $1", [e164(phone)]);
   expect(rows.map((r) => r.type)).toEqual(["interest"]);
 });
@@ -146,7 +151,9 @@ test("rate limit triggers on the sixth request in an hour", async ({ page }) => 
       await expect(page.getByRole("heading", { name: "Request received." })).toBeVisible();
     } else {
       await expect(
-        page.getByRole("alert").filter({ hasText: "You've sent a few of these already. Please wait a few minutes, or WhatsApp us." }),
+        page
+          .getByRole("alert")
+          .filter({ hasText: "You've sent a few of these already. Please wait a few minutes, or WhatsApp us." }),
       ).toBeVisible();
     }
   }
@@ -178,9 +185,16 @@ test("contact form", async ({ page }) => {
   await page.getByRole("button", { name: "Send message" }).click();
   await expect(page.getByRole("heading", { name: "Message sent." })).toBeVisible();
   await expect(page.locator("[data-success]")).toContainText("We'll get back to you within 2 working days.");
-  const { rows } = await db.query("select type, contact_role, message, source from inquiries where phone_e164 = $1", [e164(phone)]);
+  const { rows } = await db.query("select type, contact_role, message, source from inquiries where phone_e164 = $1", [
+    e164(phone),
+  ]);
   expect(rows).toEqual([
-    { type: "general", contact_role: "Parent", message: "Do you run holiday karate camps for children?", source: "map" },
+    {
+      type: "general",
+      contact_role: "Parent",
+      message: "Do you run holiday karate camps for children?",
+      source: "map",
+    },
   ]);
 });
 
@@ -216,23 +230,36 @@ test("coach application with uploads, drafts and review", async ({ page }) => {
   await page.getByRole("checkbox", { name: "Kenpo Karate" }).check();
   await page.getByLabel("Years practising").fill("12");
   await page.getByLabel("Years coaching").fill("6");
-  await page.getByLabel("Experience coaching young people").fill(
-    "I have run school chess clubs in Nakuru for six years, coaching learners aged 8 to 17 for county tournaments.",
-  );
+  await page
+    .getByLabel("Experience coaching young people")
+    .fill(
+      "I have run school chess clubs in Nakuru for six years, coaching learners aged 8 to 17 for county tournaments.",
+    );
   await page.getByRole("button", { name: "Continue" }).click();
 
   await expect(page.getByText("Step 3 of 4: Proof and checks")).toBeVisible();
   // Too large a file is refused before upload.
-  await page.locator('input[type="file"]').first().setInputFiles({
-    name: "huge.pdf",
-    mimeType: "application/pdf",
-    buffer: Buffer.alloc(11 * 1024 * 1024),
-  });
-  await expect(page.getByText("That file is too large or isn't a PDF or image. Try one under 10 MB.").first()).toBeVisible();
-  await page.locator('input[type="file"]').first().setInputFiles(path.join(__dirname, "fixtures", "certificate.pdf"));
+  await page
+    .locator('input[type="file"]')
+    .first()
+    .setInputFiles({
+      name: "huge.pdf",
+      mimeType: "application/pdf",
+      buffer: Buffer.alloc(11 * 1024 * 1024),
+    });
+  await expect(
+    page.getByText("That file is too large or isn't a PDF or image. Try one under 10 MB.").first(),
+  ).toBeVisible();
+  await page
+    .locator('input[type="file"]')
+    .first()
+    .setInputFiles(path.join(__dirname, "fixtures", "certificate.pdf"));
   await expect(page.getByRole("button", { name: "Remove certificate.pdf" })).toBeVisible();
   await page.getByRole("radio", { name: "Current", exact: true }).check();
-  await page.locator('input[type="file"]').nth(1).setInputFiles(path.join(__dirname, "fixtures", "first-aid.png"));
+  await page
+    .locator('input[type="file"]')
+    .nth(1)
+    .setInputFiles(path.join(__dirname, "fixtures", "first-aid.png"));
   await expect(page.getByRole("button", { name: "Remove first-aid.png" })).toBeVisible();
   await page.getByRole("radio", { name: "I can get one" }).check();
   await page.getByLabel("Name").first().fill("Coach Mwangi");
@@ -247,6 +274,8 @@ test("coach application with uploads, drafts and review", async ({ page }) => {
   await page.getByRole("button", { name: "Continue" }).click();
 
   await expect(page.getByText("Review your application")).toBeVisible();
+  // Reaching review must not submit the form (no consent error yet).
+  await expect(page.locator("[data-error-summary]")).toHaveCount(0);
   await expect(page.getByRole("region", { name: "Proof and checks" })).toContainText("certificate.pdf");
   await page.getByRole("button", { name: "Edit Your discipline" }).click();
   await expect(page.getByText("Step 2 of 4: Your discipline")).toBeVisible();
@@ -268,7 +297,14 @@ test("coach application with uploads, drafts and review", async ({ page }) => {
   );
   expect(rows).toHaveLength(1);
   const app = rows[0];
-  expect(app).toMatchObject({ status: "new", main: "chess", years_practising: 12, first_aid: "current", referees: 1, checks: 5 });
+  expect(app).toMatchObject({
+    status: "new",
+    main: "chess",
+    years_practising: 12,
+    first_aid: "current",
+    referees: 1,
+    checks: 5,
+  });
   expect(app.source).toBe("doors");
   expect(app.files).toHaveLength(2);
   for (const f of app.files) expect(f.path).toMatch(new RegExp(`^applications/${app.id}/`));
@@ -283,14 +319,27 @@ test("anonymous Supabase clients cannot read inquiries, applications or files", 
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   test.skip(!url || !anon, "Supabase URL and anon key required");
   const headers = { apikey: anon!, authorization: `Bearer ${anon}` };
-  for (const table of ["inquiries", "applications", "application_files", "application_referees", "notes", "activity_log"]) {
+  for (const table of [
+    "inquiries",
+    "applications",
+    "application_files",
+    "application_referees",
+    "notes",
+    "activity_log",
+  ]) {
     const res = await request.get(`${url}/rest/v1/${table}?select=*`, { headers });
     const body = res.ok() ? await res.json() : [];
     expect(Array.isArray(body) ? body.length : 0, table).toBe(0);
   }
   const insert = await request.post(`${url}/rest/v1/inquiries`, {
     headers: { ...headers, "content-type": "application/json" },
-    data: { type: "demo", contact_name: "x", phone_e164: "+254700000000", consent_at: new Date().toISOString(), consent_version: "x" },
+    data: {
+      type: "demo",
+      contact_name: "x",
+      phone_e164: "+254700000000",
+      consent_at: new Date().toISOString(),
+      consent_version: "x",
+    },
   });
   expect(insert.ok()).toBe(false);
   const files = await request.post(`${url}/storage/v1/object/list/applicant-files`, {

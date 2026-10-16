@@ -139,7 +139,8 @@ export function ApplicationForm({
     shouldFocusError: true,
     defaultValues: emptyValues(initialMain),
   });
-  const { register, control, watch, trigger, formState, getValues, reset, setError, handleSubmit, getFieldState } = form;
+  const { register, control, watch, trigger, formState, getValues, reset, setError, handleSubmit, getFieldState } =
+    form;
   const attempted = useRef(false);
   const errors = formState.errors;
   const hydrated = useHydrated();
@@ -245,7 +246,11 @@ export function ApplicationForm({
 
   if (savedDraft) {
     return (
-      <div role="region" aria-labelledby="draft-title" className="rounded-[24px] border border-hairline bg-paper p-6 lg:p-8">
+      <div
+        role="region"
+        aria-labelledby="draft-title"
+        className="border-hairline bg-paper rounded-[24px] border p-6 lg:p-8"
+      >
         <h1 id="draft-title" className="type-h3">
           Welcome back. We saved your answers on this device.
         </h1>
@@ -296,17 +301,17 @@ export function ApplicationForm({
     >
       <h1 className="type-display-l">Apply to join the team</h1>
       {role && (
-        <p className="mt-3 text-text-2">
+        <p className="text-text-2 mt-3">
           Applying for: <strong className="text-text">{role.title}</strong>
         </p>
       )}
 
       {/* Progress */}
       <div className="mt-8">
-        <p className="type-small font-semibold text-text-2" aria-live="polite">
+        <p className="type-small text-text-2 font-semibold" aria-live="polite">
           {step < 4 ? `Step ${step + 1} of 4: ${stepNames[step]}` : "Review your application"}
         </p>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-paper" aria-hidden="true">
+        <div className="bg-paper mt-2 h-1.5 overflow-hidden rounded-full" aria-hidden="true">
           <div
             className="h-full origin-left rounded-full bg-orange-600 transition-transform duration-(--dur-medium) ease-(--ease-out)"
             style={{ transform: `scaleX(${Math.min(step + 1, 4) / 4})` }}
@@ -329,7 +334,10 @@ export function ApplicationForm({
         <div className="mt-6">
           <ErrorSummary errors={summary} />
           {serverError && (
-            <div role="alert" className="mb-8 rounded-[14px] border border-orange-700 bg-orange-100 p-5 font-semibold text-orange-700">
+            <div
+              role="alert"
+              className="mb-8 rounded-[14px] border border-orange-700 bg-orange-100 p-5 font-semibold text-orange-700"
+            >
               {serverError}
             </div>
           )}
@@ -369,7 +377,10 @@ export function ApplicationForm({
               </Field>
             </div>
             <Field name="step1.county" label="County where you live" error={errors.step1?.county?.message}>
-              <Select {...register("step1.county")} {...describedBy("step1.county", { error: errors.step1?.county?.message })}>
+              <Select
+                {...register("step1.county")}
+                {...describedBy("step1.county", { error: errors.step1?.county?.message })}
+              >
                 {allCounties.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -377,7 +388,11 @@ export function ApplicationForm({
                 ))}
               </Select>
             </Field>
-            <CheckboxField {...register("step1.isAdult")} error={errors.step1?.isAdult?.message} label="I am 18 or older" />
+            <CheckboxField
+              {...register("step1.isAdult")}
+              error={errors.step1?.isAdult?.message}
+              label="I am 18 or older"
+            />
             <Field name="step1.heardFrom" label="How did you hear about us?" optional>
               <TextInput {...register("step1.heardFrom")} {...describedBy("step1.heardFrom", {})} maxLength={80} />
             </Field>
@@ -401,7 +416,11 @@ export function ApplicationForm({
                 </Select>
               </Field>
               {mainActivity === otherValue && (
-                <Field name="step2.mainActivityOther" label="Main discipline (other)" error={errors.step2?.mainActivityOther?.message}>
+                <Field
+                  name="step2.mainActivityOther"
+                  label="Main discipline (other)"
+                  error={errors.step2?.mainActivityOther?.message}
+                >
                   <TextInput
                     {...register("step2.mainActivityOther")}
                     {...describedBy("step2.mainActivityOther", { error: errors.step2?.mainActivityOther?.message })}
@@ -418,14 +437,20 @@ export function ApplicationForm({
                   name="step2.otherActivities"
                   legend="Other disciplines"
                   optional
-                  options={activities.filter((a) => a.slug !== mainActivity).map((a) => ({ value: a.slug, label: a.name }))}
+                  options={activities
+                    .filter((a) => a.slug !== mainActivity)
+                    .map((a) => ({ value: a.slug, label: a.name }))}
                   value={field.value ?? []}
                   onChange={(v) => field.onChange(v)}
                 />
               )}
             />
             <div className="grid grid-cols-2 gap-6">
-              <Field name="step2.yearsPractising" label="Years practising" error={errors.step2?.yearsPractising?.message}>
+              <Field
+                name="step2.yearsPractising"
+                label="Years practising"
+                error={errors.step2?.yearsPractising?.message}
+              >
                 <TextInput
                   {...register("step2.yearsPractising")}
                   {...describedBy("step2.yearsPractising", { error: errors.step2?.yearsPractising?.message })}
@@ -559,11 +584,15 @@ export function ApplicationForm({
               )}
             />
             {[0, 1].map((i) => (
-              <fieldset key={i} className="grid gap-4 rounded-[24px] border border-hairline p-5">
+              <fieldset key={i} className="border-hairline grid gap-4 rounded-[24px] border p-5">
                 <legend className="px-1 text-[16px] font-semibold">
-                  Referee {i + 1} <span className="font-normal text-text-2">(optional)</span>
+                  Referee {i + 1} <span className="text-text-2 font-normal">(optional)</span>
                 </legend>
-                <Field name={`step3.referees.${i}.name`} label="Name" error={errors.step3?.referees?.[i]?.name?.message}>
+                <Field
+                  name={`step3.referees.${i}.name`}
+                  label="Name"
+                  error={errors.step3?.referees?.[i]?.name?.message}
+                >
                   <TextInput
                     {...register(`step3.referees.${i}.name`)}
                     {...describedBy(`step3.referees.${i}.name`, { error: errors.step3?.referees?.[i]?.name?.message })}
@@ -571,10 +600,16 @@ export function ApplicationForm({
                   />
                 </Field>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field name={`step3.referees.${i}.phone`} label="Phone" error={errors.step3?.referees?.[i]?.phone?.message}>
+                  <Field
+                    name={`step3.referees.${i}.phone`}
+                    label="Phone"
+                    error={errors.step3?.referees?.[i]?.phone?.message}
+                  >
                     <TextInput
                       {...register(`step3.referees.${i}.phone`)}
-                      {...describedBy(`step3.referees.${i}.phone`, { error: errors.step3?.referees?.[i]?.phone?.message })}
+                      {...describedBy(`step3.referees.${i}.phone`, {
+                        error: errors.step3?.referees?.[i]?.phone?.message,
+                      })}
                       type="tel"
                       inputMode="tel"
                       maxLength={20}
@@ -655,7 +690,14 @@ export function ApplicationForm({
           <div className="grid gap-4">
             <ReviewCard title="About you" onEdit={() => goTo(0)}>
               <Row label="Full name" value={values.step1.fullName} />
-              <Row label="Phone" value={values.step1.phone ? formatLocalPhone(normaliseKenyanPhone(values.step1.phone) ?? values.step1.phone) : ""} />
+              <Row
+                label="Phone"
+                value={
+                  values.step1.phone
+                    ? formatLocalPhone(normaliseKenyanPhone(values.step1.phone) ?? values.step1.phone)
+                    : ""
+                }
+              />
               <Row label="Email" value={values.step1.email} />
               <Row label="County" value={values.step1.county} />
               <Row label="How you heard" value={values.step1.heardFrom} />
@@ -665,14 +707,20 @@ export function ApplicationForm({
                 label="Main discipline"
                 value={mainActivity === otherValue ? values.step2.mainActivityOther : activityName(mainActivity)}
               />
-              <Row label="Other disciplines" value={(values.step2.otherActivities ?? []).map(activityName).join(", ")} />
+              <Row
+                label="Other disciplines"
+                value={(values.step2.otherActivities ?? []).map(activityName).join(", ")}
+              />
               <Row label="Years practising" value={String(values.step2.yearsPractising ?? "")} />
               <Row label="Years coaching" value={String(values.step2.yearsCoaching ?? "")} />
               <Row label="Highest rank" value={values.step2.highestRank} />
               <Row label="Experience" value={values.step2.experience} />
             </ReviewCard>
             <ReviewCard title="Proof and checks" onEdit={() => goTo(2)}>
-              <Row label="Certificates" value={(values.step3.certificates ?? []).map((f) => f.name).join(", ") || "None"} />
+              <Row
+                label="Certificates"
+                value={(values.step3.certificates ?? []).map((f) => f.name).join(", ") || "None"}
+              />
               <Row label="Video" value={values.step3.videoUrl} />
               <Row
                 label="First aid"
@@ -683,13 +731,18 @@ export function ApplicationForm({
                   .filter(Boolean)
                   .join(" · ")}
               />
-              <Row label="Good Conduct" value={goodConductOptions.find((o) => o.value === values.step3.goodConduct)?.label} />
+              <Row
+                label="Good Conduct"
+                value={goodConductOptions.find((o) => o.value === values.step3.goodConduct)?.label}
+              />
               <Row
                 label="Referees"
-                value={(values.step3.referees ?? [])
-                  .filter((r) => r.name)
-                  .map((r) => [r.name, r.relationship].filter(Boolean).join(", "))
-                  .join("; ") || "None"}
+                value={
+                  (values.step3.referees ?? [])
+                    .filter((r) => r.name)
+                    .map((r) => [r.name, r.relationship].filter(Boolean).join(", "))
+                    .join("; ") || "None"
+                }
               />
             </ReviewCard>
             <ReviewCard title="Availability" onEdit={() => goTo(3)}>
@@ -728,19 +781,29 @@ export function ApplicationForm({
       <div
         data-theme="light"
         data-apply-bar
-        className="glass fixed inset-x-0 bottom-0 z-30 flex gap-3 border-t border-hairline border-b-0! px-(--gutter) pt-3 pb-[max(12px,env(safe-area-inset-bottom))] lg:static lg:mt-10 lg:border-0 lg:bg-transparent! lg:p-0 lg:backdrop-blur-none"
+        className="glass border-hairline fixed inset-x-0 bottom-0 z-30 flex gap-3 border-t border-b-0! px-(--gutter) pt-3 pb-[max(12px,env(safe-area-inset-bottom))] lg:static lg:mt-10 lg:border-0 lg:bg-transparent! lg:p-0 lg:backdrop-blur-none"
       >
         {step > 0 && (
           <Button variant="secondary" onClick={() => goTo(step - 1)} className="flex-1 lg:flex-none" cta="apply-back">
             Back
           </Button>
         )}
+        {/* Distinct keys: if React reused the Continue element as the submit
+            button, the click that reaches review would also submit the form. */}
         {step < 4 ? (
-          <Button variant="coach" onClick={next} holdFocus className="flex-1 lg:flex-none" cta="apply-continue">
+          <Button
+            key="continue"
+            variant="coach"
+            onClick={next}
+            holdFocus
+            className="flex-1 lg:flex-none"
+            cta="apply-continue"
+          >
             Continue
           </Button>
         ) : (
           <Button
+            key="submit"
             type="submit"
             variant="coach"
             className="flex-1 lg:flex-none"
@@ -759,7 +822,7 @@ export function ApplicationForm({
 
 function ReviewCard({ title, onEdit, children }: { title: string; onEdit: () => void; children: React.ReactNode }) {
   return (
-    <section className="rounded-[24px] border border-hairline bg-paper p-5 lg:p-6" aria-label={title}>
+    <section className="border-hairline bg-paper rounded-[24px] border p-5 lg:p-6" aria-label={title}>
       <div className="flex items-center justify-between gap-4">
         <h3 className="text-[19px] font-semibold">{title}</h3>
         <button

@@ -9,12 +9,7 @@
  */
 
 export type PhotoId =
-  | "kennedy-strike"
-  | "kennedy-portrait"
-  | "kennedy-teaching"
-  | "kennedy-action-2"
-  | "detail-belt"
-  | "class-wide";
+  "kennedy-strike" | "kennedy-portrait" | "kennedy-teaching" | "kennedy-action-2" | "detail-belt" | "class-wide";
 
 export type StrikePoint = { x: number; y: number };
 
@@ -32,33 +27,34 @@ export type Photo = {
 export const photos: Record<PhotoId, Photo> = {
   "kennedy-strike": {
     id: "kennedy-strike",
-    alt: "Kennedy Kopala, founder of KK Fit Hub, throwing a punch",
-    src: null,
-    width: 1600,
-    height: 2000,
-    // Placeholder positions until the cutout exists: the fist reaches toward the text.
-    strikePoint: { mobile: { x: 30, y: 38 }, desktop: { x: 12, y: 42 } },
+    // CONFIRM: interim cutout from the studio stance photo, until the punch photo arrives.
+    alt: "Kennedy Kopala, founder of KK Fit Hub, in a Kenpo fighting stance",
+    src: "/media/kennedy-strike-1920.webp",
+    width: 1066,
+    height: 1600,
+    // The guard fist, as % of the image.
+    strikePoint: { mobile: { x: 58, y: 27 }, desktop: { x: 58, y: 27 } },
   },
   "kennedy-portrait": {
     id: "kennedy-portrait",
     alt: "Kennedy Kopala in his karate uniform and black belt",
-    src: null,
-    width: 1600,
-    height: 2000,
+    src: "/media/kennedy-stance-1920.webp",
+    width: 1066,
+    height: 1600,
   },
   "kennedy-teaching": {
     id: "kennedy-teaching",
-    alt: "Kennedy Kopala coaching a karate session",
-    src: null,
-    width: 1920,
-    height: 1440,
+    alt: "Kennedy Kopala speaking at a karate event",
+    src: "/media/kennedy-event-1920.webp",
+    width: 715,
+    height: 536,
   },
   "kennedy-action-2": {
     id: "kennedy-action-2",
-    alt: "Kennedy Kopala demonstrating a Kenpo Karate technique",
-    src: null,
-    width: 1600,
-    height: 2000,
+    alt: "Kennedy Kopala demonstrating a Kenpo Karate stance",
+    src: "/media/kennedy-stance-1920.webp",
+    width: 1066,
+    height: 1600,
   },
   "detail-belt": {
     id: "detail-belt",

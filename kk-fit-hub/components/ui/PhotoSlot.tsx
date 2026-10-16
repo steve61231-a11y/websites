@@ -24,13 +24,16 @@ export function PhotoSlot({
   fill?: boolean;
 }) {
   const radius = rounded ? "rounded-[28px]" : "";
+  // Callers that position the slot themselves (absolute/fixed) must not also get `relative`.
+  const position = /(^|\s)(absolute|fixed)(\s|$)/.test(className ?? "") ? "" : "relative";
   if (!photo.src) {
     return (
       <div
         aria-hidden="true"
         data-photo-placeholder={photo.id}
         className={cn(
-          "relative overflow-hidden bg-ink-800",
+          position,
+          "bg-ink-800 overflow-hidden",
           "bg-[radial-gradient(80%_60%_at_50%_30%,rgb(255_255_255/0.06),transparent_70%)]",
           radius,
           className,
@@ -39,7 +42,7 @@ export function PhotoSlot({
     );
   }
   return (
-    <div className={cn("relative overflow-hidden", radius, className)}>
+    <div className={cn(position, "overflow-hidden", radius, className)}>
       <Image
         src={photo.src}
         alt={photo.alt}
@@ -47,7 +50,7 @@ export function PhotoSlot({
         priority={priority}
         fetchPriority={priority ? "high" : undefined}
         {...(fill ? { fill: true } : { width: photo.width, height: photo.height })}
-        className={cn("object-cover", imgClassName)}
+        className={cn(imgClassName?.includes("object-contain") ? "" : "object-cover", imgClassName)}
       />
     </div>
   );
